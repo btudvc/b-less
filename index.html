@@ -92,17 +92,19 @@
 
     <!-- MEETINGS TAB -->
     <section id="meetings" class="section">
-      <div class="fv-header section-head-pad">
-        <div>
-          <h2 data-i18n="meetings.title">Meetings</h2>
-          <p class="fv-subtitle" data-i18n="meetings.subtitle">Notes, decisions, action items</p>
+      <div class="fv-container">
+        <div class="fv-header">
+          <div>
+            <h2 data-i18n="meetings.title">Meetings</h2>
+            <p class="fv-subtitle" data-i18n="meetings.subtitle">Notes, decisions, action items</p>
+          </div>
+          <div class="finance-header-actions">
+            <button class="btn-primary" id="add-meeting-btn"><span data-i18n="btn.add_meeting">+ Add Meeting</span></button>
+          </div>
         </div>
-        <div class="finance-header-actions">
-          <button class="btn-primary" id="add-meeting-btn"><span data-i18n="btn.add_meeting">+ Add Meeting</span></button>
+        <div class="sidebar">
+          <div class="robot-list" id="meeting-list"></div>
         </div>
-      </div>
-      <div class="sidebar">
-        <div class="robot-list" id="meeting-list"></div>
       </div>
       <div class="content" id="meeting-content">
         <div class="empty-state">
@@ -278,19 +280,22 @@
 
     <!-- JOURNAL TAB (daily-only) -->
     <section id="journal" class="section">
-      <div class="fv-header section-head-pad">
-        <div>
-          <h2 data-i18n="journal.title">Journal</h2>
-          <p class="fv-subtitle" data-i18n="journal.subtitle">Daily entries</p>
+      <div class="fv-container">
+        <div class="fv-header">
+          <div>
+            <h2 data-i18n="journal.title">Journal</h2>
+            <p class="fv-subtitle" data-i18n="journal.subtitle">Daily entries</p>
+          </div>
+          <div class="finance-header-actions">
+            <button class="btn-primary" id="jrn-today-btn" data-i18n="btn.add_today">+ Add today</button>
+          </div>
         </div>
-        <div class="finance-header-actions">
-          <button class="btn-primary" id="jrn-today-btn" data-i18n="btn.add_today">+ Add today</button>
-        </div>
-      </div>
-      <div class="jrn-container">
         <aside class="jrn-sidebar">
           <div class="jrn-list" id="jrn-list"></div>
         </aside>
+      </div>
+      <div class="jrn-container-detail">
+
         <div class="jrn-main">
           <div class="jrn-header">
             <button class="md-back-btn" type="button" onclick="closeJournalDetail()" aria-label="Back" title="Back">

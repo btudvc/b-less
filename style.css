@@ -7003,3 +7003,33 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     padding: 24px 32px !important;
   }
 }
+
+/* Meetings + Journal: now use .fv-container wrapper like Visits/Links.
+   Drop all the bespoke #meetings.section + #journal.section special
+   overrides — they inherit the standard fv-container layout now. */
+
+/* Inside the fv-container, the inner .sidebar (meeting list) and
+   .jrn-sidebar (journal list) just hold the list — transparent, no
+   border, no padding around the list. */
+#meetings .fv-container > .sidebar,
+#journal .fv-container > .jrn-sidebar {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+  display: block !important;
+  overflow: visible !important;
+}
+
+/* Detail wrappers: hidden by default, shown when an item is selected */
+#meetings .content,
+.jrn-container-detail {
+  display: none !important;
+}
+#meetings.section[data-detail-open="true"] .fv-container { display: none !important; }
+#meetings.section[data-detail-open="true"] .content { display: flex !important; }
+#journal[data-detail-open="true"] .fv-container { display: none !important; }
+#journal[data-detail-open="true"] .jrn-container-detail { display: block !important; }
+
+/* Kill old #meetings / #journal special positioning rules — let the
+   generic .fv-container styling do the work. */

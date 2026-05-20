@@ -6754,26 +6754,29 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
 .at-group { margin-bottom: 20px !important; }
 .at-group-label { margin-bottom: 10px !important; }
 
-/* Inbox badge on the desktop rail: small accent-coloured dot
-   floated at the top-right of the icon. Number hidden — the dot
-   is enough as a notification cue. */
+/* Desktop rail Inbox badge: kill the original badge entirely and
+   show a tiny dot via the parent button's ::after instead. Cleaner
+   than fighting the absolute positioning + content sizing. */
 @media (min-width: 1000px) {
   .drawer-nav-btn { position: relative !important; }
-  .drawer-nav-badge {
-    position: absolute !important;
-    top: 6px !important;
-    right: 12px !important;
-    width: 8px !important;
-    height: 8px !important;
-    min-width: 0 !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
-    background: var(--red, #dc2626) !important;
-    font-size: 0 !important;
-    color: transparent !important;
-    text-indent: -9999px;
-    border: 2px solid var(--bg) !important;
+  .drawer-nav-badge,
+  #drawer-inbox-badge {
+    display: none !important;
+  }
+  /* Show the dot only when the badge has a count (drawer-inbox-badge
+     is NOT hidden via the [hidden] attribute). Use a sibling check
+     via :has() on the button. */
+  .drawer-nav-btn:has(#drawer-inbox-badge:not([hidden]))::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 14px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--red, #dc2626);
+    border: 2px solid var(--bg);
     box-sizing: content-box;
-    line-height: 0 !important;
+    pointer-events: none;
   }
 }

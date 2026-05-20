@@ -531,7 +531,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '6.27.5';
+var APP_VERSION = '6.28.0';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -8930,6 +8930,17 @@ function _cvPreviewHtml(d) {
     sec('Certifications', certs) + sec('Courses', crs) + sec('Awards', awd) +
     sec('References', refs) + sec('Interests', interests) + '</div>';
 }
+
+// CV editor/preview tab switcher (mobile only — desktop shows both
+// columns side by side, the tabs are hidden via CSS).
+document.querySelectorAll('[data-cv-pane]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const pane = btn.dataset.cvPane;
+    document.querySelectorAll('[data-cv-pane]').forEach(b => b.classList.toggle('active', b === btn));
+    const layout = document.querySelector('.cv-layout');
+    if (layout) layout.dataset.active = pane;
+  });
+});
 
 document.getElementById('cv-print-btn')?.addEventListener('click', () => {
   // Use a hidden iframe instead of a new window — popup blockers don't

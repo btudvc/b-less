@@ -5125,17 +5125,10 @@ body { font-size: 13px; }
      applies to both viewports now). */
 }
 
-/* ── Drawer system nav (visible inside the slide-out drawer on every
-       viewport now — the floating pill only carries 4 top slots, so
-       the drawer is the user's gateway to the long-tail sections.) ── */
-.drawer-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: 12px 8px 4px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 6px;
-}
+/* ── Drawer system nav — hidden entirely. The floating pill nav
+       (Home/Inbox/Tasks/More) plus the More-page card grid already
+       cover every section, so the drawer is reserved for Spaces only. ── */
+.drawer-nav { display: none !important; }
 .drawer-nav-btn {
   position: relative;
   display: flex;

@@ -1,5 +1,5 @@
 // B-Less service worker — offline-first app shell
-const VERSION = 'b-less-v6.26.1';
+const VERSION = 'b-less-v6.26.2';
 const SHELL = [
   './',
   './index.html',

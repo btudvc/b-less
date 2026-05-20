@@ -531,7 +531,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '6.26.1';
+var APP_VERSION = '6.26.2';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -6708,6 +6708,18 @@ async function doAutoPush(spaceId, retry) {
   }
 }
 
+// Returns true if the user is actively typing into an input / textarea
+// / contenteditable. Used by auto-pull to defer re-renders that would
+// otherwise wipe an in-progress note or subtask draft.
+function _userIsTyping() {
+  const ae = document.activeElement;
+  if (!ae) return false;
+  const tag = ae.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return true;
+  if (ae.isContentEditable) return true;
+  return false;
+}
+
 async function maybeAutoPull(spaceId, force) {
   if (typeof PULL_FRESHNESS_MS !== 'number') return;
   const sp = findSpace(spaceId);
@@ -6717,6 +6729,11 @@ async function maybeAutoPull(spaceId, force) {
   if (_pendingPushes.has(spaceId)) return;
   if (_autoPullInFlight.has(spaceId)) return;
   if (!force && sp.lastSyncedAt && (Date.now() - sp.lastSyncedAt) < PULL_FRESHNESS_MS) return;
+  // While the user is mid-typing, skip the whole pull. Re-rendering the
+  // task detail (which is what wipes draft notes) is unavoidable on a
+  // merge, so the cleanest defence is not to merge while they're
+  // writing. The next poll tick — or the user's own save() — will pull.
+  if (_userIsTyping()) return;
   _autoPullInFlight.add(spaceId);
   try {
     const r = await DriveAPI.pullSpaceFile(sp.driveFileId);
@@ -6725,9 +6742,15 @@ async function maybeAutoPull(spaceId, force) {
       mergeImportedSpacePayload(r);
       const updated = findSpace(sp.id);
       if (updated) updated.collaborators = savedCollabs;
-      // Persist new revisionId/lastSyncedAt without re-firing the save() wrapper
-    // chain — going through save() would schedule another push and loop.
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+      // Persist new revisionId/lastSyncedAt without re-firing the save()
+      // wrapper chain — going through save() would schedule another push
+      // and loop.
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+      // Defensive: if focus has shifted INTO an input between the
+      // freshness gate above and the response landing, skip rendering
+      // so we don't trash that input either. Data is already merged;
+      // the next interaction will pick it up.
+      if (_userIsTyping()) return;
       if (typeof renderHome === 'function') renderHome();
       if (typeof renderRobotList === 'function') renderRobotList();
       if (typeof renderRobotDetail === 'function') renderRobotDetail();

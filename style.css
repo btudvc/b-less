@@ -6672,3 +6672,18 @@ select:focus {
    button in the header doesn't visually overlap the first entry card. */
 .jrn-container { padding-top: 18px !important; }
 .fv-header.section-head-pad { margin-bottom: 0 !important; padding-bottom: 8px !important; }
+
+/* Force section containers to actually take up the section width. With
+   .section.active being flex column + align-items: stretch, width:100%
+   was missing — explicit declaration so max-width: 1600px actually
+   becomes "fill the section up to 1600px" instead of content-sized. */
+.fv-container,
+.jrn-container,
+.links-container,
+.reviews-container,
+.cal-container,
+#meetings.section > .sidebar,
+#meetings.section > .content {
+  width: 100% !important;
+  align-self: stretch !important;
+}

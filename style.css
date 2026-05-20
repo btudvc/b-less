@@ -4303,18 +4303,10 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 .bnav-btn span { display: inline; }
 .bnav-btn svg  { width: 24px; height: 24px; stroke-width: 1.7; }
 .bnav-btn:hover { color: var(--text); }
+/* Old top-bar underline removed — the new pill uses a soft circular
+   highlight behind the icon (see the rule further down) for the
+   active state. */
 .bnav-btn.active { color: var(--accent); background: transparent; }
-.bnav-btn.active::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 28px;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 0 0 2px 2px;
-}
 .bnav-btn-icon-wrap { position: relative; display: inline-flex; font-style: normal; }
 .bnav-badge {
   position: absolute;
@@ -5141,8 +5133,13 @@ body { font-size: 13px; }
   /* Hide hamburger — sidebar is already visible */
   #topbar-burger-btn { display: none; }
   /* Hide bottom-nav pill — sidebar carries nav now */
-  .bottom-nav { display: none !important; }
-  .bnav-dock  { display: none !important; }
+  /* Floating pill nav is now visible on desktop too — alongside the
+     persistent sidebar for quick navigation. */
+  .bnav-dock {
+    /* Anchor over the main column (skip the 280px sidebar) so it sits
+       centered above the working area, not over the sidebar. */
+    left: calc(280px + (100vw - 280px) / 2);
+  }
 
   /* Section containers: lift the max-width caps so content uses the
      available space (still capped at a comfortable reading width). */
@@ -6032,26 +6029,31 @@ body.is-readonly #robot-content .nb-item { cursor: default !important; }
 
 /* Floating pill nav needs clearance — content under it would be
    covered. Section scroll containers add bottom padding equal to the
-   pill height + breathing room. Desktop drops the clearance (pill
-   hidden, sidebar in use). */
-@media (max-width: 999px) {
-  .section.active > .content,
-  .section.active > .home-container,
-  .section.active > .fv-container,
-  .section.active > .reviews-container,
-  .section.active > .links-container,
-  .section.active > .more-page,
-  .section.active > .cal-container,
-  .section.active > .jrn-container {
-    padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
-  }
+   pill height + breathing room. Applies everywhere since the pill now
+   shows on desktop too. */
+.section.active > .content,
+.section.active > .home-container,
+.section.active > .fv-container,
+.section.active > .reviews-container,
+.section.active > .links-container,
+.section.active > .more-page,
+.section.active > .cal-container,
+.section.active > .jrn-container {
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
 }
 
-/* Active pill button — subtle accent pill, no glow */
+/* Active pill button — soft accent circle behind the icon. No box,
+   no underline, no halo. Just a quiet dot. */
+.bnav-btn {
+  width: 44px;
+  height: 44px;
+  align-self: center;
+  border-radius: 50%;
+}
 .bnav-btn.active {
   color: var(--accent);
   background: var(--accent-soft);
-  box-shadow: none;
 }
-.bnav-btn:hover { color: var(--text); }
-.bnav-btn.active:hover { color: var(--accent); }
+.bnav-btn:hover         { color: var(--text); background: var(--surface-2); }
+.bnav-btn.active:hover  { color: var(--accent); background: var(--accent-soft); }
+.bottom-nav { height: 60px; align-items: center; gap: 2px; }

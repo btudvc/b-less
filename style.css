@@ -6256,8 +6256,8 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     margin: 0 0 28px !important;
   }
 
-  /* Meetings: list + content side-by-side */
-  #meetings.section {
+  /* Meetings: list + content side-by-side (only when active) */
+  #meetings.section.active {
     display: flex !important;
     flex-direction: row !important;
   }
@@ -6286,8 +6286,9 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     margin-bottom: 16px !important;
   }
 
-  /* Journal: list left, editor right */
-  #journal.section { display: flex !important; flex-direction: row !important; }
+  /* Journal: list left, editor right (only when active — otherwise
+     base .section { display: none } must still hide it) */
+  #journal.section.active { display: flex !important; flex-direction: row !important; }
   #journal .jrn-container {
     display: flex !important;
     flex-direction: row !important;

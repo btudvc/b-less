@@ -1194,16 +1194,16 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
    the top of the persistent sidebar instead (true top-left of the
    viewport, since the topbar starts after the sidebar column). */
 .topbar-logo {
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  min-height: 28px;
-  max-width: 28px;
-  max-height: 28px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  max-width: 40px;
+  max-height: 40px;
   border-radius: 0;
   flex-shrink: 0;
   display: block;
-  margin-right: 4px;
+  margin-right: 6px;
   object-fit: contain;
 }
 @media (min-width: 1000px) {
@@ -1216,14 +1216,14 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
    on every viewport. The topbar's centred title is the brand surface. */
 .spaces-drawer-brand { display: none !important; }
 .spaces-drawer-logo {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
+  width: 44px;
+  height: 44px;
+  border-radius: 0;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .12);
+  object-fit: contain;
 }
 .spaces-drawer-wordmark {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: -.01em;
   background: var(--brand-gradient, linear-gradient(180deg, #1d4ed8, #38bdf8));

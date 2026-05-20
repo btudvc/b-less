@@ -177,21 +177,7 @@ html {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  /* Subtle brand-tinted backdrop. The frosted glass surfaces above pick
-     up colour from these radial blooms so the whole app reads as one
-     piece of softly tinted glass. Fixed attachment keeps the gradients
-     steady while content scrolls. */
-  background:
-    /* Top-edge accents */
-    radial-gradient(900px 600px at 10% -5%, rgba(168, 85, 247, .26) 0%, transparent 55%),
-    radial-gradient(800px 600px at 90% 5%, rgba(251, 113, 133, .20) 0%, transparent 60%),
-    /* Mid-viewport blooms so empty content areas don't read as flat black */
-    radial-gradient(900px 700px at 75% 45%, rgba(124, 58, 237, .18) 0%, transparent 60%),
-    radial-gradient(900px 700px at 20% 60%, rgba(168, 85, 247, .14) 0%, transparent 60%),
-    /* Bottom anchor */
-    radial-gradient(1100px 700px at 50% 105%, rgba(251, 113, 133, .16) 0%, transparent 55%),
-    var(--bg);
-  background-attachment: fixed;
+  background: var(--bg);
   color: var(--text);
   /* Use dynamic viewport height so iOS Safari's URL bar doesn't push content
      below the visible area. Falls back to 100vh on older browsers. */
@@ -6031,289 +6017,84 @@ body.is-readonly #robot-content .nb-item { cursor: default !important; }
 .bottom-nav { height: 60px; align-items: center; gap: 2px; }
 
 /* ════════════════════════════════════════════════════════
-   THEME V2 — UNIFIED FROSTED GLASS LANGUAGE
-   Single source of truth applied after every section's local
-   styles. Surfaces, chrome and inputs all draw from the same
-   glass tokens; body radial backdrop gives backdrop-filter
-   real colour to blur.
+   MINIMAL — kill all glass / blur / colourful backdrops.
+   Map the glass tokens to solid surface colours so every
+   existing rule that references them collapses to a clean,
+   restrained dark theme.
    ════════════════════════════════════════════════════════ */
+:root {
+  --glass-bg:        var(--surface);
+  --glass-bg-2:      var(--surface-2);
+  --glass-bg-card:   var(--surface);
+  --glass-border:    var(--border);
+  --glass-highlight: transparent;
+  --glass-blur:      none;
+  --card-shadow:     none;
+}
+:root[data-theme="light"],
+:root:not([data-theme]) {
+  --glass-bg:        var(--surface);
+  --glass-bg-2:      var(--surface-2);
+  --glass-bg-card:   var(--surface);
+  --glass-border:    var(--border);
+  --glass-highlight: transparent;
+}
+:root[data-theme="dim"],
+:root[data-theme="dark"] {
+  --glass-bg:        var(--surface);
+  --glass-bg-2:      var(--surface-2);
+  --glass-bg-card:   var(--surface);
+  --glass-border:    var(--border);
+  --glass-highlight: transparent;
+}
 
-/* ── 1. Top-level chrome ── */
-.app-topbar {
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--glass-border) !important;
+/* Kill blur + colourful glow everywhere */
+* {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.app-topbar,
+.bottom-nav,
+.spaces-drawer,
+.modal,
+.backup-popover,
+.bnav-fab {
+  box-shadow: none !important;
 }
 .bottom-nav {
-  background: var(--glass-bg-card) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border) !important;
-  box-shadow: 0 8px 28px rgba(15, 20, 30, .14), 0 2px 8px rgba(15, 20, 30, .06);
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
 }
 .bnav-fab {
-  box-shadow: 0 10px 22px var(--accent-soft2, rgba(168, 85, 247, .35)),
-              0 3px 8px rgba(15, 20, 30, .14);
-}
-.spaces-drawer {
-  background: var(--glass-bg-card) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-right: 1px solid var(--glass-border) !important;
-}
-
-/* ── 2. Solid-looking content cards — frosted white ── */
-.home-list-item,
-.wm-cell,
-.home-card,
-.home-journal-card,
-.at-task,
-.visit-row,
-.link-row,
-.rev-row,
-.jrn-entry,
-.vault-row,
-.vault-card,
-.cv-acc,
-.cv-list-item,
-.task-body,
-.task-card,
-.notebook,
-.cal-day,
-.cal-day-panel,
-#meeting-list .robot-item,
-#meetings .robot-item,
-.streak-widget,
-.spaces-drawer-section,
-.bp-account,
-.bp-meta,
-.bp-settings-block {
-  background: var(--glass-bg-card) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-color: var(--glass-border) !important;
-}
-
-/* ── 3. Hover states — accent border + soft halo, keep frost ── */
-.home-list-item:hover,
-.wm-cell:hover,
-.home-card:hover,
-.at-task:hover,
-.visit-row:hover,
-.link-row:hover,
-.rev-row:hover,
-.jrn-entry:hover,
-.vault-row:hover,
-.cal-day:hover,
-#meeting-list .robot-item:hover,
-#meetings .robot-item:hover {
-  background: var(--glass-bg-card) !important;
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1px var(--accent-soft, rgba(168, 85, 247, .25)),
-              0 0 18px var(--accent-soft, rgba(168, 85, 247, .18));
-}
-
-/* ── 4. Active / selected states ── */
-.cal-day.selected,
-.jrn-entry.active,
-#meeting-list .robot-item.active,
-#meetings .robot-item.active,
-.rev-row.active,
-.wm-cell.wm-has {
-  background: var(--accent-soft) !important;
-  border-color: var(--accent) !important;
-}
-.wm-cell.wm-today {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1px var(--accent) inset !important;
-}
-.wm-cell.wm-today.wm-has { background: var(--accent-soft) !important; }
-
-/* ── 5. Inner panels stay transparent so the host frost shows ── */
-.task-body .notebook,
-.task-body .att-section,
-.task-body .subtask-list,
-.task-body .task-actions-row,
-.bp-account,
-.bp-meta-row,
-.bp-settings-block {
-  /* Re-declare so the inner panels DON'T get their own opaque fill —
-     they belong to the host card visually. */
-}
-.task-body > .notebook,
-.task-body > .att-section {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* Modal already uses glass via its own rules; just make sure the
-   inner sub-blocks inside the popover don't double-stack. */
-.backup-popover .bp-account,
-.backup-popover .bp-meta,
-.backup-popover .bp-settings-block,
-.backup-popover .bp-meta-row {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border-color: var(--glass-border) !important;
-}
-
-/* ── 6. Inputs / textareas — soft glass shell ── */
-.modal input,
-.modal textarea,
-.modal select,
-.cv-f input,
-.cv-f textarea,
-.cv-f select,
-.vault-card input,
-.links-search,
-.reviews-textarea,
-.notes-area,
-.sub-add-row input[type="text"],
-.nb-add-row textarea,
-.nb-add-row input,
-.search-input {
-  background: var(--glass-bg-2, var(--glass-bg)) !important;
-  border: 1px solid var(--glass-border) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  color: var(--text);
-}
-.modal input:focus,
-.modal textarea:focus,
-.modal select:focus,
-.cv-f input:focus,
-.cv-f textarea:focus,
-.cv-f select:focus,
-.vault-card input:focus,
-.links-search:focus,
-.reviews-textarea:focus,
-.notes-area:focus,
-.sub-add-row input[type="text"]:focus,
-.nb-add-row textarea:focus,
-.nb-add-row input:focus,
-.search-input:focus {
-  outline: none !important;
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 3px var(--accent-soft, rgba(168, 85, 247, .18));
-}
-
-/* ── 7. Buttons (secondary controls) — frosted with subtle border ── */
-.btn-ghost,
-.btn-sm,
-.btn-mini,
-.cal-nav,
-.cal-today-btn,
-.cal-export-btn,
-.action-add-btn,
-.icon-btn:not(.topbar-icon-btn),
-.modal-close,
-.md-back-btn,
-.bp-icon-btn,
-.vault-icon-btn,
-.home-section-icon-btn,
-.lang-btn,
-.task-action-btn,
-.cv-tab,
-.cv-list-actions button {
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border) !important;
-  color: var(--text);
-}
-.btn-ghost:hover,
-.btn-sm:hover,
-.btn-mini:hover,
-.cal-nav:hover,
-.cal-today-btn:hover,
-.cal-export-btn:hover,
-.action-add-btn:hover,
-.icon-btn:not(.topbar-icon-btn):hover,
-.modal-close:hover,
-.md-back-btn:hover,
-.bp-icon-btn:hover,
-.vault-icon-btn:hover,
-.home-section-icon-btn:hover,
-.lang-btn:hover,
-.task-action-btn:hover,
-.cv-list-actions button:hover {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1px var(--accent-soft, rgba(168, 85, 247, .25));
-  color: var(--text) !important;
-}
-.cv-tab.active,
-.rev-period-btn.active,
-.radio-btn.active {
   background: var(--accent) !important;
   color: var(--on-accent) !important;
-  border-color: var(--accent) !important;
+  border: none !important;
+}
+.app-topbar {
+  background: var(--bg) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.modal,
+.backup-popover {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
 }
 
-/* ── 8. Topbar icons stay frameless (visual quiet) ── */
-.topbar-icon-btn,
-.topbar-avatar-btn {
+/* Section containers — back to plain transparent (no panels) */
+.fv-container,
+.jrn-container,
+.links-container,
+.reviews-container,
+.cal-container {
   background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border-color: transparent !important;
-}
-.topbar-icon-btn:hover,
-.topbar-avatar-btn:hover {
-  background: var(--glass-bg) !important;
-  border-color: var(--glass-border) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  min-height: auto !important;
+  margin: 0 auto !important;
+  padding: 18px 14px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-/* ── 9. Drawer items match the new glass language ── */
-.drawer-nav-btn,
-.spaces-drawer-item {
-  background: transparent !important;
-  border: 1px solid transparent !important;
-  box-shadow: none !important;
-}
-.drawer-nav-btn:hover,
-.spaces-drawer-item:hover {
-  background: var(--glass-bg-2, var(--glass-bg)) !important;
-}
-.drawer-nav-btn.active {
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
-}
-
-/* ── 10. Catch-all reset: kill any leftover solid grey blocks ── */
-.tab-strip,
-.tag-picker,
-.radio-group,
-.reviews-period-toggle {
-  background: transparent !important;
-}
-.reviews-period-toggle {
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border) !important;
-}
-
-/* ── 11. Browsers without backdrop-filter — solid fallback ── */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .home-list-item, .wm-cell, .home-card, .home-journal-card,
-  .at-task, .visit-row, .link-row, .rev-row, .jrn-entry,
-  .vault-row, .vault-card, .cv-acc, .cv-list-item,
-  .task-body, .task-card, .notebook,
-  .cal-day, .cal-day-panel,
-  #meeting-list .robot-item, #meetings .robot-item,
-  .streak-widget, .spaces-drawer-section,
-  .bp-account, .bp-meta, .bp-settings-block,
-  .bottom-nav, .spaces-drawer, .app-topbar {
-    background: var(--surface) !important;
-  }
-}
-/* ════════════════════════════════════════════════════════
-   THEME V3 — STRONGER GLASS + PROPER HIERARCHY FIX
-   ════════════════════════════════════════════════════════ */
-/* The glass card pattern — every standalone surface uses this look */
+/* Card surfaces — solid --surface, no halos */
 .home-list-item,
 .wm-cell,
 .home-card,
@@ -6334,214 +6115,14 @@ body.is-readonly #robot-content .nb-item { cursor: default !important; }
 #meeting-list .robot-item,
 #meetings .robot-item,
 .streak-widget,
-.spaces-drawer-section,
-.bottom-nav {
-  background: var(--glass-bg-card) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border) !important;
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, .22)),
-    var(--card-shadow, 0 8px 24px rgba(0, 0, 0, .18));
-}
-
-/* Nested cards / panels inside the task body — transparent so the
-   host card frost reads as one piece. */
-.task-body .notebook,
-.task-body .att-section,
-.task-body .subtask-list,
-.task-body .task-actions-row,
-.task-body .nb-entry,
-.notebook .nb-entry,
-.att-section .att-chip {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: none !important;
-  border-color: var(--glass-border) !important;
-}
-
-/* Backup popover inner blocks: same rule */
-.backup-popover .bp-account,
-.backup-popover .bp-meta,
-.backup-popover .bp-settings-block,
-.backup-popover .bp-meta-row {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+.streak-stat,
+.spaces-drawer-section {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
   box-shadow: none !important;
 }
 
-/* Inputs LIGHTER than the host card */
-.modal input,
-.modal textarea,
-.modal select,
-.cv-f input,
-.cv-f textarea,
-.cv-f select,
-.vault-card input,
-.links-search,
-.reviews-textarea,
-.notes-area,
-.sub-add-row input[type="text"],
-.nb-add-row textarea,
-.nb-add-row input,
-.search-input,
-textarea {
-  background: rgba(255, 255, 255, .06) !important;
-  border: 1px solid var(--glass-border) !important;
-  color: var(--text);
-  box-shadow: none !important;
-}
-:root[data-theme="light"] .modal input,
-:root:not([data-theme]) .modal input,
-:root[data-theme="light"] .modal textarea,
-:root:not([data-theme]) .modal textarea,
-:root[data-theme="light"] .cv-f input,
-:root:not([data-theme]) .cv-f input,
-:root[data-theme="light"] .cv-f textarea,
-:root:not([data-theme]) .cv-f textarea,
-:root[data-theme="light"] textarea,
-:root:not([data-theme]) textarea {
-  background: rgba(255, 255, 255, .55) !important;
-}
-.modal input:focus,
-.modal textarea:focus,
-.modal select:focus,
-.cv-f input:focus,
-.cv-f textarea:focus,
-.cv-f select:focus,
-.vault-card input:focus,
-.links-search:focus,
-.reviews-textarea:focus,
-.notes-area:focus,
-.sub-add-row input[type="text"]:focus,
-.nb-add-row textarea:focus,
-.nb-add-row input:focus,
-.search-input:focus,
-textarea:focus {
-  outline: none !important;
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 3px var(--accent-soft, rgba(168, 85, 247, .22)) !important;
-}
-
-/* Buttons & toggles — make them pop with the highlight too */
-.btn-ghost,
-.btn-sm,
-.btn-mini,
-.cal-nav,
-.cal-today-btn,
-.cal-export-btn,
-.action-add-btn,
-.icon-btn:not(.topbar-icon-btn),
-.modal-close,
-.md-back-btn,
-.bp-icon-btn,
-.vault-icon-btn,
-.home-section-icon-btn,
-.lang-btn,
-.task-action-btn,
-.cv-tab,
-.cv-list-actions button {
-  background: var(--glass-bg) !important;
-  border: 1px solid var(--glass-border) !important;
-  color: var(--text) !important;
-  box-shadow: inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, .14)) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-}
-.btn-ghost:hover,
-.btn-sm:hover,
-.btn-mini:hover,
-.cal-nav:hover,
-.cal-today-btn:hover,
-.cal-export-btn:hover,
-.action-add-btn:hover,
-.icon-btn:not(.topbar-icon-btn):hover,
-.modal-close:hover,
-.md-back-btn:hover,
-.bp-icon-btn:hover,
-.vault-icon-btn:hover,
-.home-section-icon-btn:hover,
-.lang-btn:hover,
-.task-action-btn:hover,
-.cv-tab:not(.active):hover,
-.cv-list-actions button:hover {
-  border-color: var(--accent) !important;
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight),
-    0 0 0 1px var(--accent-soft) !important;
-}
-
-/* Topbar — frameless icons, no fill at rest */
-.topbar-icon-btn,
-.topbar-avatar-btn {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-.topbar-icon-btn:hover,
-.topbar-avatar-btn:hover {
-  background: var(--glass-bg) !important;
-  border-color: var(--glass-border) !important;
-}
-
-/* Drawer rows — flat with glass-only on hover */
-.drawer-nav-btn,
-.spaces-drawer-item,
-.home-type-group {
-  background: transparent !important;
-  border: 1px solid transparent !important;
-  box-shadow: none !important;
-}
-.drawer-nav-btn:hover,
-.spaces-drawer-item:hover {
-  background: var(--glass-bg-2) !important;
-}
-.drawer-nav-btn.active {
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
-}
-
-/* Pill nav button highlight */
-.bnav-btn {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-.bnav-btn.active {
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
-  box-shadow: inset 0 0 0 1px var(--accent-soft2, rgba(168, 85, 247, .35)) !important;
-}
-.bnav-fab {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .25),
-    0 12px 28px var(--accent-soft2, rgba(168, 85, 247, .45)),
-    0 4px 10px rgba(0, 0, 0, .20) !important;
-}
-
-/* Make sure the chrome bars use proper glass with shadow */
-.app-topbar {
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--glass-border) !important;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .04);
-}
-.spaces-drawer {
-  background: var(--glass-bg-card) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-right: 1px solid var(--glass-border) !important;
-  box-shadow:
-    inset 1px 0 0 var(--glass-highlight),
-    4px 0 24px rgba(0, 0, 0, .18) !important;
-}
-
-/* Hover states for cards — keep frost, add accent ring */
+/* Hover: just border colour change, no glow */
 .home-list-item:hover,
 .wm-cell:hover,
 .home-card:hover,
@@ -6555,15 +6136,12 @@ textarea:focus {
 #meeting-list .robot-item:hover,
 #meetings .robot-item:hover,
 .cv-list-item:hover {
-  background: var(--glass-bg-card) !important;
-  border-color: var(--accent) !important;
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight),
-    0 0 0 1px var(--accent-soft),
-    0 0 22px var(--accent-soft) !important;
+  background: var(--surface-2) !important;
+  border-color: var(--border-2) !important;
+  box-shadow: none !important;
 }
 
-/* Active / selected — accent-soft fill */
+/* Active states: accent-soft fill, no outer glow */
 .cal-day.selected,
 .jrn-entry.active,
 #meeting-list .robot-item.active,
@@ -6572,137 +6150,14 @@ textarea:focus {
 .wm-cell.wm-has {
   background: var(--accent-soft) !important;
   border-color: var(--accent) !important;
-  box-shadow: inset 0 1px 0 var(--glass-highlight) !important;
+  box-shadow: none !important;
 }
 .wm-cell.wm-today {
   border-color: var(--accent) !important;
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight),
-    inset 0 0 0 1px var(--accent) !important;
-}
-.wm-cell.wm-today.wm-has { background: var(--accent-soft) !important; }
-
-/* Modal — keep glass but make it pop with the highlight + shadow */
-.modal {
-  background: var(--glass-bg-card) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border) !important;
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight),
-    0 24px 48px rgba(0, 0, 0, .35),
-    0 6px 16px rgba(0, 0, 0, .18) !important;
-}
-.backup-popover {
-  background: var(--glass-bg-card) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border) !important;
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight),
-    0 24px 48px rgba(0, 0, 0, .35),
-    0 6px 16px rgba(0, 0, 0, .18) !important;
-}
-
-/* Sub-add and nb-add inputs — tone them down so they don't glare
-   against the host card. Slightly lighter than the host but not
-   blinding bright. */
-.task-body .sub-add-row input[type="text"],
-.task-body .nb-add-row textarea,
-.task-body .nb-add-row input {
-  background: rgba(255, 255, 255, .06) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04) !important;
-}
-:root[data-theme="light"] .task-body .sub-add-row input[type="text"],
-:root:not([data-theme]) .task-body .sub-add-row input[type="text"],
-:root[data-theme="light"] .task-body .nb-add-row textarea,
-:root:not([data-theme]) .task-body .nb-add-row textarea,
-:root[data-theme="light"] .task-body .nb-add-row input,
-:root:not([data-theme]) .task-body .nb-add-row input {
-  background: rgba(255, 255, 255, .55) !important;
-}
-
-/* Safety net */
-.notebook-area-wrap,
-.tag-picker,
-.radio-group,
-.tab-strip {
-  background: transparent !important;
-}
-
-/* FAB — frosted glass instead of solid accent fill */
-.bnav-fab {
-  background: var(--glass-bg-card) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--accent) !important;
-  color: var(--accent) !important;
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, .25)),
-    0 0 0 1px var(--accent-soft, rgba(168, 85, 247, .25)),
-    0 12px 28px var(--accent-soft2, rgba(168, 85, 247, .35)),
-    0 4px 10px rgba(0, 0, 0, .18) !important;
-}
-.bnav-fab:hover  { filter: brightness(1.08); background: var(--glass-bg-card) !important; }
-.bnav-fab:active { transform: scale(.94); }
-
-/* Native select dropdowns — browser renders the option list natively
-   and our translucent --glass-bg-2 fill leaks through, making the
-   open dropdown glare. Force solid surface so options stay readable. */
-select,
-.modal select,
-.cv-f select {
-  background: var(--surface) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  color: var(--text);
-}
-select option {
-  background: var(--surface);
-  color: var(--text);
-}
-
-/* Theme toggle wrap in the avatar popover — was on solid surface-2 */
-.theme-toggle,
-.bp-theme-toggle {
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border) !important;
-}
-.theme-toggle-btn.active {
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
   box-shadow: none !important;
 }
 
-/* Inner-tabs (Tasks / Known Issues toggle in list detail) — was solid */
-.inner-tabs {
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border) !important;
-}
-.inner-tab.active {
-  background: var(--accent-soft) !important;
-  color: var(--text);
-}
-
-/* Streak stats cards (12 done this week / 1 day streak / 0 due now) */
-.streak-stat {
-  background: var(--glass-bg-card) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border) !important;
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, .18));
-}
-
-/* ════════════════════════════════════════════════════════
-   FINAL CALM-DOWN — minimize glare on inputs everywhere
-   ════════════════════════════════════════════════════════ */
-
-/* Every text-like input: very subtle fill, dim border, no shadow */
+/* Inputs: simple --surface-2 fill */
 input[type="text"],
 input[type="email"],
 input[type="tel"],
@@ -6727,346 +6182,126 @@ textarea,
 .notes-area,
 .task-body input,
 .task-body textarea {
-  background: rgba(255, 255, 255, .04) !important;
-  border: 1px solid var(--glass-border) !important;
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
   box-shadow: none !important;
   color: var(--text);
-  -webkit-text-fill-color: var(--text);
 }
-:root[data-theme="light"] input[type="text"],
-:root:not([data-theme]) input[type="text"],
-:root[data-theme="light"] input[type="email"],
-:root:not([data-theme]) input[type="email"],
-:root[data-theme="light"] textarea,
-:root:not([data-theme]) textarea,
-:root[data-theme="light"] .sub-add-input,
-:root:not([data-theme]) .sub-add-input,
-:root[data-theme="light"] .search-input,
-:root:not([data-theme]) .search-input,
-:root[data-theme="light"] .vault-card input,
-:root:not([data-theme]) .vault-card input,
-:root[data-theme="light"] .reviews-textarea,
-:root:not([data-theme]) .reviews-textarea {
-  background: rgba(255, 255, 255, .55) !important;
-}
-
-/* Placeholders need to be visible without being noisy */
-input::placeholder,
-textarea::placeholder {
-  color: var(--muted) !important;
-  opacity: .7;
-}
-
-/* Focus state: just the accent border, no big outer ring */
 input:focus,
 textarea:focus,
-select:focus,
-.sub-add-input:focus,
-.search-input:focus,
-.quick-input:focus {
+select:focus {
   outline: none !important;
   border-color: var(--accent) !important;
   box-shadow: none !important;
 }
 
-/* Reduce the inset top highlight on cards from .22 to .10 — was
-   too bright on dark themes. */
-.home-list-item,
-.wm-cell,
-.home-card,
-.home-journal-card,
-.at-task,
-.visit-row,
-.link-row,
-.rev-row,
-.jrn-entry,
-.vault-row,
-.vault-card,
-.cv-acc,
-.cv-list-item,
-.task-body,
-.task-card,
-.cal-day,
-.cal-day-panel,
-#meeting-list .robot-item,
-#meetings .robot-item,
-.streak-widget,
-.streak-stat,
-.spaces-drawer-section,
-.bottom-nav {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .08),
-    0 4px 14px rgba(0, 0, 0, .12) !important;
-}
-
-/* Inputs inside the quick-capture modal: extra calm */
-.quick-input,
-.modal-quick input,
-.modal-quick textarea {
-  background: rgba(255, 255, 255, .03) !important;
-}
-
-/* Section content wrappers — give the empty area below short lists a
-   subtle frosted backdrop so it doesn't read as a dead grey hole.
-   Very faint fill, just enough to feel like "this whole viewport is
-   one glass panel", with cards floating on top. */
-.fv-container,
-.jrn-container,
-.links-container,
-.reviews-container,
-.cal-container {
-  background: rgba(255, 255, 255, .03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 14px;
-  border: 1px solid var(--glass-border);
-  min-height: calc(100vh - 80px);
-}
-:root[data-theme="light"] .fv-container,
-:root:not([data-theme]) .fv-container,
-:root[data-theme="light"] .jrn-container,
-:root:not([data-theme]) .jrn-container,
-:root[data-theme="light"] .links-container,
-:root:not([data-theme]) .links-container,
-:root[data-theme="light"] .reviews-container,
-:root:not([data-theme]) .reviews-container,
-:root[data-theme="light"] .cal-container,
-:root:not([data-theme]) .cal-container {
-  background: rgba(255, 255, 255, .35);
-}
-
-/* Task body inputs — force ultra-calm glass appearance, no glare */
-.task-body .sub-add-input,
-.task-body .sub-add-row input,
-.task-body .nb-add-row textarea,
-.task-body .nb-add-row input,
-.task-body textarea,
-.task-body input[type="text"],
-.task-body input[type="search"] {
-  background: rgba(255, 255, 255, .03) !important;
-  border: 1px solid rgba(255, 255, 255, .06) !important;
+/* Buttons — solid surface, minimal */
+.btn-ghost,
+.btn-sm,
+.btn-mini,
+.cal-nav,
+.cal-today-btn,
+.cal-export-btn,
+.action-add-btn,
+.icon-btn:not(.topbar-icon-btn),
+.modal-close,
+.md-back-btn,
+.bp-icon-btn,
+.vault-icon-btn,
+.home-section-icon-btn,
+.lang-btn,
+.task-action-btn,
+.cv-tab,
+.cv-list-actions button {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
   box-shadow: none !important;
-  color: var(--text);
-  padding: 10px 14px !important;
-  border-radius: 10px !important;
+  color: var(--text) !important;
 }
-.task-body .sub-add-input::placeholder,
-.task-body textarea::placeholder,
-.task-body input::placeholder {
-  color: var(--muted-2);
-  opacity: .55;
-}
-:root[data-theme="light"] .task-body .sub-add-input,
-:root:not([data-theme]) .task-body .sub-add-input,
-:root[data-theme="light"] .task-body textarea,
-:root:not([data-theme]) .task-body textarea {
-  background: rgba(255, 255, 255, .55) !important;
-}
-
-/* Notebook area (the wrapper holding "No notes yet" + textarea) */
-.task-body .notebook,
-.task-body .notebook-area-wrap,
-.task-body .att-section {
-  background: rgba(255, 255, 255, .02) !important;
-  border: 1px solid rgba(255, 255, 255, .06) !important;
-  border-radius: 12px !important;
-  padding: 14px !important;
-}
-
-/* Streak widget — bigger cards, real glass, no flat grey strip */
-.streak-widget {
-  gap: 10px !important;
-  margin: 8px 0 16px !important;
-}
-.streak-stat {
-  background: var(--glass-bg-card) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border) !important;
-  border-radius: 12px !important;
-  padding: 12px 14px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  gap: 4px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .08),
-    0 4px 14px rgba(0, 0, 0, .12);
-}
-.streak-num {
-  font-size: 22px !important;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1;
-}
-.streak-lbl {
-  font-size: 11.5px !important;
-  color: var(--muted);
-  white-space: normal !important;
-  line-height: 1.3;
-}
-
-/* CV layout: tab-switcher mode at every viewport (desktop too).
-   Side-by-side at 460/1fr was cramming both panes; full-width
-   single column with the [Edit][Preview] toggle scales much better. */
-.cv-tabs { display: flex !important; gap: 6px; margin: 14px 0 10px; }
-.cv-layout {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 0 !important;
-  margin-top: 0 !important;
-}
-.cv-layout[data-active="editor"]  .cv-preview-wrap { display: none !important; }
-.cv-layout[data-active="preview"] .cv-editor       { display: none !important; }
-
-/* Preview scales to fit container width on every viewport now */
-.cv-preview {
-  transform: none !important;
-  margin: 0 auto 14px !important;
-  zoom: 0.62;
-}
-@media (min-width: 1200px) { .cv-preview { zoom: 0.78; } }
-@media (max-width: 960px)  { .cv-preview { zoom: 0.50; } }
-@media (max-width: 380px)  { .cv-preview { zoom: 0.40; } }
-
-/* Reviews textarea + its surrounding panel — pure glass, no grey */
-.reviews-textarea {
-  background: rgba(255, 255, 255, .03) !important;
-  border: 1px solid var(--glass-border) !important;
+.btn-ghost:hover,
+.btn-sm:hover,
+.btn-mini:hover,
+.cal-nav:hover,
+.cal-today-btn:hover,
+.cal-export-btn:hover,
+.icon-btn:not(.topbar-icon-btn):hover,
+.modal-close:hover,
+.md-back-btn:hover,
+.bp-icon-btn:hover,
+.vault-icon-btn:hover,
+.lang-btn:hover,
+.task-action-btn:hover,
+.cv-tab:not(.active):hover {
+  background: var(--surface-3) !important;
+  border-color: var(--border-2) !important;
   box-shadow: none !important;
-  border-radius: 12px !important;
-  padding: 16px !important;
-  min-height: 60vh !important;
 }
-:root[data-theme="light"] .reviews-textarea,
-:root:not([data-theme]) .reviews-textarea {
-  background: rgba(255, 255, 255, .50) !important;
+.cv-tab.active,
+.rev-period-btn.active,
+.radio-btn.active {
+  background: var(--accent) !important;
+  color: var(--on-accent) !important;
+  border-color: var(--accent) !important;
 }
-.reviews-detail,
-.reviews-editor {
+
+/* Drawer rows: transparent rest, surface-2 hover */
+.drawer-nav-btn,
+.spaces-drawer-item,
+.home-type-group {
   background: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+.drawer-nav-btn:hover,
+.spaces-drawer-item:hover {
+  background: var(--surface-2) !important;
+}
+.drawer-nav-btn.active {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
 }
 
-/* Paint a real glass panel ON the section itself so the empty area
-   below short lists isn't dead grey. Section spans full height of
-   the viewport (minus topbar), so this always covers the whole
-   scroll surface. */
-.section.active {
-  position: relative;
+/* Pill nav: simple */
+.bnav-btn {
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
-.section.active::before {
-  content: '';
-  position: fixed;
-  top: 56px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(800px 600px at 75% 35%, rgba(124, 58, 237, .14) 0%, transparent 60%),
-    radial-gradient(800px 600px at 20% 65%, rgba(168, 85, 247, .12) 0%, transparent 60%),
-    rgba(255, 255, 255, .025);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  pointer-events: none;
-  z-index: -1;
+.bnav-btn.active {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  box-shadow: none !important;
 }
-/* Remove the earlier section-container glass — replaced by this
-   global section overlay which works regardless of list height. */
-.fv-container,
-.jrn-container,
-.links-container,
-.reviews-container,
-.cal-container {
+
+/* Topbar icons: frameless */
+.topbar-icon-btn,
+.topbar-avatar-btn {
   background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: none !important;
-  min-height: auto !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+.topbar-icon-btn:hover,
+.topbar-avatar-btn:hover {
+  background: var(--surface-2) !important;
 }
 
-/* Final: super-saturated body backdrop so the middle of the viewport
-   never reads as dead grey, regardless of how short the content is.
-   Five overlapping accent blooms across the whole canvas. */
-body {
-  background:
-    radial-gradient(900px 600px at 8% -5%, rgba(168, 85, 247, .34) 0%, transparent 55%),
-    radial-gradient(900px 700px at 92% 12%, rgba(251, 113, 133, .28) 0%, transparent 60%),
-    radial-gradient(1100px 800px at 75% 50%, rgba(124, 58, 237, .26) 0%, transparent 60%),
-    radial-gradient(1000px 800px at 18% 60%, rgba(168, 85, 247, .22) 0%, transparent 60%),
-    radial-gradient(1300px 800px at 50% 100%, rgba(251, 113, 133, .22) 0%, transparent 55%),
-    var(--bg) !important;
-  background-attachment: fixed !important;
+/* Theme toggle pill in popover */
+.theme-toggle,
+.bp-theme-toggle {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
 }
-/* Cancel the experimental section ::before that was layering wrong */
-.section.active::before { content: none !important; }
-
-/* ════════════════════════════════════════════════════════
-   FINAL — calm body + clean section panels (matches the
-   Reviews note editor look the user pointed at).
-   ════════════════════════════════════════════════════════ */
-
-/* Body: two corner accent washes, much calmer than the previous
-   5-bloom mix. The visible panel fill below sections does the rest. */
-body {
-  background:
-    radial-gradient(1100px 800px at 8% -5%, rgba(168, 85, 247, .22) 0%, transparent 50%),
-    radial-gradient(1100px 800px at 95% 8%, rgba(251, 113, 133, .14) 0%, transparent 55%),
-    var(--bg) !important;
-  background-attachment: fixed !important;
+.theme-toggle-btn.active {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
 }
 
-/* Section content panels — calm dark gradient that fills the full
-   scroll area, so empty space below short lists is never a grey hole. */
-.fv-container,
-.jrn-container,
-.links-container,
-.reviews-container,
-.cal-container {
-  background: linear-gradient(180deg,
-              rgba(168, 85, 247, .06) 0%,
-              rgba(15, 20, 30, .25) 60%,
-              rgba(124, 58, 237, .04) 100%) !important;
-  backdrop-filter: blur(18px) !important;
-  -webkit-backdrop-filter: blur(18px) !important;
-  border-radius: 18px !important;
-  border: 1px solid rgba(255, 255, 255, .06) !important;
-  min-height: calc(100vh - 100px) !important;
-  margin: 0 8px !important;
-  padding: 22px 18px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+/* Inner tabs (Tasks / Known Issues) */
+.inner-tabs {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
 }
-:root[data-theme="light"] .fv-container,
-:root:not([data-theme]) .fv-container,
-:root[data-theme="light"] .jrn-container,
-:root:not([data-theme]) .jrn-container,
-:root[data-theme="light"] .links-container,
-:root:not([data-theme]) .links-container,
-:root[data-theme="light"] .reviews-container,
-:root:not([data-theme]) .reviews-container,
-:root[data-theme="light"] .cal-container,
-:root:not([data-theme]) .cal-container {
-  background: linear-gradient(180deg,
-              rgba(168, 85, 247, .08) 0%,
-              rgba(255, 255, 255, .55) 60%,
-              rgba(124, 58, 237, .05) 100%) !important;
-  border-color: rgba(15, 20, 30, .08) !important;
-}
-
-/* CV: use the full available width on desktop. Editor accordion was
-   capped to ~460px and the page had huge dead zones on both sides. */
-@media (min-width: 1000px) {
-  .cv-editor { max-width: 100%; }
-  .cv-layout { max-width: 900px; margin: 0 auto !important; }
-}
-
-/* Desktop: center the panel containers instead of left-aligning. The
-   earlier 'margin: 0 8px !important' rule was making them hug the
-   left edge on wide viewports, leaving the right half empty. */
-@media (min-width: 1000px) {
-  .fv-container,
-  .jrn-container,
-  .links-container,
-  .reviews-container,
-  .cal-container {
-    margin: 0 auto !important;
-  }
+.inner-tab.active {
+  background: var(--surface-2) !important;
 }

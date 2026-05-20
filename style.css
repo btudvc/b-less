@@ -6697,3 +6697,111 @@ select option {
   box-shadow:
     inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, .18));
 }
+
+/* ════════════════════════════════════════════════════════
+   FINAL CALM-DOWN — minimize glare on inputs everywhere
+   ════════════════════════════════════════════════════════ */
+
+/* Every text-like input: very subtle fill, dim border, no shadow */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="url"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="date"],
+input[type="color"],
+input:not([type]),
+textarea,
+.sub-add-input,
+.search-input,
+.quick-input,
+.modal input,
+.modal textarea,
+.cv-f input,
+.cv-f textarea,
+.vault-card input,
+.links-search,
+.reviews-textarea,
+.notes-area,
+.task-body input,
+.task-body textarea {
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: none !important;
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+}
+:root[data-theme="light"] input[type="text"],
+:root:not([data-theme]) input[type="text"],
+:root[data-theme="light"] input[type="email"],
+:root:not([data-theme]) input[type="email"],
+:root[data-theme="light"] textarea,
+:root:not([data-theme]) textarea,
+:root[data-theme="light"] .sub-add-input,
+:root:not([data-theme]) .sub-add-input,
+:root[data-theme="light"] .search-input,
+:root:not([data-theme]) .search-input,
+:root[data-theme="light"] .vault-card input,
+:root:not([data-theme]) .vault-card input,
+:root[data-theme="light"] .reviews-textarea,
+:root:not([data-theme]) .reviews-textarea {
+  background: rgba(255, 255, 255, .55) !important;
+}
+
+/* Placeholders need to be visible without being noisy */
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted) !important;
+  opacity: .7;
+}
+
+/* Focus state: just the accent border, no big outer ring */
+input:focus,
+textarea:focus,
+select:focus,
+.sub-add-input:focus,
+.search-input:focus,
+.quick-input:focus {
+  outline: none !important;
+  border-color: var(--accent) !important;
+  box-shadow: none !important;
+}
+
+/* Reduce the inset top highlight on cards from .22 to .10 — was
+   too bright on dark themes. */
+.home-list-item,
+.wm-cell,
+.home-card,
+.home-journal-card,
+.at-task,
+.visit-row,
+.link-row,
+.rev-row,
+.jrn-entry,
+.vault-row,
+.vault-card,
+.cv-acc,
+.cv-list-item,
+.task-body,
+.task-card,
+.cal-day,
+.cal-day-panel,
+#meeting-list .robot-item,
+#meetings .robot-item,
+.streak-widget,
+.streak-stat,
+.spaces-drawer-section,
+.bottom-nav {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    0 4px 14px rgba(0, 0, 0, .12) !important;
+}
+
+/* Inputs inside the quick-capture modal: extra calm */
+.quick-input,
+.modal-quick input,
+.modal-quick textarea {
+  background: rgba(255, 255, 255, .03) !important;
+}

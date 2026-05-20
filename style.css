@@ -6799,3 +6799,26 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     width: 100% !important;
   }
 }
+
+/* Meetings + Journal: cards FULL-width, same layout as Links page */
+#meeting-list .robot-item,
+#meetings .robot-item {
+  padding: 14px 16px !important;
+  border-radius: 12px !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  margin-bottom: 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+#meeting-list, .robot-list {
+  padding: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.jrn-list { padding: 0 !important; }
+.jrn-entry {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}

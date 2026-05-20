@@ -6886,7 +6886,7 @@ select:focus {
   }
   .spaces-drawer-backdrop { display: none !important; }
   body.spaces-drawer-open .spaces-drawer-backdrop { display: none !important; }
-  .drawer-nav { display: flex !important; }
+  .drawer-nav { display: flex !important; flex-direction: column !important; gap: 1px !important; padding: 12px 8px 4px !important; }
 
   /* Hamburger hidden — sidebar is permanent */
   #topbar-burger-btn { display: none !important; }

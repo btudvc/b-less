@@ -5981,6 +5981,16 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
      desktop the bar is hidden and this padding is overridden in the
      desktop media block. */
   padding: 18px 16px calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+}
+/* Strip the bottom margin off the last child of any scroll container
+   — otherwise stacked .at-group / .meeting-row / etc. margins add
+   visible white between the last item and the docked bar. */
+.fv-container > *:last-child,
+.jrn-container > *:last-child,
+.links-container > *:last-child,
+.reviews-container > *:last-child,
+.cal-container > *:last-child {
+  margin-bottom: 0 !important;
   background: transparent !important;
   border: none !important;
   min-height: auto !important;

@@ -6231,11 +6231,12 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     overflow-y: auto !important;
     padding: 24px 32px !important;
   }
-  /* Master-detail sections use row direction */
+  /* Master-detail sections — stacked single column (header above
+     list/detail). Previous "row" direction was leftover from the
+     side-by-side experiment and made the header sit beside the list. */
   #meetings.section.active,
   #journal.section.active {
-    flex-direction: row !important;
-    padding: 0 !important;
+    flex-direction: column !important;
   }
 
   /* Generic section containers full-width, centered with max-width */

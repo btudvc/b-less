@@ -6780,3 +6780,22 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     pointer-events: none;
   }
 }
+
+/* Meetings + Journal sections on desktop: ensure header sits at full
+   width of main column with proper padding, and list rows fill the
+   container. Earlier overrides removed all padding, leaving the
+   header flush against the sidebar edge. */
+@media (min-width: 1000px) {
+  #meetings.section.active,
+  #journal.section.active {
+    padding: 24px 32px !important;
+  }
+  #meetings.section > .sidebar,
+  #journal .jrn-sidebar {
+    padding: 0 !important;
+  }
+  /* Meeting / journal cards full width */
+  #meeting-list, .jrn-list {
+    width: 100% !important;
+  }
+}

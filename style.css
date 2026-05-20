@@ -6540,3 +6540,9 @@ select:focus {
     max-width: 100% !important;
   }
 }
+
+/* Journal: kill stray borders/dividers from the old two-pane layout */
+.jrn-side-head { border-bottom: none !important; }
+.jrn-sidebar   { border-right: none !important; border-bottom: none !important; }
+.jrn-list      { border-bottom: none !important; }
+.jrn-container { border-bottom: none !important; }

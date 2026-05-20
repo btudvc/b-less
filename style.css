@@ -6256,82 +6256,58 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     margin: 0 0 28px !important;
   }
 
-  /* Meetings: list + content side-by-side (only when active) */
-  #meetings.section.active {
-    display: flex !important;
-    flex-direction: row !important;
-  }
+  /* Meetings / Journal / Reviews on desktop: SAME single-column
+     pattern as mobile. Master view shows the list; clicking an item
+     swaps to the detail view (same data-detail-open toggle). */
+  #meetings.section { flex-direction: column !important; }
   #meetings.section > .sidebar {
-    width: 340px !important;
-    flex: 0 0 340px !important;
-    border-right: 1px solid var(--border) !important;
-    overflow-y: auto !important;
-    padding: 24px 16px !important;
+    width: 100% !important;
+    flex: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    overflow-y: visible !important;
+    padding: 0 !important;
+    background: transparent !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 0 !important;
   }
   #meetings.section > .content {
     flex: 1 !important;
-    overflow-y: auto !important;
-    padding: 24px 32px !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  #meetings.section > .fv-header.section-head-pad {
-    /* Move section header inside the sidebar column on desktop */
-    /* Actually keep at top spanning everything */
     width: 100% !important;
-    padding: 24px 32px 0 !important;
-    margin-bottom: 16px !important;
-  }
-
-  /* Journal: list left, editor right (only when active — otherwise
-     base .section { display: none } must still hide it) */
-  #journal.section.active { display: flex !important; flex-direction: row !important; }
-  #journal .jrn-container {
-    display: flex !important;
-    flex-direction: row !important;
-    flex: 1 !important;
-    width: 100% !important;
-    max-width: none !important;
     padding: 0 !important;
-    margin: 0 !important;
+    overflow-y: auto !important;
   }
-  #journal > .fv-header.section-head-pad {
-    width: 100%;
-    padding: 24px 32px 0 !important;
-    margin-bottom: 16px !important;
+  #meetings.section[data-detail-open="true"] > .sidebar { display: none !important; }
+  #meetings.section:not([data-detail-open="true"]) > .content { display: none !important; }
+
+  #journal .jrn-container {
+    flex-direction: column !important;
+    display: flex !important;
+    padding: 0 !important;
   }
   .jrn-sidebar {
-    width: 320px !important;
-    flex: 0 0 320px !important;
-    border-right: 1px solid var(--border) !important;
-    overflow-y: auto !important;
-    padding: 0 16px 24px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
+    width: 100% !important;
+    flex: none !important;
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
   }
   .jrn-main {
     flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow-y: auto !important;
-    padding: 0 32px 24px !important;
+    width: 100% !important;
+    padding: 0 !important;
   }
-  #journal:not([data-detail-open="true"]) .jrn-main { display: flex !important; }
+  #journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }
+  #journal[data-detail-open="true"] .jrn-sidebar { display: none !important; }
 
-  /* Reviews: list left, editor right */
   .reviews-layout {
-    display: grid !important;
-    grid-template-columns: 320px 1fr !important;
-    gap: 24px !important;
+    display: block !important;
+    grid-template-columns: 1fr !important;
     margin-top: 0 !important;
   }
-  .reviews-list { max-height: none !important; overflow: visible !important; }
-  #reviews:not([data-detail-open="true"]) .reviews-editor { display: flex !important; }
-  #reviews[data-detail-open="true"]      .reviews-list   { display: flex !important; }
+  #reviews:not([data-detail-open="true"]) .reviews-editor { display: none !important; }
+  #reviews[data-detail-open="true"]       .reviews-list   { display: none !important; }
 
   /* CV: editor + preview side-by-side. Hide tab pills, show inline tabs in header. */
   #cv .cv-tabs { display: none !important; }

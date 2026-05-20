@@ -6823,3 +6823,80 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
   width: 100% !important;
   box-sizing: border-box !important;
 }
+
+/* Meetings + Journal sections: ensure no horizontal overflow.
+   .sidebar (containing the meeting list) was overflowing the
+   section padding because of its overflow: hidden + 100% width
+   not being constrained by section padding properly. */
+#meetings.section.active {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+#meetings.section > .sidebar {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  border: none !important;
+  overflow: visible !important;
+}
+#meetings.section > .content {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+#meeting-list, .robot-list {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+#meeting-list .robot-item,
+#meetings .robot-item {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+#journal.section.active {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+#journal .jrn-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+.jrn-sidebar, .jrn-list {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+.jrn-entry {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Mobile: hide section header's section-head-pad padding leftover */
+@media (max-width: 999px) {
+  #meetings.section.active,
+  #journal.section.active {
+    padding: 18px 14px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

@@ -6946,3 +6946,56 @@ select:focus,
 .reviews-editor {
   background: transparent !important;
 }
+
+/* Paint a real glass panel ON the section itself so the empty area
+   below short lists isn't dead grey. Section spans full height of
+   the viewport (minus topbar), so this always covers the whole
+   scroll surface. */
+.section.active {
+  position: relative;
+}
+.section.active::before {
+  content: '';
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(800px 600px at 75% 35%, rgba(124, 58, 237, .14) 0%, transparent 60%),
+    radial-gradient(800px 600px at 20% 65%, rgba(168, 85, 247, .12) 0%, transparent 60%),
+    rgba(255, 255, 255, .025);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  pointer-events: none;
+  z-index: -1;
+}
+/* Remove the earlier section-container glass — replaced by this
+   global section overlay which works regardless of list height. */
+.fv-container,
+.jrn-container,
+.links-container,
+.reviews-container,
+.cal-container {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  min-height: auto !important;
+}
+
+/* Final: super-saturated body backdrop so the middle of the viewport
+   never reads as dead grey, regardless of how short the content is.
+   Five overlapping accent blooms across the whole canvas. */
+body {
+  background:
+    radial-gradient(900px 600px at 8% -5%, rgba(168, 85, 247, .34) 0%, transparent 55%),
+    radial-gradient(900px 700px at 92% 12%, rgba(251, 113, 133, .28) 0%, transparent 60%),
+    radial-gradient(1100px 800px at 75% 50%, rgba(124, 58, 237, .26) 0%, transparent 60%),
+    radial-gradient(1000px 800px at 18% 60%, rgba(168, 85, 247, .22) 0%, transparent 60%),
+    radial-gradient(1300px 800px at 50% 100%, rgba(251, 113, 133, .22) 0%, transparent 55%),
+    var(--bg) !important;
+  background-attachment: fixed !important;
+}
+/* Cancel the experimental section ::before that was layering wrong */
+.section.active::before { content: none !important; }

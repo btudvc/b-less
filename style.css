@@ -5736,292 +5736,25 @@ body.is-readonly #robot-content .nb-item { cursor: default !important; }
   color: #fff;
 }
 .modal-confirm .btn-primary.danger:hover { filter: brightness(.92); }
+/* ════════════════════════════════════════════════════════════
+   DESIGN SYSTEM v4 — single source of truth.
+   Mobile (<1000px) and Desktop (>=1000px) handled separately
+   with their own complete layouts. Replaces every patch /
+   theme experiment above.
+   ════════════════════════════════════════════════════════════ */
 
-
-/* ════════════════════════════════════════════════════════
-   CV editor + live A4 preview
-   Same schema as github.com/btudvc/blessed-cv. Two templates
-   (classic, modern). Print stylesheet hides everything but
-   the .cv-preview at A4 paper size.
-   ════════════════════════════════════════════════════════ */
-/* CV tabs — hidden on desktop (side-by-side), visible on mobile */
-.cv-tabs {
-  display: none;
-  gap: 6px;
-  margin: 14px 0 10px;
-}
-.cv-tab {
-  flex: 1;
-  padding: 9px 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font: inherit;
-  font-size: 13px;
-  color: var(--muted);
-  cursor: pointer;
-}
-.cv-tab.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-
-.cv-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 460px) 1fr;
-  gap: 18px;
-  margin-top: 18px;
-}
-@media (max-width: 960px) {
-  .cv-tabs { display: flex; }
-  .cv-layout { grid-template-columns: 1fr; gap: 0; margin-top: 0; }
-  .cv-layout[data-active="editor"]  .cv-preview-wrap { display: none; }
-  .cv-layout[data-active="preview"] .cv-editor       { display: none; }
+/* ----- Body backdrop: solid, no gradients ----- */
+body {
+  background: var(--bg) !important;
 }
 
-/* Editor accordion */
-.cv-editor { display: flex; flex-direction: column; gap: 8px; }
-.cv-acc {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.cv-acc-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-  text-align: left;
-  padding: 12px 14px;
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font: inherit;
-  font-weight: 600;
-  font-size: 13.5px;
-  cursor: pointer;
-}
-.cv-acc-head:hover { background: var(--surface-2); }
-.cv-acc-head::after {
-  content: '+';
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--muted);
-}
-.cv-acc.open .cv-acc-head::after { content: '–'; }
-.cv-acc-count {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  background: var(--surface-2);
-  padding: 1px 7px;
-  border-radius: 999px;
-  margin-left: auto;
-  margin-right: 6px;
-}
-.cv-acc-body { display: none; padding: 4px 14px 14px; flex-direction: column; gap: 10px; }
-.cv-acc.open .cv-acc-body { display: flex; }
-
-.cv-f { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
-.cv-f > span { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-.cv-f input, .cv-f textarea, .cv-f select {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font: inherit;
-  font-size: 13px;
-  color: var(--text);
-}
-.cv-f input:focus, .cv-f textarea:focus, .cv-f select:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-.cv-f textarea { resize: vertical; line-height: 1.5; }
-.cv-check { flex-direction: row; align-items: center; gap: 8px; }
-.cv-check input { width: auto; }
-.cv-check > span { text-transform: none; font-size: 12.5px; color: var(--text); letter-spacing: 0; font-weight: 500; }
-
-.cv-list-item {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.cv-list-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  border-top: 1px solid var(--border);
-  padding-top: 8px;
-}
-.cv-list-actions button {
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  width: 28px; height: 28px;
-  font-size: 14px;
-  cursor: pointer;
-  color: var(--muted);
-}
-.cv-list-actions button:hover { background: var(--surface-2); color: var(--text); }
-.cv-add-btn { align-self: flex-start; }
-.cv-empty { color: var(--muted); font-size: 12.5px; padding: 6px 0; }
-
-/* Preview pane — sized like A4 (210x297mm) but scaled down so
-   it fits in the viewport. The preview itself stays @ A4 dims
-   so print just outputs it 1:1. */
-.cv-preview-wrap {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-.cv-preview {
-  background: #fff;
-  color: #111;
-  width: 210mm;
-  min-height: 297mm;
-  padding: 16mm 14mm;
-  box-shadow: 0 8px 24px rgba(0,0,0,.18);
-  border-radius: 6px;
-  transform-origin: top center;
-  transform: scale(.62);
-  margin-bottom: -38vh; /* offset for the scale */
-}
-@media (min-width: 1400px) { .cv-preview { transform: scale(.78); margin-bottom: -22vh; } }
-@media (max-width: 960px) {
-  /* Mobile: ditch transform:scale (which keeps layout footprint at full
-     A4 size) and use CSS zoom which shrinks layout too. Chrome / Edge /
-     iOS Safari 17+ support it; everyone else falls back to a slightly
-     scrollable preview which still works. */
-  .cv-preview-wrap { overflow-x: auto; padding: 0; }
-  .cv-preview {
-    transform: none;
-    margin: 0 auto 14px;
-    zoom: 0.46;
-  }
-}
-@media (max-width: 380px) {
-  .cv-preview { zoom: 0.40; }
+/* ----- Universal kill ----- */
+* {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-/* CV typography */
-.cv { font-size: 11pt; line-height: 1.45; }
-.cv.cv-font-serif { font-family: Georgia, 'Times New Roman', serif; }
-.cv.cv-font-sans  { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-.cv h1 { font-size: 22pt; line-height: 1.1; margin: 0 0 2pt; font-weight: 700; color: #0f1117; }
-.cv h2 {
-  font-size: 12pt;
-  margin: 14pt 0 6pt;
-  padding-bottom: 2pt;
-  border-bottom: 1.5px solid var(--cv-accent, #2563eb);
-  color: var(--cv-accent, #2563eb);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-.cv-head { display: flex; align-items: flex-start; gap: 14pt; margin-bottom: 6pt; }
-.cv-photo {
-  width: 28mm; height: 28mm;
-  border-radius: 50%;
-  background-size: cover;
-  background-position: center;
-  flex-shrink: 0;
-  border: 1px solid #d8dbe2;
-}
-.cv-head-text { flex: 1; min-width: 0; }
-.cv-role { font-size: 12pt; color: var(--cv-accent, #2563eb); font-weight: 500; margin-bottom: 4pt; }
-.cv-contact { display: flex; flex-wrap: wrap; gap: 4pt 10pt; font-size: 9.5pt; color: #555; }
-.cv-details { font-size: 9pt; color: #777; margin-top: 3pt; }
-.cv-summary { font-size: 10.5pt; line-height: 1.55; color: #333; }
-.cv-empty-hint { font-size: 10pt; color: #888; font-style: italic; margin: 8pt 0; }
-.cv-entry { margin-bottom: 8pt; }
-.cv-entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8pt; }
-.cv-entry-title { font-weight: 600; font-size: 11pt; color: #111; }
-.cv-entry-sub   { font-size: 10pt; color: #555; }
-.cv-entry-date  { font-size: 9.5pt; color: #777; white-space: nowrap; }
-.cv-entry-desc  { margin-top: 3pt; font-size: 10pt; line-height: 1.5; color: #333; white-space: pre-wrap; }
-.cv-chips { display: flex; flex-wrap: wrap; gap: 4pt 6pt; }
-.cv-chip {
-  font-size: 9.5pt;
-  padding: 2pt 8pt;
-  background: #f1f3f7;
-  border-radius: 999px;
-  color: #222;
-}
-.cv-langs { display: flex; flex-wrap: wrap; gap: 4pt 12pt; font-size: 10pt; color: #333; }
-
-/* Modern template — two-column with sidebar */
-.cv[style] aside.cv-side ~ .cv-main, .cv aside.cv-side {  }
-.cv-preview[data-tpl="modern"] .cv {
-  display: grid;
-  grid-template-columns: 64mm 1fr;
-  gap: 8mm;
-}
-.cv-preview[data-tpl="modern"] .cv-side {
-  background: #f7f8fa;
-  margin: -16mm 0 -16mm -14mm;
-  padding: 16mm 8mm;
-}
-.cv-preview[data-tpl="modern"] .cv-side .cv-head { flex-direction: column; align-items: center; text-align: center; }
-.cv-preview[data-tpl="modern"] .cv-side .cv-photo { width: 32mm; height: 32mm; }
-.cv-preview[data-tpl="modern"] .cv-main .cv-head { display: none; }
-
-/* ── Print: A4, no UI chrome, hide everything except the preview ── */
-@media print {
-  @page { size: A4; margin: 0; }
-  body.cv-printing * { visibility: hidden !important; }
-  body.cv-printing .cv-preview,
-  body.cv-printing .cv-preview * { visibility: visible !important; }
-  body.cv-printing .cv-preview {
-    position: fixed !important;
-    top: 0; left: 0;
-    transform: none !important;
-    width: 210mm !important;
-    min-height: 297mm !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-  }
-}
-
-/* Floating pill nav needs clearance — content under it would be
-   covered. Section scroll containers add bottom padding equal to the
-   pill height + breathing room. Applies everywhere since the pill now
-   shows on desktop too. */
-.section.active > .content,
-.section.active > .home-container,
-.section.active > .fv-container,
-.section.active > .reviews-container,
-.section.active > .links-container,
-.section.active > .more-page,
-.section.active > .cal-container,
-.section.active > .jrn-container {
-  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
-}
-
-/* Active pill button — soft accent circle behind the icon. No box,
-   no underline, no halo. Just a quiet dot. */
-.bnav-btn {
-  width: 44px;
-  height: 44px;
-  align-self: center;
-  border-radius: 50%;
-}
-.bnav-btn.active {
-  color: var(--accent);
-  background: var(--accent-soft);
-}
-.bnav-btn:hover         { color: var(--text); background: var(--surface-2); }
-.bnav-btn.active:hover  { color: var(--accent); background: var(--accent-soft); }
-.bottom-nav { height: 60px; align-items: center; gap: 2px; }
-
-/* ════════════════════════════════════════════════════════
-   MINIMAL — kill all glass / blur / colourful backdrops.
-   Map the glass tokens to solid surface colours so every
-   existing rule that references them collapses to a clean,
-   restrained dark theme.
-   ════════════════════════════════════════════════════════ */
+/* ----- Glass tokens collapsed to solid surfaces ----- */
 :root {
   --glass-bg:        var(--surface);
   --glass-bg-2:      var(--surface-2);
@@ -6029,831 +5762,392 @@ body.is-readonly #robot-content .nb-item { cursor: default !important; }
   --glass-border:    var(--border);
   --glass-highlight: transparent;
   --glass-blur:      none;
-  --card-shadow:     none;
-}
-:root[data-theme="light"],
-:root:not([data-theme]) {
-  --glass-bg:        var(--surface);
-  --glass-bg-2:      var(--surface-2);
-  --glass-bg-card:   var(--surface);
-  --glass-border:    var(--border);
-  --glass-highlight: transparent;
-}
-:root[data-theme="dim"],
-:root[data-theme="dark"] {
-  --glass-bg:        var(--surface);
-  --glass-bg-2:      var(--surface-2);
-  --glass-bg-card:   var(--surface);
-  --glass-border:    var(--border);
-  --glass-highlight: transparent;
 }
 
-/* Kill blur + colourful glow everywhere */
-* {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-.app-topbar,
-.bottom-nav,
-.spaces-drawer,
-.modal,
-.backup-popover,
-.bnav-fab {
-  box-shadow: none !important;
-}
-.bottom-nav {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-}
-.bnav-fab {
-  background: var(--accent) !important;
-  color: var(--on-accent) !important;
-  border: none !important;
-}
-.app-topbar {
-  background: var(--bg) !important;
-  border-bottom: 1px solid var(--border) !important;
-}
-.modal,
-.backup-popover {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-}
+/* ════════════════════════════════════════════════════════════
+   1. CONSISTENT BUTTONS — three shapes, that's it.
+   ════════════════════════════════════════════════════════════ */
 
-/* Section containers — back to plain transparent (no panels) */
-.fv-container,
-.jrn-container,
-.links-container,
-.reviews-container,
-.cal-container {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  min-height: auto !important;
-  margin: 0 auto !important;
-  padding: 18px 14px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
-}
-
-/* Card surfaces — solid --surface, no halos */
-.home-list-item,
-.wm-cell,
-.home-card,
-.home-journal-card,
-.at-task,
-.visit-row,
-.link-row,
-.rev-row,
-.jrn-entry,
-.vault-row,
-.vault-card,
-.cv-acc,
-.cv-list-item,
-.task-body,
-.task-card,
-.cal-day,
-.cal-day-panel,
-#meeting-list .robot-item,
-#meetings .robot-item,
-.streak-widget,
-.streak-stat,
-.spaces-drawer-section {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: none !important;
-}
-
-/* Hover: just border colour change, no glow */
-.home-list-item:hover,
-.wm-cell:hover,
-.home-card:hover,
-.at-task:hover,
-.visit-row:hover,
-.link-row:hover,
-.rev-row:hover,
-.jrn-entry:hover,
-.vault-row:hover,
-.cal-day:hover,
-#meeting-list .robot-item:hover,
-#meetings .robot-item:hover,
-.cv-list-item:hover {
-  background: var(--surface-2) !important;
-  border-color: var(--border-2) !important;
-  box-shadow: none !important;
-}
-
-/* Active states: accent-soft fill, no outer glow */
-.cal-day.selected,
-.jrn-entry.active,
-#meeting-list .robot-item.active,
-#meetings .robot-item.active,
-.rev-row.active,
-.wm-cell.wm-has {
-  background: var(--accent-soft) !important;
-  border-color: var(--accent) !important;
-  box-shadow: none !important;
-}
-.wm-cell.wm-today {
-  border-color: var(--accent) !important;
-  box-shadow: none !important;
-}
-
-/* Inputs: simple --surface-2 fill */
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-input[type="url"],
-input[type="password"],
-input[type="number"],
-input[type="search"],
-input[type="date"],
-input[type="color"],
-input:not([type]),
-textarea,
-.sub-add-input,
-.search-input,
-.quick-input,
-.modal input,
-.modal textarea,
-.cv-f input,
-.cv-f textarea,
-.vault-card input,
-.links-search,
-.reviews-textarea,
-.notes-area,
-.task-body input,
-.task-body textarea {
-  background: var(--surface-2) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: none !important;
-  color: var(--text);
-}
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none !important;
-  border-color: var(--accent) !important;
-  box-shadow: none !important;
-}
-
-/* Buttons — solid surface, minimal */
-.btn-ghost,
-.btn-sm,
-.btn-mini,
-.cal-nav,
-.cal-today-btn,
-.cal-export-btn,
-.action-add-btn,
-.icon-btn:not(.topbar-icon-btn),
-.modal-close,
-.md-back-btn,
-.bp-icon-btn,
-.vault-icon-btn,
-.home-section-icon-btn,
-.lang-btn,
-.task-action-btn,
-.cv-tab,
-.cv-list-actions button {
-  background: var(--surface-2) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: none !important;
-  color: var(--text) !important;
-}
-.btn-ghost:hover,
-.btn-sm:hover,
-.btn-mini:hover,
-.cal-nav:hover,
-.cal-today-btn:hover,
-.cal-export-btn:hover,
-.icon-btn:not(.topbar-icon-btn):hover,
-.modal-close:hover,
-.md-back-btn:hover,
-.bp-icon-btn:hover,
-.vault-icon-btn:hover,
-.lang-btn:hover,
-.task-action-btn:hover,
-.cv-tab:not(.active):hover {
-  background: var(--surface-3) !important;
-  border-color: var(--border-2) !important;
-  box-shadow: none !important;
-}
-.cv-tab.active,
-.rev-period-btn.active,
-.radio-btn.active {
-  background: var(--accent) !important;
-  color: var(--on-accent) !important;
-  border-color: var(--accent) !important;
-}
-
-/* Drawer rows: transparent rest, surface-2 hover */
-.drawer-nav-btn,
-.spaces-drawer-item,
-.home-type-group {
-  background: transparent !important;
-  border: 1px solid transparent !important;
-  box-shadow: none !important;
-}
-.drawer-nav-btn:hover,
-.spaces-drawer-item:hover {
-  background: var(--surface-2) !important;
-}
-.drawer-nav-btn.active {
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
-}
-
-/* Pill nav: simple */
-.bnav-btn {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-.bnav-btn.active {
-  background: var(--accent-soft) !important;
-  color: var(--accent) !important;
-  box-shadow: none !important;
-}
-
-/* Topbar icons: frameless */
-.topbar-icon-btn,
-.topbar-avatar-btn {
-  background: transparent !important;
-  border: 1px solid transparent !important;
-  box-shadow: none !important;
-}
-.topbar-icon-btn:hover,
-.topbar-avatar-btn:hover {
-  background: var(--surface-2) !important;
-}
-
-/* Theme toggle pill in popover */
-.theme-toggle,
-.bp-theme-toggle {
-  background: var(--surface-2) !important;
-  border: 1px solid var(--border) !important;
-}
-.theme-toggle-btn.active {
-  background: var(--surface) !important;
-  color: var(--text) !important;
-  box-shadow: none !important;
-}
-
-/* Inner tabs (Tasks / Known Issues) */
-.inner-tabs {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-}
-.inner-tab.active {
-  background: var(--surface-2) !important;
-}
-
-/* ════════════════════════════════════════════════════════
-   UNIFIED SECTION LAYOUT
-   Calendar / Meetings / Visits / Journal / Links / Reviews
-   / Passwords / CV all share the same container width and
-   the same card styling. No more grid splits, no more inner
-   max-widths, no more narrow search inputs.
-   ════════════════════════════════════════════════════════ */
-
-/* Section containers: same max-width and padding everywhere */
-.fv-container,
-.jrn-container,
-.links-container,
-.reviews-container,
-.cal-container {
-  max-width: 900px !important;
-  margin: 0 auto !important;
-  padding: 18px 16px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  min-height: auto !important;
-}
-
-/* Reviews layout: single column on every viewport. The 280px
-   sidebar grid was the source of the "narrow centered" feel. */
-.reviews-layout {
-  display: block !important;
-  grid-template-columns: 1fr !important;
-  margin-top: 18px !important;
-}
-.reviews-list {
-  max-height: none !important;
-  overflow: visible !important;
-}
-
-/* Links search: fills the container, no narrow max-width */
-.links-search {
-  max-width: none !important;
-}
-
-/* Unified row card style — Calendar tasks, meetings, visits,
-   journal entries, link rows, review rows, vault rows, cv items */
-.visit-row,
-.link-row,
-.rev-row,
-.jrn-entry,
-.vault-row,
-.cv-acc,
-.cv-list-item,
-#meeting-list .robot-item,
-#meetings .robot-item {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  padding: 14px 16px !important;
-  margin-bottom: 8px !important;
-}
-.visit-row:hover,
-.link-row:hover,
-.rev-row:hover,
-.jrn-entry:hover,
-.vault-row:hover,
-.cv-list-item:hover,
-#meeting-list .robot-item:hover,
-#meetings .robot-item:hover {
-  background: var(--surface-2) !important;
-  border-color: var(--border-2) !important;
-}
-.rev-row.active,
-.jrn-entry.active,
-#meeting-list .robot-item.active,
-#meetings .robot-item.active {
-  background: var(--accent-soft) !important;
-  border-color: var(--accent) !important;
-}
-
-/* Section headers: same baseline */
-.fv-header,
-.cal-header {
-  margin-bottom: 18px !important;
-}
-.fv-header h2,
-.reviews-container h2,
-.links-container h2,
-.cal-container h2 {
-  font-size: 22px !important;
-  font-weight: 700 !important;
-  letter-spacing: -.02em !important;
-  margin: 0 0 4px !important;
-}
-.fv-subtitle {
-  color: var(--muted) !important;
-  font-size: 13.5px !important;
-  margin: 0 0 14px !important;
-}
-
-/* Mobile: keep generous tap targets, full-width content */
-@media (max-width: 600px) {
-  .fv-container,
-  .jrn-container,
-  .links-container,
-  .reviews-container,
-  .cal-container {
-    padding: 14px 12px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-}
-
-/* ════════════════════════════════════════════════════════
-   Make every section share a single 900px centered column
-   — including the header at the top. Meetings + Journal had
-   different wrappers (.sidebar / .jrn-container) that broke
-   the symmetry.
-   ════════════════════════════════════════════════════════ */
-
-/* Header at the top of every section: same max-width as content */
-.fv-header,
-.fv-header.section-head-pad {
-  max-width: 900px !important;
-  margin: 0 auto 16px !important;
-  padding: 0 16px !important;
-  width: 100% !important;
-  box-sizing: border-box;
-}
-@media (max-width: 600px) {
-  .fv-header,
-  .fv-header.section-head-pad {
-    padding: 0 12px !important;
-  }
-}
-
-/* Meetings: sidebar + content split was bespoke. Normalise so the
-   sidebar (which contains the meeting list) sits in the same 900px
-   column, transparent, no border. */
-#meetings.section > .sidebar {
-  width: 100% !important;
-  max-width: 900px !important;
-  margin: 0 auto !important;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 16px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
-  flex: none !important;
-  max-height: none !important;
-  overflow: visible !important;
-}
-#meetings.section > .content {
-  max-width: 900px !important;
-  margin: 0 auto !important;
-}
-@media (max-width: 600px) {
-  #meetings.section > .sidebar { padding: 0 12px calc(120px + env(safe-area-inset-bottom, 0px)) !important; }
-}
-
-/* Journal container: max-width 900px centered; sidebar inside takes
-   full width (no fixed 232px column). The detail editor is a separate
-   route, the list is the primary view. */
-.jrn-container {
-  max-width: 900px !important;
-  margin: 0 auto !important;
-  padding: 0 16px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
-  display: block !important;
-  width: 100% !important;
-  min-height: auto !important;
-  background: transparent !important;
-  border: none !important;
-}
-.jrn-sidebar {
-  width: 100% !important;
-  background: transparent !important;
-  border-right: none !important;
-}
-.jrn-side-head { padding: 8px 4px 12px !important; }
-.jrn-list { padding: 0 !important; }
-.jrn-entry {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  padding: 14px 16px !important;
-  margin-bottom: 8px !important;
-}
-.jrn-entry:hover  { background: var(--surface-2) !important; border-color: var(--border-2) !important; }
-.jrn-entry.active { background: var(--accent-soft) !important; border-color: var(--accent) !important; }
-@media (max-width: 600px) {
-  .jrn-container { padding: 0 12px calc(120px + env(safe-area-inset-bottom, 0px)) !important; }
-}
-
-/* Hide the detail editor area when no entry is selected — list IS
-   the primary view, same as Reviews + Meetings. */
-#journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }
-
-/* CV — restore the all-viewport tab-switcher (single column).
-   The original base rule had a 460/1fr grid that survived the
-   truncation and was cramming editor + preview into the 900px
-   section width on desktop. */
-.cv-layout {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 0 !important;
-  margin-top: 0 !important;
-}
-.cv-layout[data-active="editor"]  .cv-preview-wrap { display: none !important; }
-.cv-layout[data-active="preview"] .cv-editor       { display: none !important; }
-.cv-tabs { display: flex !important; gap: 6px; margin: 14px 0 10px; }
-.cv-editor { max-width: 100%; }
-.cv-acc { padding: 0 !important; }
-.cv-acc-head { padding: 14px 16px !important; }
-.cv-acc-body { padding: 4px 16px 16px !important; }
-
-/* Section containers: viewport-relative width — fill most of the
-   screen with comfortable side padding on wide monitors, edge-to-edge
-   on mobile. The earlier 900-1200px caps left big dead zones on
-   1920px+ displays. */
-.fv-container,
-.jrn-container,
-.links-container,
-.reviews-container,
-.cal-container,
-#meetings.section > .sidebar,
-#meetings.section > .content,
-.fv-header,
-.fv-header.section-head-pad {
-  max-width: min(1600px, 95vw) !important;
-  margin: 0 auto !important;
-}
-@media (max-width: 1000px) {
-  .fv-container,
-  .jrn-container,
-  .links-container,
-  .reviews-container,
-  .cal-container,
-  #meetings.section > .sidebar,
-  #meetings.section > .content,
-  .fv-header,
-  .fv-header.section-head-pad {
-    max-width: 100% !important;
-  }
-}
-
-/* CV: editor is a form, doesn't need 1600px. Cap it at a comfortable
-   form-reading width centred inside the wider container. */
-.cv-layout {
-  max-width: 760px !important;
-  margin: 0 auto !important;
-}
-
-/* Journal: kill stray borders/dividers from the old two-pane layout */
-.jrn-side-head { border-bottom: none !important; }
-.jrn-sidebar   { border-right: none !important; border-bottom: none !important; }
-.jrn-list      { border-bottom: none !important; }
-.jrn-container { border-bottom: none !important; }
-
-/* Reviews + Links + others: same master-detail pattern as Journal/Meetings.
-   List is full-width single column by default; editor pane appears only
-   when a row is selected (and the list hides). */
-.reviews-layout {
-  display: block !important;
-  grid-template-columns: 1fr !important;
-  margin-top: 18px !important;
-  gap: 0 !important;
-}
-.reviews-list {
-  max-height: none !important;
-  overflow: visible !important;
-  width: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
-}
-#reviews:not([data-detail-open="true"]) .reviews-editor { display: none !important; }
-#reviews[data-detail-open="true"] .reviews-list { display: none !important; }
-
-/* Reviews week rows match the unified card style */
-.rev-row {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  padding: 14px 16px !important;
-  margin-bottom: 0 !important;
-}
-.rev-row:hover  { background: var(--surface-2) !important; border-color: var(--border-2) !important; }
-.rev-row.active { background: var(--accent-soft) !important; border-color: var(--accent) !important; }
-
-/* Reviews editor pane (back / title / textarea) — single column, full width */
-.reviews-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 100%;
-}
-.reviews-editor-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-.reviews-textarea {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  padding: 14px 16px !important;
-  min-height: 60vh !important;
-  color: var(--text);
-  resize: vertical;
-}
-.reviews-textarea:focus {
-  outline: none !important;
-  border-color: var(--accent) !important;
-}
-
-/* Links toolbar: search + filters in a single row, full-width input */
-.links-toolbar {
-  margin: 14px 0 12px !important;
-  width: 100% !important;
-}
-.links-search {
-  width: 100% !important;
-  max-width: none !important;
-  padding: 11px 14px !important;
-  border-radius: 12px !important;
-  background: var(--surface-2) !important;
-  border: 1px solid var(--border) !important;
-  font-size: 14px;
-}
-.links-search:focus {
-  outline: none !important;
-  border-color: var(--accent) !important;
-}
-
-/* #links-list — same column gap as other lists */
-#links-list { display: flex !important; flex-direction: column !important; gap: 8px !important; }
-
-/* Link row: unified card pattern */
-.link-row {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  padding: 14px 16px !important;
-  margin-bottom: 0 !important;
-}
-.link-row:hover { background: var(--surface-2) !important; border-color: var(--border-2) !important; }
-
-/* Calendar: ensure the grid + day panel sit centered like the others */
-.cal-body { gap: 14px !important; }
-.cal-day-panel {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  padding: 14px 16px !important;
-}
-
-/* Passwords (Private vault): vault rows in the same card style — they
-   already are, but force the gap and remove any sidebar artefacts. */
-.vault-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-
-/* Active section: stack children vertically so .fv-header and the
-   list container don't sit side-by-side as row-flex items (which
-   was making them content-sized — the source of the "tiny narrow
-   centred content" the user reported). */
-.section.active {
-  flex-direction: column !important;
-  align-items: stretch !important;
-}
-
-/* Journal: explicit top spacing on the container so the "+ Add today"
-   button in the header doesn't visually overlap the first entry card. */
-.jrn-container { padding-top: 18px !important; }
-.fv-header.section-head-pad { margin-bottom: 0 !important; padding-bottom: 8px !important; }
-
-/* Force section containers to actually take up the section width. With
-   .section.active being flex column + align-items: stretch, width:100%
-   was missing — explicit declaration so max-width: 1600px actually
-   becomes "fill the section up to 1600px" instead of content-sized. */
-.fv-container,
-.jrn-container,
-.links-container,
-.reviews-container,
-.cal-container,
-#meetings.section > .sidebar,
-#meetings.section > .content {
-  width: 100% !important;
-  align-self: stretch !important;
-}
-
-/* ════════════════════════════════════════════════════════
-   UNIFIED PRIMARY BUTTONS in section headers
-   Every "+ Add X" button (Meeting / Visit / today / Link /
-   Entry / This week) shares the same size, padding, radius.
-   CV's Edit/Preview tabs match the same look so they don't
-   sit as oversized rectangles.
-   ════════════════════════════════════════════════════════ */
-.fv-header .btn-primary,
-.section-head-pad .btn-primary,
-#vault-add-btn,
-.finance-header-actions .btn-primary,
-.finance-header-actions .btn-ghost {
+/* Primary action button: solid accent pill */
+.btn-primary {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
   padding: 10px 20px !important;
+  background: var(--accent) !important;
+  border: 1px solid var(--accent) !important;
   border-radius: 999px !important;
+  color: var(--on-accent) !important;
+  font: inherit !important;
   font-size: 13.5px !important;
   font-weight: 600 !important;
-  min-height: 38px !important;
   line-height: 1.2 !important;
-  white-space: nowrap;
+  min-height: 38px !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  transition: background .12s var(--ease, ease), border-color .12s var(--ease, ease) !important;
+  box-shadow: none !important;
+}
+.btn-primary:hover { background: var(--accent-h) !important; border-color: var(--accent-h) !important; }
+
+/* Secondary action button: ghost pill */
+.btn-ghost {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 10px 20px !important;
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  color: var(--text) !important;
+  font: inherit !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  min-height: 38px !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  transition: background .12s var(--ease, ease), border-color .12s var(--ease, ease) !important;
+  box-shadow: none !important;
+}
+.btn-ghost:hover { background: var(--surface-3) !important; border-color: var(--border-2) !important; }
+
+/* Small action button: compact pill */
+.btn-sm, .btn-mini {
+  padding: 6px 14px !important;
+  font-size: 12.5px !important;
+  min-height: 30px !important;
 }
 
-/* Header action row: consistent gap between buttons */
+/* Icon-only square button: small rounded square */
+.icon-btn, .topbar-icon-btn, .topbar-avatar-btn, .modal-close,
+.md-back-btn, .bp-icon-btn, .vault-icon-btn, .home-section-icon-btn,
+.cal-nav, .cv-list-actions button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  color: var(--muted) !important;
+  cursor: pointer !important;
+  transition: background .12s var(--ease, ease), color .12s var(--ease, ease) !important;
+  box-shadow: none !important;
+}
+.icon-btn:hover, .topbar-icon-btn:hover, .topbar-avatar-btn:hover,
+.modal-close:hover, .md-back-btn:hover, .bp-icon-btn:hover,
+.vault-icon-btn:hover, .home-section-icon-btn:hover, .cal-nav:hover,
+.cv-list-actions button:hover {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Header action row: consistent gap */
 .finance-header-actions {
   display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
   gap: 8px !important;
-  flex-wrap: wrap;
-  align-items: center;
 }
 
-/* CV tabs: match the primary button size */
-.cv-tabs {
-  display: flex !important;
-  gap: 8px !important;
-  margin: 14px 0 12px !important;
-}
-.cv-tab {
-  flex: 1;
+/* Inline tab pills (CV Edit/Preview, Reviews Weekly/Monthly) */
+.cv-tab, .cv-tab-inline, .rev-period-btn {
   padding: 10px 20px !important;
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
   border-radius: 999px !important;
+  color: var(--text) !important;
   font-size: 13.5px !important;
   font-weight: 600 !important;
-  min-height: 38px !important;
   line-height: 1.2 !important;
-  max-width: 200px;
+  min-height: 38px !important;
+  cursor: pointer !important;
+  flex: none !important;
 }
-
-/* Reviews period toggle should match the same button rhythm */
-.rev-period-btn {
-  padding: 8px 18px !important;
-  font-size: 13.5px !important;
-  font-weight: 600 !important;
-  border-radius: 999px !important;
-  min-height: 36px !important;
+.cv-tab.active, .cv-tab-inline.active, .rev-period-btn.active {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--on-accent) !important;
 }
-
-/* Reasonable max-width for section contents — 1600px was too wide
-   and made the header span far left while CV's form sat at 760px in
-   the middle, breaking alignment. 1100px gives comfortable reading
-   width and the header lines up with the content below. */
-.fv-container,
-.jrn-container,
-.links-container,
-.reviews-container,
-.cal-container,
-#meetings.section > .sidebar,
-#meetings.section > .content,
-.fv-header,
-.fv-header.section-head-pad {
-  max-width: 1100px !important;
-}
-
-/* CV: header AND cv-layout share the same 760px form column so the
-   title sits directly above the form, not way over to the left. */
-#cv .fv-header,
-#cv .cv-tabs,
-#cv .cv-layout {
-  max-width: 760px !important;
-  margin: 0 auto !important;
-}
-
-/* Consistent vertical gap between section header and the content
-   below — 24px on every page. */
-.fv-header,
-.fv-header.section-head-pad {
-  margin-bottom: 24px !important;
-  padding-bottom: 0 !important;
-}
-@media (max-width: 600px) {
-  .fv-header,
-  .fv-header.section-head-pad {
-    margin-bottom: 18px !important;
-  }
-}
-
-/* Reviews period toggle + this-week button row gets a bit more space
-   below itself when the list follows. */
-.reviews-period-toggle { margin-right: 4px; }
-
-/* Calendar header sits above the grid — same 24px gap. */
-.cal-header { margin-bottom: 24px !important; }
-
-/* Links toolbar (search input) sits between header and list — give
-   it some breathing room from the header too. */
-.links-toolbar { margin: 0 0 16px !important; }
-
-/* Journal container's extra padding-top can go now that header has
-   a real bottom margin. */
-.jrn-container { padding-top: 0 !important; }
-
-/* Passwords vault card: centre horizontally — it's a focused
-   unlock/setup form, behaves like a login dialog. */
-.vault-card {
-  max-width: 520px !important;
-  margin: 32px auto !important;
-  border-radius: 14px !important;
-}
-
-/* CV vertical gaps: header -> tabs -> form. */
-#cv .fv-header { margin: 0 auto 18px !important; }
-#cv .cv-tabs   { margin: 0 auto 24px !important; }
-#cv .cv-layout { margin: 0 auto !important; }
-
-/* Header padding is doubling with the section container padding —
-   header has its own 16px and container also has 16px, so title sits
-   16px deeper than the cards below it. Remove header's inner padding
-   so everything aligns to the container's edge. */
-.fv-header,
-.fv-header.section-head-pad {
+.reviews-period-toggle {
+  display: inline-flex !important;
+  gap: 6px !important;
+  background: transparent !important;
+  border: none !important;
   padding: 0 !important;
 }
 
-/* Edit / Preview inline tabs — same size as Import/Export/Print so
-   they all sit on a single header action row. */
-.cv-tab-inline {
-  padding: 10px 20px !important;
-  border-radius: 999px !important;
-  font-size: 13.5px !important;
-  font-weight: 600 !important;
-  min-height: 38px !important;
-  line-height: 1.2 !important;
-  flex: none !important;
-  max-width: none !important;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  cursor: pointer;
+/* ════════════════════════════════════════════════════════════
+   2. CONSISTENT INPUTS
+   ════════════════════════════════════════════════════════════ */
+
+input[type="text"], input[type="email"], input[type="tel"],
+input[type="url"], input[type="password"], input[type="number"],
+input[type="search"], input[type="date"], input[type="color"],
+input:not([type]), textarea, select {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  color: var(--text) !important;
+  font: inherit !important;
+  font-size: 14px !important;
+  box-shadow: none !important;
 }
-.cv-tab-inline:hover { background: var(--surface-3); border-color: var(--border-2); }
-.cv-tab-inline.active {
-  background: var(--accent) !important;
-  color: var(--on-accent) !important;
+input:focus, textarea:focus, select:focus {
+  outline: none !important;
+  border-color: var(--accent) !important;
+  box-shadow: none !important;
+}
+input::placeholder, textarea::placeholder { color: var(--muted) !important; opacity: .8; }
+
+/* ════════════════════════════════════════════════════════════
+   3. CONSISTENT CARDS — one style, every list item
+   ════════════════════════════════════════════════════════════ */
+
+.home-list-item, .home-card, .home-journal-card,
+.at-task, .visit-row, .link-row, .rev-row, .jrn-entry,
+.vault-row, .cv-acc, .cv-list-item, .task-body, .task-card,
+.cal-day-panel, .streak-stat,
+#meeting-list .robot-item, #meetings .robot-item {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  margin-bottom: 0 !important;
+  box-shadow: none !important;
+}
+.home-list-item:hover, .home-card:hover, .at-task:hover,
+.visit-row:hover, .link-row:hover, .rev-row:hover, .jrn-entry:hover,
+.vault-row:hover, .cv-list-item:hover,
+.cal-day-panel:hover,
+#meeting-list .robot-item:hover, #meetings .robot-item:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--border-2) !important;
+}
+.rev-row.active, .jrn-entry.active,
+#meeting-list .robot-item.active, #meetings .robot-item.active {
+  background: var(--accent-soft) !important;
   border-color: var(--accent) !important;
 }
-.cv-tabs[hidden] { display: none !important; }
 
-/* ════════════════════════════════════════════════════════
-   DESKTOP (>=1000px) — multi-column master-detail layouts
-   - Permanent left sidebar with nav + spaces
-   - Meetings / Reviews / Journal: list on the left, detail on
-     the right (visible simultaneously)
-   - Calendar: grid + day panel side-by-side (existing)
-   - CV: editor + preview side-by-side
-   - Floating pill nav hidden on desktop (sidebar handles it)
-   ════════════════════════════════════════════════════════ */
+/* Lists: consistent gap between cards */
+.home-list, #links-list, #meeting-list, .reviews-list,
+.jrn-list, .vault-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   4. SECTION LAYOUT — mobile-first
+   ════════════════════════════════════════════════════════════ */
+
+/* Generic section container */
+.section { min-width: 0; }
+.section.active {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.fv-container, .jrn-container, .links-container,
+.reviews-container, .cal-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 18px 16px calc(110px + env(safe-area-inset-bottom, 0px)) !important;
+  background: transparent !important;
+  border: none !important;
+  min-height: auto !important;
+}
+
+/* Section header (title + subtitle + action buttons) */
+.fv-header, .fv-header.section-head-pad {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  padding: 0 !important;
+  margin: 0 0 24px !important;
+}
+.fv-header > div:first-child { flex: 0 0 auto; }
+.fv-header h2 {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.02em !important;
+  margin: 0 !important;
+  color: var(--text) !important;
+}
+.fv-subtitle {
+  font-size: 13.5px !important;
+  color: var(--muted) !important;
+  margin: 4px 0 0 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   5. MOBILE (<1000px) — single column + floating pill nav
+   ════════════════════════════════════════════════════════════ */
+
+/* Topbar: sticky */
+@media (max-width: 999px) {
+  body { display: flex !important; flex-direction: column !important; }
+  .app-topbar {
+    position: sticky !important;
+    top: 0 !important;
+    background: var(--bg) !important;
+    border-bottom: 1px solid var(--border) !important;
+    z-index: 60;
+  }
+  .topbar-logo { display: none; }
+  #topbar-burger-btn { display: inline-flex !important; }
+
+  /* Spaces drawer: slide-out (default mobile behaviour) */
+  .spaces-drawer {
+    position: fixed !important;
+    top: 0; bottom: 0; left: 0;
+    width: min(320px, 88vw) !important;
+    background: var(--surface) !important;
+    border-right: 1px solid var(--border) !important;
+    transform: translateX(-104%);
+    transition: transform .22s var(--ease, ease);
+    z-index: 120;
+    overflow-y: auto;
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
+  .spaces-drawer-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, .5);
+    display: none;
+    z-index: 110;
+  }
+  body.spaces-drawer-open .spaces-drawer-backdrop { display: block; }
+
+  /* Drawer nav inside the slide-out drawer */
+  .drawer-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1px !important;
+    padding: 8px !important;
+    border-bottom: 1px solid var(--border);
+  }
+  .drawer-nav-btn {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 10px 12px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    color: var(--text) !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    width: 100%;
+    text-align: left;
+  }
+  .drawer-nav-btn:hover { background: var(--surface-2) !important; }
+  .drawer-nav-btn.active { background: var(--accent-soft) !important; color: var(--accent) !important; }
+
+  /* Floating pill nav at bottom */
+  .bnav-dock {
+    position: fixed !important;
+    left: 50% !important;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+    transform: translateX(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    z-index: 90;
+    pointer-events: none;
+  }
+  .bnav-dock > * { pointer-events: auto; }
+  .bottom-nav {
+    display: flex !important;
+    align-items: center !important;
+    height: 56px !important;
+    padding: 0 6px !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 999px !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .25) !important;
+    gap: 2px;
+  }
+  .bnav-btn {
+    width: 44px !important;
+    height: 44px !important;
+    align-self: center;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 50% !important;
+    color: var(--muted) !important;
+    cursor: pointer;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .bnav-btn.active {
+    background: var(--accent-soft) !important;
+    color: var(--accent) !important;
+  }
+  .bnav-btn span { display: none; }
+  .bnav-fab {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    background: var(--accent) !important;
+    color: var(--on-accent) !important;
+    border: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 6px 20px rgba(124, 58, 237, .35) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .bnav-fab:hover { background: var(--accent-h) !important; }
+
+  /* CV: tab-switcher (only one pane at a time on mobile) */
+  .cv-tabs { display: flex !important; gap: 8px !important; margin: 0 0 18px !important; }
+  .cv-tabs[hidden] { display: none !important; }
+  .cv-tab-inline { display: none !important; }  /* inline only on desktop */
+  .cv-layout {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+  .cv-layout[data-active="editor"]  .cv-preview-wrap { display: none !important; }
+  .cv-layout[data-active="preview"] .cv-editor       { display: none !important; }
+
+  /* Master-detail mobile: list view OR detail view */
+  #meetings.section { flex-direction: column !important; }
+  #meetings.section > .sidebar { padding: 0 !important; border: none !important; width: 100% !important; }
+  #meetings.section > .content { padding: 0 !important; }
+  #meetings.section[data-detail-open="true"] > .sidebar { display: none !important; }
+  #meetings.section:not([data-detail-open="true"]) > .content { display: none !important; }
+
+  #journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }
+  #journal[data-detail-open="true"] .jrn-sidebar { display: none !important; }
+  .jrn-container { flex-direction: column !important; }
+  .jrn-sidebar { width: 100% !important; border: none !important; padding: 0 !important; }
+
+  #reviews:not([data-detail-open="true"]) .reviews-editor { display: none !important; }
+  #reviews[data-detail-open="true"] .reviews-list { display: none !important; }
+  .reviews-layout { display: block !important; }
+
+  /* Calendar: single column on mobile */
+  .cal-body { grid-template-columns: 1fr !important; gap: 14px !important; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   6. DESKTOP (>=1000px) — sidebar + master-detail multi-column
+   ════════════════════════════════════════════════════════════ */
 @media (min-width: 1000px) {
-  /* Body grid: sidebar (280px) + topbar/main */
+  /* Body grid: sidebar | topbar/main */
   body {
     display: grid !important;
     grid-template-columns: 280px 1fr !important;
@@ -6861,132 +6155,287 @@ select:focus {
     grid-template-areas:
       "sidebar topbar"
       "sidebar main" !important;
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
   }
   .app-topbar {
     grid-area: topbar !important;
     position: static !important;
+    background: var(--bg) !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 14px 24px !important;
   }
+  #topbar-burger-btn { display: none !important; }
   main {
     grid-area: main !important;
     overflow: hidden !important;
     display: flex !important;
   }
 
-  /* Permanent sidebar (was slide-out drawer on mobile) */
+  /* Permanent sidebar */
   .spaces-drawer {
     position: static !important;
     grid-area: sidebar !important;
     transform: none !important;
     width: auto !important;
+    background: var(--surface) !important;
     border-right: 1px solid var(--border) !important;
     box-shadow: none !important;
     z-index: auto !important;
-    background: var(--surface) !important;
     height: 100dvh !important;
+    overflow-y: auto !important;
+    padding: 18px 12px !important;
   }
   .spaces-drawer-backdrop { display: none !important; }
-  body.spaces-drawer-open .spaces-drawer-backdrop { display: none !important; }
-  .drawer-nav { display: flex !important; flex-direction: column !important; gap: 1px !important; padding: 12px 8px 4px !important; }
 
-  /* Hamburger hidden — sidebar is permanent */
-  #topbar-burger-btn { display: none !important; }
+  /* Drawer nav as a clean vertical list */
+  .drawer-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    padding: 0 0 16px !important;
+    border-bottom: 1px solid var(--border) !important;
+    margin-bottom: 12px !important;
+  }
+  .drawer-nav-btn {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 9px 12px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    color: var(--text) !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    text-align: left !important;
+  }
+  .drawer-nav-btn:hover { background: var(--surface-2) !important; }
+  .drawer-nav-btn.active {
+    background: var(--accent-soft) !important;
+    color: var(--accent) !important;
+    font-weight: 600 !important;
+  }
+  .drawer-nav-btn.active svg { color: var(--accent) !important; }
 
-  /* Floating pill + FAB hidden on desktop */
+  /* Floating pill nav hidden — sidebar handles navigation */
   .bnav-dock { display: none !important; }
 
-  /* Sections fill the available main area */
+  /* Sections fill main area */
   .section.active {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    padding: 24px 32px !important;
+  }
+  /* Master-detail sections use row direction */
+  #meetings.section.active,
+  #journal.section.active {
     flex-direction: row !important;
-    align-items: stretch !important;
+    padding: 0 !important;
   }
 
-  /* Section containers: no max-width cap on desktop — fill the
-     available space inside the main area. */
-  .fv-container,
-  .jrn-container,
-  .links-container,
-  .reviews-container,
-  .cal-container,
-  #meetings.section > .sidebar,
-  #meetings.section > .content,
-  .fv-header,
-  .fv-header.section-head-pad {
-    max-width: 100% !important;
+  /* Generic section containers full-width, centered with max-width */
+  .fv-container, .jrn-container, .links-container,
+  .reviews-container, .cal-container {
     width: 100% !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
   }
 
-  /* Meetings master-detail: list left, content right */
+  /* Header: title left, actions right (back to row) */
+  .fv-header, .fv-header.section-head-pad {
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    margin: 0 0 28px !important;
+  }
+
+  /* Meetings: list + content side-by-side */
   #meetings.section {
+    display: flex !important;
     flex-direction: row !important;
   }
   #meetings.section > .sidebar {
-    width: 320px !important;
-    max-width: 320px !important;
-    flex: 0 0 320px !important;
+    width: 340px !important;
+    flex: 0 0 340px !important;
     border-right: 1px solid var(--border) !important;
     overflow-y: auto !important;
-    padding: 18px 14px !important;
+    padding: 24px 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
   }
   #meetings.section > .content {
     flex: 1 !important;
     overflow-y: auto !important;
-    padding: 24px 28px !important;
-    max-width: none !important;
-  }
-  #meetings .fv-header.section-head-pad {
-    /* Stays at the very top spanning both columns */
-    grid-column: 1 / -1;
-  }
-  /* Show both list AND content simultaneously (no hide-on-detail) */
-  #meetings.section[data-detail-open="true"] > .sidebar { display: flex !important; }
-  #meetings.section:not([data-detail-open="true"]) > .content { display: flex !important; }
-
-  /* Journal master-detail: date list left, entry editor right */
-  #journal .jrn-container {
-    flex-direction: row !important;
-    display: flex !important;
-  }
-  .jrn-sidebar {
-    width: 280px !important;
-    max-width: 280px !important;
-    flex: 0 0 280px !important;
-    border-right: 1px solid var(--border) !important;
-    padding: 0 12px !important;
-  }
-  .jrn-main {
-    flex: 1 !important;
-    padding: 24px 28px !important;
+    padding: 24px 32px !important;
     display: flex !important;
     flex-direction: column !important;
   }
-  #journal .jrn-main { display: flex !important; }
+  #meetings.section > .fv-header.section-head-pad {
+    /* Move section header inside the sidebar column on desktop */
+    /* Actually keep at top spanning everything */
+    width: 100% !important;
+    padding: 24px 32px 0 !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Journal: list left, editor right */
+  #journal.section { display: flex !important; flex-direction: row !important; }
+  #journal .jrn-container {
+    display: flex !important;
+    flex-direction: row !important;
+    flex: 1 !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  #journal > .fv-header.section-head-pad {
+    width: 100%;
+    padding: 24px 32px 0 !important;
+    margin-bottom: 16px !important;
+  }
+  .jrn-sidebar {
+    width: 320px !important;
+    flex: 0 0 320px !important;
+    border-right: 1px solid var(--border) !important;
+    overflow-y: auto !important;
+    padding: 0 16px 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .jrn-main {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    padding: 0 32px 24px !important;
+  }
   #journal:not([data-detail-open="true"]) .jrn-main { display: flex !important; }
 
-  /* Reviews master-detail: week list left, note editor right */
+  /* Reviews: list left, editor right */
   .reviews-layout {
     display: grid !important;
-    grid-template-columns: 280px 1fr !important;
-    gap: 18px !important;
-    margin-top: 18px !important;
-    align-items: start !important;
+    grid-template-columns: 320px 1fr !important;
+    gap: 24px !important;
+    margin-top: 0 !important;
   }
+  .reviews-list { max-height: none !important; overflow: visible !important; }
   #reviews:not([data-detail-open="true"]) .reviews-editor { display: flex !important; }
-  #reviews[data-detail-open="true"] .reviews-list { display: flex !important; }
+  #reviews[data-detail-open="true"]      .reviews-list   { display: flex !important; }
 
-  /* CV: editor + preview side-by-side */
+  /* CV: editor + preview side-by-side. Hide tab pills, show inline tabs in header. */
+  #cv .cv-tabs { display: none !important; }
+  #cv .cv-tab-inline { display: inline-flex !important; }
   #cv .cv-layout {
     display: grid !important;
-    grid-template-columns: minmax(0, 480px) 1fr !important;
-    gap: 24px !important;
+    grid-template-columns: minmax(0, 460px) 1fr !important;
+    gap: 28px !important;
     max-width: 100% !important;
   }
-  #cv .cv-tabs { display: none !important; }
-  #cv .cv-editor { display: flex !important; max-width: 480px !important; }
+  #cv .cv-editor { max-width: 100% !important; }
   #cv .cv-preview-wrap { display: flex !important; justify-content: center; }
 
-  /* Calendar: keep grid + panel side-by-side (existing two-col layout) */
+  /* Calendar: grid + day panel */
   .cal-body {
+    display: grid !important;
     grid-template-columns: 1fr 360px !important;
     gap: 18px !important;
   }
+}
+
+/* ════════════════════════════════════════════════════════════
+   7. MODAL / POPOVER consistency
+   ════════════════════════════════════════════════════════════ */
+.modal {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .25) !important;
+}
+.backup-popover {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .25) !important;
+}
+.bp-account, .bp-meta, .bp-settings-block {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.bp-meta-row { border-bottom: 1px solid var(--border) !important; padding: 8px 0 !important; }
+.bp-meta-row:last-child { border-bottom: none !important; }
+
+/* Theme toggle in popover: clean segmented pill */
+.theme-toggle, .bp-theme-toggle {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  padding: 4px !important;
+  display: inline-flex !important;
+  width: 100%;
+}
+.theme-toggle-btn {
+  flex: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 999px !important;
+  padding: 6px 10px !important;
+  color: var(--muted) !important;
+  font-size: 12.5px !important;
+  cursor: pointer !important;
+}
+.theme-toggle-btn.active {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .1) !important;
+}
+
+/* Inner tabs (Tasks/Known Issues) */
+.inner-tabs {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  padding: 4px !important;
+}
+.inner-tab {
+  border-radius: 999px !important;
+  padding: 7px 16px !important;
+}
+.inner-tab.active {
+  background: var(--surface) !important;
+}
+
+/* Vault card: centred horizontally — login-dialog feel */
+.vault-card {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  padding: 22px !important;
+  max-width: 480px !important;
+  margin: 24px auto !important;
+}
+
+/* Reviews textarea */
+.reviews-textarea {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  min-height: 60vh !important;
+}
+.reviews-editor { width: 100%; }
+
+/* Section padding-top fix for sticky topbar on mobile */
+@media (max-width: 999px) {
+  .section.active { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
 }

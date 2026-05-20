@@ -48,14 +48,14 @@
   /* Frosted-glass tokens — used by chrome surfaces (bottom-nav,
      top-bar, drawer, modals, sidebars). Solid fallback below
      via @supports for browsers without backdrop-filter. */
-  --glass-bg:     rgba(255, 255, 255, .55);
-  --glass-bg-2:   rgba(255, 255, 255, .35);
-  /* For solid-looking cards (meeting/journal/review rows, task body)
-     that should read as visibly WHITE-frosted, not nearly-transparent. */
-  --glass-bg-card: rgba(255, 255, 255, .80);
+  --glass-bg:     rgba(255, 255, 255, .60);
+  --glass-bg-2:   rgba(255, 255, 255, .50);
+  --glass-bg-card: rgba(255, 255, 255, .72);
   --glass-border: rgba(15, 20, 30, .08);
-  --glass-blur:   blur(22px) saturate(1.6);
+  --glass-highlight: rgba(255, 255, 255, .90);
+  --glass-blur:   blur(24px) saturate(1.6);
   --glow-accent:  0 0 0 1px rgba(168, 85, 247, .25), 0 0 14px rgba(168, 85, 247, .25);
+  --card-shadow:  0 8px 24px rgba(15, 20, 30, .08), 0 2px 6px rgba(15, 20, 30, .04);
   color-scheme: light;
 }
 input[type="date"] { color-scheme: light; }
@@ -93,12 +93,16 @@ input[type="date"] { color-scheme: light; }
   --shadow:       0 6px 18px rgba(0, 0, 0, .35);
   --shadow-lg:    0 14px 36px rgba(0, 0, 0, .45);
 
-  --glass-bg:     rgba(255, 255, 255, .07);
-  --glass-bg-2:   rgba(255, 255, 255, .04);
-  --glass-bg-card: rgba(255, 255, 255, .14);
-  --glass-border: rgba(255, 255, 255, .10);
-  --glass-blur:   blur(22px) saturate(1.5);
+  /* Tighter glass tokens for a more pronounced frosted-glass feel.
+     Card alpha bumped to .17 (visible), inner highlight via border. */
+  --glass-bg:     rgba(255, 255, 255, .10);
+  --glass-bg-2:   rgba(255, 255, 255, .14);
+  --glass-bg-card: rgba(255, 255, 255, .18);
+  --glass-border: rgba(255, 255, 255, .14);
+  --glass-highlight: rgba(255, 255, 255, .22);
+  --glass-blur:   blur(24px) saturate(1.5);
   --glow-accent:  0 0 0 1px rgba(192, 132, 252, .35), 0 0 14px rgba(192, 132, 252, .28);
+  --card-shadow:  0 8px 24px rgba(0, 0, 0, .18), 0 2px 6px rgba(0, 0, 0, .10);
   color-scheme: dark;
 }
 :root[data-theme="dim"] input[type="date"] { color-scheme: dark; }
@@ -137,12 +141,14 @@ input[type="date"] { color-scheme: light; }
   --shadow:       0 6px 18px rgba(0, 0, 0, .55);
   --shadow-lg:    0 14px 36px rgba(0, 0, 0, .65);
 
-  --glass-bg:     rgba(255, 255, 255, .06);
-  --glass-bg-2:   rgba(255, 255, 255, .03);
-  --glass-bg-card: rgba(255, 255, 255, .13);
-  --glass-border: rgba(255, 255, 255, .10);
-  --glass-blur:   blur(24px) saturate(1.5);
+  --glass-bg:     rgba(255, 255, 255, .08);
+  --glass-bg-2:   rgba(255, 255, 255, .12);
+  --glass-bg-card: rgba(255, 255, 255, .16);
+  --glass-border: rgba(255, 255, 255, .12);
+  --glass-highlight: rgba(255, 255, 255, .20);
+  --glass-blur:   blur(26px) saturate(1.5);
   --glow-accent:  0 0 0 1px rgba(192, 132, 252, .35), 0 0 14px rgba(192, 132, 252, .32);
+  --card-shadow:  0 8px 28px rgba(0, 0, 0, .35), 0 2px 8px rgba(0, 0, 0, .18);
   color-scheme: dark;
 }
 :root[data-theme="dark"] input[type="date"] { color-scheme: dark; }
@@ -176,9 +182,10 @@ body {
      piece of softly tinted glass. Fixed attachment keeps the gradients
      steady while content scrolls. */
   background:
-    radial-gradient(1200px 800px at 12% -8%, var(--accent-soft, rgba(168, 85, 247, .14)) 0%, transparent 55%),
-    radial-gradient(1000px 700px at 88% 18%, rgba(251, 113, 133, .09) 0%, transparent 60%),
-    radial-gradient(900px 600px at 50% 110%, rgba(124, 58, 237, .07) 0%, transparent 55%),
+    radial-gradient(900px 600px at 10% -5%, rgba(168, 85, 247, .22) 0%, transparent 55%),
+    radial-gradient(800px 600px at 90% 15%, rgba(251, 113, 133, .16) 0%, transparent 60%),
+    radial-gradient(900px 600px at 50% 95%, rgba(124, 58, 237, .14) 0%, transparent 55%),
+    radial-gradient(700px 500px at 25% 70%, rgba(99, 102, 241, .10) 0%, transparent 60%),
     var(--bg);
   background-attachment: fixed;
   color: var(--text);
@@ -6293,4 +6300,302 @@ body.is-readonly #robot-content .nb-item { cursor: default !important; }
   .bottom-nav, .spaces-drawer, .app-topbar {
     background: var(--surface) !important;
   }
+}
+/* ════════════════════════════════════════════════════════
+   THEME V3 — STRONGER GLASS + PROPER HIERARCHY FIX
+   ════════════════════════════════════════════════════════ */
+/* The glass card pattern — every standalone surface uses this look */
+.home-list-item,
+.wm-cell,
+.home-card,
+.home-journal-card,
+.at-task,
+.visit-row,
+.link-row,
+.rev-row,
+.jrn-entry,
+.vault-row,
+.vault-card,
+.cv-acc,
+.cv-list-item,
+.task-body,
+.task-card,
+.cal-day,
+.cal-day-panel,
+#meeting-list .robot-item,
+#meetings .robot-item,
+.streak-widget,
+.spaces-drawer-section,
+.bottom-nav {
+  background: var(--glass-bg-card) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, .22)),
+    var(--card-shadow, 0 8px 24px rgba(0, 0, 0, .18));
+}
+
+/* Nested cards / panels inside the task body — transparent so the
+   host card frost reads as one piece. */
+.task-body .notebook,
+.task-body .att-section,
+.task-body .subtask-list,
+.task-body .task-actions-row,
+.task-body .nb-entry,
+.notebook .nb-entry,
+.att-section .att-chip {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-color: var(--glass-border) !important;
+}
+
+/* Backup popover inner blocks: same rule */
+.backup-popover .bp-account,
+.backup-popover .bp-meta,
+.backup-popover .bp-settings-block,
+.backup-popover .bp-meta-row {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+/* Inputs LIGHTER than the host card */
+.modal input,
+.modal textarea,
+.modal select,
+.cv-f input,
+.cv-f textarea,
+.cv-f select,
+.vault-card input,
+.links-search,
+.reviews-textarea,
+.notes-area,
+.sub-add-row input[type="text"],
+.nb-add-row textarea,
+.nb-add-row input,
+.search-input,
+textarea {
+  background: var(--glass-bg-2, rgba(255, 255, 255, .14)) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+.modal input:focus,
+.modal textarea:focus,
+.modal select:focus,
+.cv-f input:focus,
+.cv-f textarea:focus,
+.cv-f select:focus,
+.vault-card input:focus,
+.links-search:focus,
+.reviews-textarea:focus,
+.notes-area:focus,
+.sub-add-row input[type="text"]:focus,
+.nb-add-row textarea:focus,
+.nb-add-row input:focus,
+.search-input:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: var(--accent) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    0 0 0 3px var(--accent-soft, rgba(168, 85, 247, .22)) !important;
+}
+
+/* Buttons & toggles — make them pop with the highlight too */
+.btn-ghost,
+.btn-sm,
+.btn-mini,
+.cal-nav,
+.cal-today-btn,
+.cal-export-btn,
+.action-add-btn,
+.icon-btn:not(.topbar-icon-btn),
+.modal-close,
+.md-back-btn,
+.bp-icon-btn,
+.vault-icon-btn,
+.home-section-icon-btn,
+.lang-btn,
+.task-action-btn,
+.cv-tab,
+.cv-list-actions button {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text) !important;
+  box-shadow: inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, .14)) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+.btn-ghost:hover,
+.btn-sm:hover,
+.btn-mini:hover,
+.cal-nav:hover,
+.cal-today-btn:hover,
+.cal-export-btn:hover,
+.action-add-btn:hover,
+.icon-btn:not(.topbar-icon-btn):hover,
+.modal-close:hover,
+.md-back-btn:hover,
+.bp-icon-btn:hover,
+.vault-icon-btn:hover,
+.home-section-icon-btn:hover,
+.lang-btn:hover,
+.task-action-btn:hover,
+.cv-tab:not(.active):hover,
+.cv-list-actions button:hover {
+  border-color: var(--accent) !important;
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 0 0 1px var(--accent-soft) !important;
+}
+
+/* Topbar — frameless icons, no fill at rest */
+.topbar-icon-btn,
+.topbar-avatar-btn {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.topbar-icon-btn:hover,
+.topbar-avatar-btn:hover {
+  background: var(--glass-bg) !important;
+  border-color: var(--glass-border) !important;
+}
+
+/* Drawer rows — flat with glass-only on hover */
+.drawer-nav-btn,
+.spaces-drawer-item,
+.home-type-group {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+.drawer-nav-btn:hover,
+.spaces-drawer-item:hover {
+  background: var(--glass-bg-2) !important;
+}
+.drawer-nav-btn.active {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+}
+
+/* Pill nav button highlight */
+.bnav-btn {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+.bnav-btn.active {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  box-shadow: inset 0 0 0 1px var(--accent-soft2, rgba(168, 85, 247, .35)) !important;
+}
+.bnav-fab {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .25),
+    0 12px 28px var(--accent-soft2, rgba(168, 85, 247, .45)),
+    0 4px 10px rgba(0, 0, 0, .20) !important;
+}
+
+/* Make sure the chrome bars use proper glass with shadow */
+.app-topbar {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .04);
+}
+.spaces-drawer {
+  background: var(--glass-bg-card) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--glass-border) !important;
+  box-shadow:
+    inset 1px 0 0 var(--glass-highlight),
+    4px 0 24px rgba(0, 0, 0, .18) !important;
+}
+
+/* Hover states for cards — keep frost, add accent ring */
+.home-list-item:hover,
+.wm-cell:hover,
+.home-card:hover,
+.at-task:hover,
+.visit-row:hover,
+.link-row:hover,
+.rev-row:hover,
+.jrn-entry:hover,
+.vault-row:hover,
+.cal-day:hover,
+#meeting-list .robot-item:hover,
+#meetings .robot-item:hover,
+.cv-list-item:hover {
+  background: var(--glass-bg-card) !important;
+  border-color: var(--accent) !important;
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 0 0 1px var(--accent-soft),
+    0 0 22px var(--accent-soft) !important;
+}
+
+/* Active / selected — accent-soft fill */
+.cal-day.selected,
+.jrn-entry.active,
+#meeting-list .robot-item.active,
+#meetings .robot-item.active,
+.rev-row.active,
+.wm-cell.wm-has {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+  box-shadow: inset 0 1px 0 var(--glass-highlight) !important;
+}
+.wm-cell.wm-today {
+  border-color: var(--accent) !important;
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 0 0 1px var(--accent) !important;
+}
+.wm-cell.wm-today.wm-has { background: var(--accent-soft) !important; }
+
+/* Modal — keep glass but make it pop with the highlight + shadow */
+.modal {
+  background: var(--glass-bg-card) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 24px 48px rgba(0, 0, 0, .35),
+    0 6px 16px rgba(0, 0, 0, .18) !important;
+}
+.backup-popover {
+  background: var(--glass-bg-card) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 24px 48px rgba(0, 0, 0, .35),
+    0 6px 16px rgba(0, 0, 0, .18) !important;
+}
+
+/* Sub-add and nb-add inputs — explicit fix for darker-than-parent bug */
+.task-body .sub-add-row input[type="text"],
+.task-body .nb-add-row textarea,
+.task-body .nb-add-row input {
+  background: rgba(255, 255, 255, .10) !important;
+}
+
+/* Safety net */
+.notebook-area-wrap,
+.tag-picker,
+.radio-group,
+.tab-strip {
+  background: transparent !important;
 }

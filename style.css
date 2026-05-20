@@ -6133,7 +6133,7 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
   #journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }
   #journal[data-detail-open="true"] .jrn-sidebar { display: none !important; }
   .jrn-container { flex-direction: column !important; }
-  .jrn-sidebar { width: 100% !important; border: none !important; padding: 0 !important; }
+  .jrn-sidebar { width: 100% !important; border: none !important; padding: 0 !important; background: transparent !important; overflow: visible !important; }
 
   #reviews:not([data-detail-open="true"]) .reviews-editor { display: none !important; }
   #reviews[data-detail-open="true"] .reviews-list { display: none !important; }

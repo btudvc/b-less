@@ -6754,25 +6754,26 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
 .at-group { margin-bottom: 20px !important; }
 .at-group-label { margin-bottom: 10px !important; }
 
-/* Inbox badge on desktop rail: small dot top-right of the icon,
-   not stretched below as a third row in the column layout. */
+/* Inbox badge on the desktop rail: small accent-coloured dot
+   floated at the top-right of the icon. Number hidden — the dot
+   is enough as a notification cue. */
 @media (min-width: 1000px) {
   .drawer-nav-btn { position: relative !important; }
   .drawer-nav-badge {
     position: absolute !important;
     top: 6px !important;
-    right: 10px !important;
-    min-width: 18px !important;
-    height: 18px !important;
-    padding: 0 5px !important;
-    border-radius: 999px !important;
+    right: 12px !important;
+    width: 8px !important;
+    height: 8px !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
     background: var(--red, #dc2626) !important;
-    color: #fff !important;
-    font-size: 10.5px !important;
-    font-weight: 700 !important;
-    line-height: 18px !important;
-    text-align: center !important;
+    font-size: 0 !important;
+    color: transparent !important;
+    text-indent: -9999px;
     border: 2px solid var(--bg) !important;
     box-sizing: content-box;
+    line-height: 0 !important;
   }
 }

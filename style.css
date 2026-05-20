@@ -1206,18 +1206,11 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
   .topbar-logo { display: none; }
 }
 
-/* Brand block at the top of the persistent sidebar (desktop only). */
-.spaces-drawer-brand {
-  display: none;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 14px 10px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 6px;
-}
-@media (min-width: 1000px) {
-  .spaces-drawer-brand { display: flex; }
-}
+/* Brand block — used to show only inside the (now-removed) persistent
+   desktop sidebar. With the unified mobile-style layout the slide-out
+   drawer doesn't carry a header wordmark, so this block stays hidden
+   on every viewport. The topbar's centred title is the brand surface. */
+.spaces-drawer-brand { display: none !important; }
 .spaces-drawer-logo {
   width: 28px;
   height: 28px;

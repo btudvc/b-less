@@ -531,7 +531,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '6.27.1';
+var APP_VERSION = '6.27.2';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -8932,11 +8932,57 @@ function _cvPreviewHtml(d) {
 }
 
 document.getElementById('cv-print-btn')?.addEventListener('click', () => {
-  document.body.classList.add('cv-printing');
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => document.body.classList.remove('cv-printing'), 200);
-  }, 30);
+  // Open an isolated print window with just the CV markup + the CV
+  // stylesheet rules. Avoids the "fixed-position can only print page 1"
+  // trap and the visibility-hidden ancestor empty-page bug. Multi-page
+  // CVs paginate naturally because content is in the new doc's flow.
+  const preview = document.getElementById('cv-preview');
+  if (!preview) return;
+  // Snapshot every CSS rule (skip cross-origin sheets the browser will
+  // refuse to enumerate — print falls back to inline minimum styles).
+  let cssDump = '';
+  try {
+    cssDump = Array.from(document.styleSheets).map(s => {
+      try { return Array.from(s.cssRules).map(r => r.cssText).join('\n'); }
+      catch { return ''; }
+    }).join('\n');
+  } catch {}
+  const html = '<!doctype html><html><head><meta charset="utf-8"><title>CV</title>' +
+    '<style>' + cssDump + '</style>' +
+    '<style>' +
+      '@page { size: A4; margin: 0; }' +
+      'html, body { margin: 0; padding: 0; background: #fff; }' +
+      '.cv-preview-wrap { display: block; padding: 0; margin: 0; }' +
+      '.cv-preview {' +
+        ' position: static !important;' +
+        ' transform: none !important;' +
+        ' width: 210mm !important;' +
+        ' min-height: 297mm !important;' +
+        ' max-height: none !important;' +
+        ' margin: 0 !important;' +
+        ' padding: 12mm 12mm !important;' +
+        ' box-shadow: none !important;' +
+        ' border-radius: 0 !important;' +
+      '}' +
+      '.cv section { break-inside: avoid; }' +
+      '.cv-entry { break-inside: avoid; }' +
+    '</style></head><body>' +
+    '<div class="cv-preview-wrap"><div class="cv-preview" data-tpl="' +
+      (preview.dataset.tpl || 'classic') + '">' + preview.innerHTML + '</div></div>' +
+    '</body></html>';
+  const win = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1100');
+  if (!win) {
+    if (typeof alertDialog === 'function') alertDialog({ title:'Popup blocked', message:'Allow popups for this site, then try again.' });
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  // Wait for the dump to apply, then print. onload covers most cases;
+  // a small timeout fallback handles renderers that don't fire it.
+  const fire = () => { try { win.focus(); win.print(); } catch {} };
+  win.addEventListener('load', fire);
+  setTimeout(fire, 400);
 });
 document.getElementById('cv-export-btn')?.addEventListener('click', () => {
   const blob = new Blob([CVStore.exportJSON()], { type: 'application/json' });

@@ -6900,3 +6900,85 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     padding: 18px 14px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
+
+/* Meetings + Journal: mimic the Reviews page layout exactly so they
+   look identical (title row at top + full-width list below). */
+@media (min-width: 1000px) {
+  #meetings.section.active,
+  #journal.section.active {
+    padding: 24px 32px 24px calc(32px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
+}
+@media (max-width: 999px) {
+  #meetings.section.active,
+  #journal.section.active {
+    padding: 18px 14px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* Header on every viewport: title left + buttons right, just like
+   .reviews-container .fv-header */
+#meetings .fv-header.section-head-pad,
+#journal .fv-header.section-head-pad {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 0 !important;
+  margin: 0 0 24px !important;
+  width: 100% !important;
+}
+#meetings .fv-header h2,
+#journal .fv-header h2 {
+  margin: 0 !important;
+}
+#meetings .fv-subtitle,
+#journal .fv-subtitle {
+  margin: 4px 0 0 !important;
+}
+
+/* Mobile: collapse header to column (title above buttons) */
+@media (max-width: 600px) {
+  #meetings .fv-header.section-head-pad,
+  #journal .fv-header.section-head-pad {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+  }
+}
+
+/* List container: transparent, full-width, no border */
+#meetings > .sidebar {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+  flex: none !important;
+  overflow: visible !important;
+}
+#journal .jrn-container {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: visible !important;
+  flex: none !important;
+}
+#journal .jrn-sidebar {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+/* Hide the empty content/detail area on mobile + desktop when no
+   meeting/journal entry is selected — list IS the primary view. */
+#meetings.section:not([data-detail-open="true"]) > .content { display: none !important; }
+#journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }

@@ -5959,7 +5959,7 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
-  padding: 18px 16px calc(110px + env(safe-area-inset-bottom, 0px)) !important;
+  padding: 18px 16px 24px !important;
   background: transparent !important;
   border: none !important;
   min-height: auto !important;
@@ -5995,6 +5995,11 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
 /* Topbar: sticky */
 @media (max-width: 999px) {
   body { display: flex !important; flex-direction: column !important; }
+  /* Bottom-nav clearance for every section — bar is ~64px + safe-area.
+     Specific containers (.fv-container, .jrn-container, etc.) already
+     have their own padding-bottom; this is the safety net for sections
+     that use bespoke wrappers (#home, #robots, #more, #cv). */
+  main { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important; }
   .app-topbar {
     position: sticky !important;
     top: 0 !important;
@@ -6072,7 +6077,7 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     display: flex !important;
     align-items: stretch !important;
     justify-content: space-around !important;
-    height: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
+    height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
     padding: 0 4px env(safe-area-inset-bottom, 0px) !important;
     background: var(--surface) !important;
     border: none !important;
@@ -6094,22 +6099,45 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 2px !important;
+    gap: 3px !important;
     position: relative !important;
     box-shadow: none !important;
+    padding: 6px 4px !important;
+    font-size: 10.5px !important;
+    font-weight: 500 !important;
   }
+  /* Top accent bar for active tab */
+  .bnav-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: transparent;
+    transition: background .15s ease;
+  }
+  .bnav-btn.active::before { background: var(--accent); }
   .bnav-btn.active {
     background: transparent !important;
     color: var(--accent) !important;
     box-shadow: none !important;
   }
   .bnav-btn.active svg { color: var(--accent) !important; }
-  .bnav-btn span { display: none; }
+  /* Show labels — hide only the notification badge span */
+  .bnav-btn > span:not(.bnav-badge) {
+    display: inline !important;
+    font-size: 10.5px;
+    line-height: 1;
+  }
+  .bnav-btn svg { width: 22px; height: 22px; }
   /* FAB sits above the docked bar, anchored to the right */
   .bnav-fab {
     position: fixed !important;
     right: 16px !important;
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
     width: 56px !important;
     height: 56px !important;
     border-radius: 50% !important;

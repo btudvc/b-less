@@ -1207,7 +1207,10 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
   object-fit: contain;
 }
 @media (min-width: 1000px) {
-  .topbar-logo { display: none; }
+  /* On desktop the logo lives at the topbar's left edge — directly to
+     the right of the spaces sidebar — so the brand sits exactly where
+     the main content starts. */
+  .topbar-logo { display: block; }
 }
 
 /* Brand block — used to show only inside the (now-removed) persistent
@@ -6742,14 +6745,13 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
   .drawer-nav-btn.active svg { color: var(--accent) !important; }
 
   /* Right column: spaces panel — wrap everything except drawer-nav */
-  .spaces-drawer-brand,
   .spaces-drawer-head,
   .home-spaces,
   .spaces-drawer-section {
     grid-column: 2 !important;
   }
-  /* Each one gets its own row */
-  .spaces-drawer-brand { grid-row: 1; align-self: start; padding: 14px 14px 10px; border-bottom: 1px solid var(--border) !important; }
+  /* Brand block moved to the topbar — hide its sidebar slot */
+  .spaces-drawer-brand { display: none !important; }
   .spaces-drawer-head  { grid-row: 2; align-self: start; padding: 12px 14px 8px; }
   .home-spaces         {
     grid-row: 3 !important;

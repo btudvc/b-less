@@ -531,7 +531,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '6.27.2';
+var APP_VERSION = '6.27.3';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -8932,14 +8932,13 @@ function _cvPreviewHtml(d) {
 }
 
 document.getElementById('cv-print-btn')?.addEventListener('click', () => {
-  // Open an isolated print window with just the CV markup + the CV
-  // stylesheet rules. Avoids the "fixed-position can only print page 1"
-  // trap and the visibility-hidden ancestor empty-page bug. Multi-page
-  // CVs paginate naturally because content is in the new doc's flow.
+  // Use a hidden iframe instead of a new window — popup blockers don't
+  // touch same-origin iframes, and contentWindow.print() targets just
+  // the iframe's document, so the host app isn't involved at all.
   const preview = document.getElementById('cv-preview');
   if (!preview) return;
-  // Snapshot every CSS rule (skip cross-origin sheets the browser will
-  // refuse to enumerate — print falls back to inline minimum styles).
+  // Snapshot every CSS rule (skip cross-origin sheets the browser
+  // refuses to enumerate).
   let cssDump = '';
   try {
     cssDump = Array.from(document.styleSheets).map(s => {
@@ -8970,19 +8969,25 @@ document.getElementById('cv-print-btn')?.addEventListener('click', () => {
     '<div class="cv-preview-wrap"><div class="cv-preview" data-tpl="' +
       (preview.dataset.tpl || 'classic') + '">' + preview.innerHTML + '</div></div>' +
     '</body></html>';
-  const win = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1100');
-  if (!win) {
-    if (typeof alertDialog === 'function') alertDialog({ title:'Popup blocked', message:'Allow popups for this site, then try again.' });
-    return;
-  }
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-  // Wait for the dump to apply, then print. onload covers most cases;
-  // a small timeout fallback handles renderers that don't fire it.
-  const fire = () => { try { win.focus(); win.print(); } catch {} };
-  win.addEventListener('load', fire);
-  setTimeout(fire, 400);
+  // Drop a previous print iframe if it's still around.
+  document.getElementById('cv-print-iframe')?.remove();
+  const iframe = document.createElement('iframe');
+  iframe.id = 'cv-print-iframe';
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+  document.body.appendChild(iframe);
+  const fire = () => {
+    try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch {}
+    // Clean up after the print dialog closes. afterprint fires on most
+    // browsers; the timeout is a fallback.
+    const cleanup = () => { try { iframe.remove(); } catch {} };
+    try { iframe.contentWindow.addEventListener('afterprint', cleanup); } catch {}
+    setTimeout(cleanup, 60000);
+  };
+  iframe.onload = () => setTimeout(fire, 50);
+  // Most reliable cross-browser way to populate an iframe synchronously
+  // with HTML: write via srcdoc.
+  iframe.srcdoc = html;
 });
 document.getElementById('cv-export-btn')?.addEventListener('click', () => {
   const blob = new Blob([CVStore.exportJSON()], { type: 'application/json' });

@@ -25,14 +25,13 @@
      that sits between the gradient's top violet (#7c3aed) and middle
      lavender (#c084fc). Reads well on white surfaces and pairs with
      the navy clip detail. */
-  --accent:       #a855f7;
-  --accent-h:     #9333ea;
-  --accent-soft:  rgba(168, 85, 247, .12);
-  --accent-soft2: rgba(168, 85, 247, .26);
+  --accent:       #3b82f6;
+  --accent-h:     #2563eb;
+  --accent-soft:  rgba(59, 130, 246, .12);
+  --accent-soft2: rgba(59, 130, 246, .26);
   --on-accent:    #ffffff;
-  /* Full brand gradient — use sparingly for focal points (avatar dot,
-     shared badge ring) where the brand identity should jump out. */
-  --brand-gradient: linear-gradient(180deg, #7c3aed 0%, #c084fc 55%, #fb7185 100%);
+  /* Full brand gradient — blue range from indigo to sky for focal points. */
+  --brand-gradient: linear-gradient(180deg, #1d4ed8 0%, #3b82f6 55%, #38bdf8 100%);
 
   --green:        #16a34a;
   --orange:       #d97706;
@@ -54,7 +53,7 @@
   --glass-border: rgba(15, 20, 30, .08);
   --glass-highlight: rgba(255, 255, 255, .90);
   --glass-blur:   blur(24px) saturate(1.6);
-  --glow-accent:  0 0 0 1px rgba(168, 85, 247, .25), 0 0 14px rgba(168, 85, 247, .25);
+  --glow-accent:  0 0 0 1px rgba(59, 130, 246, .25), 0 0 14px rgba(59, 130, 246, .25);
   --card-shadow:  0 8px 24px rgba(15, 20, 30, .08), 0 2px 6px rgba(15, 20, 30, .04);
   color-scheme: light;
 }
@@ -74,12 +73,12 @@ input[type="date"] { color-scheme: light; }
   --muted:        #a4abb8;
   --muted-2:      #767e8d;
 
-  /* Dim mode accent — lighter violet so it stays vivid on warm gray */
-  --accent:       #c084fc;
-  --accent-h:     #d8b4fe;
-  --accent-soft:  rgba(192, 132, 252, .16);
-  --accent-soft2: rgba(192, 132, 252, .30);
-  --brand-gradient: linear-gradient(180deg, #a855f7 0%, #c084fc 55%, #fb7185 100%);
+  /* Dim mode accent — lighter sky-blue so it stays vivid on warm gray */
+  --accent:       #60a5fa;
+  --accent-h:     #93c5fd;
+  --accent-soft:  rgba(96, 165, 250, .16);
+  --accent-soft2: rgba(96, 165, 250, .30);
+  --brand-gradient: linear-gradient(180deg, #3b82f6 0%, #60a5fa 55%, #38bdf8 100%);
   --on-accent:    #0a0c14;
 
   --green:        #4ade80;
@@ -101,7 +100,7 @@ input[type="date"] { color-scheme: light; }
   --glass-border: rgba(255, 255, 255, .14);
   --glass-highlight: rgba(255, 255, 255, .22);
   --glass-blur:   blur(24px) saturate(1.5);
-  --glow-accent:  0 0 0 1px rgba(192, 132, 252, .35), 0 0 14px rgba(192, 132, 252, .28);
+  --glow-accent:  0 0 0 1px rgba(96, 165, 250, .35), 0 0 14px rgba(96, 165, 250, .28);
   --card-shadow:  0 8px 24px rgba(0, 0, 0, .18), 0 2px 6px rgba(0, 0, 0, .10);
   color-scheme: dark;
 }
@@ -121,14 +120,13 @@ input[type="date"] { color-scheme: light; }
   --muted:        #98a0b3;
   --muted-2:      #6b7185;
 
-  /* Dark mode accent — same lavender as dim for consistency; reads
-     well on black and on the navy clip from the logo. */
-  --accent:       #c084fc;
-  --accent-h:     #d8b4fe;
-  --accent-soft:  rgba(192, 132, 252, .16);
-  --accent-soft2: rgba(192, 132, 252, .28);
+  /* Dark mode accent — bright sky-blue for vivid contrast on black. */
+  --accent:       #60a5fa;
+  --accent-h:     #93c5fd;
+  --accent-soft:  rgba(96, 165, 250, .16);
+  --accent-soft2: rgba(96, 165, 250, .28);
   --on-accent:    #0a0c14;
-  --brand-gradient: linear-gradient(180deg, #a855f7 0%, #c084fc 55%, #fb7185 100%);
+  --brand-gradient: linear-gradient(180deg, #3b82f6 0%, #60a5fa 55%, #38bdf8 100%);
 
   --green:        #4ade80;
   --orange:       #fb923c;
@@ -147,7 +145,7 @@ input[type="date"] { color-scheme: light; }
   --glass-border: rgba(255, 255, 255, .12);
   --glass-highlight: rgba(255, 255, 255, .20);
   --glass-blur:   blur(26px) saturate(1.5);
-  --glow-accent:  0 0 0 1px rgba(192, 132, 252, .35), 0 0 14px rgba(192, 132, 252, .32);
+  --glow-accent:  0 0 0 1px rgba(96, 165, 250, .35), 0 0 14px rgba(96, 165, 250, .32);
   --card-shadow:  0 8px 28px rgba(0, 0, 0, .35), 0 2px 8px rgba(0, 0, 0, .18);
   color-scheme: dark;
 }
@@ -1228,7 +1226,7 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -.01em;
-  background: var(--brand-gradient, linear-gradient(180deg, #7c3aed, #fb7185));
+  background: var(--brand-gradient, linear-gradient(180deg, #1d4ed8, #38bdf8));
   -webkit-background-clip: text;
           background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1669,7 +1667,7 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   padding: 18px 16px;
   color: var(--muted);
   font-size: 13.5px;
-  background: var(--accent-soft, rgba(168, 85, 247, .08));
+  background: var(--accent-soft, rgba(59, 130, 246, .08));
   border: 1px solid var(--border);
   border-radius: 12px;
 }
@@ -3086,7 +3084,7 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent-soft, rgba(168, 85, 247, .14));
+  background: var(--accent-soft, rgba(59, 130, 246, .14));
   color: var(--accent);
   margin: 4px auto 6px;
 }
@@ -3266,7 +3264,7 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 .at-filter-toggle:hover { background: var(--surface-2); border-color: var(--border-2); }
 .at-filter-toggle input { accent-color: var(--accent); cursor: pointer; }
 .at-filter-toggle:has(input:checked) {
-  background: var(--accent-soft, rgba(168, 85, 247, .14));
+  background: var(--accent-soft, rgba(59, 130, 246, .14));
   border-color: var(--accent);
   color: var(--accent);
 }
@@ -4279,7 +4277,7 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(124, 58, 237, .35), 0 3px 8px rgba(15, 20, 30, .12);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, .35), 0 3px 8px rgba(15, 20, 30, .12);
   transition: transform .12s var(--ease), background .12s var(--ease);
 }
 .bnav-fab:hover  { background: var(--accent-h); }
@@ -5223,7 +5221,7 @@ body { font-size: 13px; }
   color: #fff;
   margin-left: 4px;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(168, 85, 247, .25);
+  box-shadow: 0 1px 3px rgba(59, 130, 246, .25);
 }
 .space-shared-badge svg { display: block; }
 
@@ -5387,7 +5385,7 @@ body { font-size: 13px; }
   background: var(--brand-gradient);
   color: #fff;
   vertical-align: middle;
-  box-shadow: 0 1px 3px rgba(168, 85, 247, .25);
+  box-shadow: 0 1px 3px rgba(59, 130, 246, .25);
 }
 .home-space-shared-badge svg { display: block; }
 
@@ -6105,7 +6103,7 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     color: var(--on-accent) !important;
     border: none !important;
     cursor: pointer !important;
-    box-shadow: 0 6px 20px rgba(124, 58, 237, .35) !important;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, .35) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;

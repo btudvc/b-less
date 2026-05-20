@@ -6412,3 +6412,85 @@ select:focus {
     padding: 14px 12px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════
+   Make every section share a single 900px centered column
+   — including the header at the top. Meetings + Journal had
+   different wrappers (.sidebar / .jrn-container) that broke
+   the symmetry.
+   ════════════════════════════════════════════════════════ */
+
+/* Header at the top of every section: same max-width as content */
+.fv-header,
+.fv-header.section-head-pad {
+  max-width: 900px !important;
+  margin: 0 auto 16px !important;
+  padding: 0 16px !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+@media (max-width: 600px) {
+  .fv-header,
+  .fv-header.section-head-pad {
+    padding: 0 12px !important;
+  }
+}
+
+/* Meetings: sidebar + content split was bespoke. Normalise so the
+   sidebar (which contains the meeting list) sits in the same 900px
+   column, transparent, no border. */
+#meetings.section > .sidebar {
+  width: 100% !important;
+  max-width: 900px !important;
+  margin: 0 auto !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 16px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+  flex: none !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+#meetings.section > .content {
+  max-width: 900px !important;
+  margin: 0 auto !important;
+}
+@media (max-width: 600px) {
+  #meetings.section > .sidebar { padding: 0 12px calc(120px + env(safe-area-inset-bottom, 0px)) !important; }
+}
+
+/* Journal container: max-width 900px centered; sidebar inside takes
+   full width (no fixed 232px column). The detail editor is a separate
+   route, the list is the primary view. */
+.jrn-container {
+  max-width: 900px !important;
+  margin: 0 auto !important;
+  padding: 0 16px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+  display: block !important;
+  width: 100% !important;
+  min-height: auto !important;
+  background: transparent !important;
+  border: none !important;
+}
+.jrn-sidebar {
+  width: 100% !important;
+  background: transparent !important;
+  border-right: none !important;
+}
+.jrn-side-head { padding: 8px 4px 12px !important; }
+.jrn-list { padding: 0 !important; }
+.jrn-entry {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  margin-bottom: 8px !important;
+}
+.jrn-entry:hover  { background: var(--surface-2) !important; border-color: var(--border-2) !important; }
+.jrn-entry.active { background: var(--accent-soft) !important; border-color: var(--accent) !important; }
+@media (max-width: 600px) {
+  .jrn-container { padding: 0 12px calc(120px + env(safe-area-inset-bottom, 0px)) !important; }
+}
+
+/* Hide the detail editor area when no entry is selected — list IS
+   the primary view, same as Reviews + Meetings. */
+#journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }

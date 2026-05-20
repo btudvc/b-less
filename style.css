@@ -6796,3 +6796,11 @@ select:focus {
 /* Journal container's extra padding-top can go now that header has
    a real bottom margin. */
 .jrn-container { padding-top: 0 !important; }
+
+/* Passwords vault card: align with the rest of the section column
+   (header + buttons), not centred in the viewport. */
+.vault-card {
+  max-width: 520px !important;
+  margin: 8px 0 24px !important;
+  border-radius: 12px !important;
+}

@@ -6513,9 +6513,10 @@ select:focus {
 .cv-acc-head { padding: 14px 16px !important; }
 .cv-acc-body { padding: 4px 16px 16px !important; }
 
-/* Section containers: wider on big screens — 900px felt lost in the
-   centre on 1920px+ monitors. Now scales 100% mobile -> 1100px
-   tablet -> 1200px desktop. */
+/* Section containers: viewport-relative width — fill most of the
+   screen with comfortable side padding on wide monitors, edge-to-edge
+   on mobile. The earlier 900-1200px caps left big dead zones on
+   1920px+ displays. */
 .fv-container,
 .jrn-container,
 .links-container,
@@ -6525,7 +6526,8 @@ select:focus {
 #meetings.section > .content,
 .fv-header,
 .fv-header.section-head-pad {
-  max-width: 1200px !important;
+  max-width: min(1600px, 95vw) !important;
+  margin: 0 auto !important;
 }
 @media (max-width: 1000px) {
   .fv-container,
@@ -6539,6 +6541,13 @@ select:focus {
   .fv-header.section-head-pad {
     max-width: 100% !important;
   }
+}
+
+/* CV: editor is a form, doesn't need 1600px. Cap it at a comfortable
+   form-reading width centred inside the wider container. */
+.cv-layout {
+  max-width: 760px !important;
+  margin: 0 auto !important;
 }
 
 /* Journal: kill stray borders/dividers from the old two-pane layout */

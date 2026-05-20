@@ -3795,7 +3795,7 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 #all-tasks.active {
   display: block;
   overflow-y: auto;
-  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  /* Bar clearance lives on .fv-container — don't double-pad here. */
 }
 
 .at-filter-btn {
@@ -5976,7 +5976,11 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
-  padding: 18px 16px 24px !important;
+  /* Bottom padding = mobile bar height (64 + safe-area) so the last
+     item lands flush against the docked bar with no dead zone. On
+     desktop the bar is hidden and this padding is overridden in the
+     desktop media block. */
+  padding: 18px 16px calc(64px + env(safe-area-inset-bottom, 0px)) !important;
   background: transparent !important;
   border: none !important;
   min-height: auto !important;
@@ -6291,6 +6295,11 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     flex-direction: column !important;
     overflow-y: auto !important;
     padding: 24px 32px !important;
+  }
+  /* Desktop has no bottom-nav, so don't reserve the mobile bar height */
+  .fv-container, .jrn-container, .links-container,
+  .reviews-container, .cal-container {
+    padding: 18px 16px 24px !important;
   }
   /* Master-detail sections — stacked single column (header above
      list/detail). Previous "row" direction was leftover from the

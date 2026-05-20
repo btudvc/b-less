@@ -531,7 +531,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '6.27.0';
+var APP_VERSION = '6.27.1';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -8723,7 +8723,7 @@ function _cvEditorHtml(d) {
     fld('website',  d.personal.website,  'Website / LinkedIn', 'url'),
     ta('summary',   d.personal.summary,  'Summary'),
     fld('military', d.personal.military, 'Military service'),
-    fld('license',  d.personal.license,  'Driver's license'),
+    fld('license',  d.personal.license,  'Driver license'),
     '  </div>',
     '</div>',
     _cvListAcc('experience', d.experience, [['role','Role'],['company','Company'],['start','Start'],['end','End'],['__current','Currently here'],['__desc','Description']]),

@@ -6818,3 +6818,27 @@ select:focus {
 .fv-header.section-head-pad {
   padding: 0 !important;
 }
+
+/* Edit / Preview inline tabs — same size as Import/Export/Print so
+   they all sit on a single header action row. */
+.cv-tab-inline {
+  padding: 10px 20px !important;
+  border-radius: 999px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  min-height: 38px !important;
+  line-height: 1.2 !important;
+  flex: none !important;
+  max-width: none !important;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+}
+.cv-tab-inline:hover { background: var(--surface-3); border-color: var(--border-2); }
+.cv-tab-inline.active {
+  background: var(--accent) !important;
+  color: var(--on-accent) !important;
+  border-color: var(--accent) !important;
+}
+.cv-tabs[hidden] { display: none !important; }

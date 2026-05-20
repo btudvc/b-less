@@ -6809,3 +6809,12 @@ select:focus {
 #cv .fv-header { margin: 0 auto 18px !important; }
 #cv .cv-tabs   { margin: 0 auto 24px !important; }
 #cv .cv-layout { margin: 0 auto !important; }
+
+/* Header padding is doubling with the section container padding —
+   header has its own 16px and container also has 16px, so title sits
+   16px deeper than the cards below it. Remove header's inner padding
+   so everything aligns to the container's edge. */
+.fv-header,
+.fv-header.section-head-pad {
+  padding: 0 !important;
+}

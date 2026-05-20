@@ -7033,3 +7033,11 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
 
 /* Kill old #meetings / #journal special positioning rules — let the
    generic .fv-container styling do the work. */
+
+/* Meeting detail: clear vertical spacing between sections so the
+   ATTACHMENTS card doesn't visually overlap ACTION ITEMS below. */
+#meetings .content .dsection,
+#meetings .content .att-section {
+  margin-bottom: 24px !important;
+}
+#meetings .content .att-section { margin-top: 4px; }

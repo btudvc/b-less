@@ -6745,3 +6745,35 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
   .spaces-drawer-brand { background: var(--surface) !important; border-left: 1px solid var(--border) !important; }
   .spaces-drawer-head  { background: var(--surface) !important; border-left: 1px solid var(--border) !important; }
 }
+
+/* Respect the [hidden] HTML attribute — my !important button rules
+   were overriding the default display:none for hidden elements. */
+[hidden] { display: none !important; }
+
+/* Force 8px gap between cards in every list. Some parents are not
+   flex containers (e.g. #all-tasks-list, .at-group, #visits-list);
+   margin-bottom on the card itself guarantees spacing. */
+.at-task,
+.visit-row,
+.link-row,
+.rev-row,
+.jrn-entry,
+.vault-row,
+.cv-list-item,
+#meeting-list .robot-item,
+#meetings .robot-item {
+  margin-bottom: 8px !important;
+}
+.at-task:last-child,
+.visit-row:last-child,
+.link-row:last-child,
+.rev-row:last-child,
+.jrn-entry:last-child,
+.vault-row:last-child,
+.cv-list-item:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Day-group headers and section blocks get bottom space too */
+.at-group { margin-bottom: 20px !important; }
+.at-group-label { margin-bottom: 10px !important; }

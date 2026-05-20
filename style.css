@@ -1194,17 +1194,17 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
    the top of the persistent sidebar instead (true top-left of the
    viewport, since the topbar starts after the sidebar column). */
 .topbar-logo {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
-  max-width: 22px;
-  max-height: 22px;
-  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  max-width: 28px;
+  max-height: 28px;
+  border-radius: 0;
   flex-shrink: 0;
   display: block;
-  margin-right: 2px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .10);
+  margin-right: 4px;
+  object-fit: contain;
 }
 @media (min-width: 1000px) {
   .topbar-logo { display: none; }
@@ -6007,7 +6007,7 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     border-bottom: 1px solid var(--border) !important;
     z-index: 60;
   }
-  .topbar-logo { display: none; }
+  .topbar-logo { display: block !important; }
   #topbar-burger-btn { display: inline-flex !important; }
 
   /* Spaces drawer: slide-out (default mobile behaviour) */

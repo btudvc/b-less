@@ -6777,3 +6777,26 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
 /* Day-group headers and section blocks get bottom space too */
 .at-group { margin-bottom: 20px !important; }
 .at-group-label { margin-bottom: 10px !important; }
+
+/* Inbox badge on desktop rail: small dot top-right of the icon,
+   not stretched below as a third row in the column layout. */
+@media (min-width: 1000px) {
+  .drawer-nav-btn { position: relative !important; }
+  .drawer-nav-badge {
+    position: absolute !important;
+    top: 6px !important;
+    right: 10px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 5px !important;
+    border-radius: 999px !important;
+    background: var(--red, #dc2626) !important;
+    color: #fff !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    line-height: 18px !important;
+    text-align: center !important;
+    border: 2px solid var(--bg) !important;
+    box-sizing: content-box;
+  }
+}

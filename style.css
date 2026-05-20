@@ -6805,3 +6805,32 @@ select:focus,
 .modal-quick textarea {
   background: rgba(255, 255, 255, .03) !important;
 }
+
+/* Section content wrappers — give the empty area below short lists a
+   subtle frosted backdrop so it doesn't read as a dead grey hole.
+   Very faint fill, just enough to feel like "this whole viewport is
+   one glass panel", with cards floating on top. */
+.fv-container,
+.jrn-container,
+.links-container,
+.reviews-container,
+.cal-container {
+  background: rgba(255, 255, 255, .03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  min-height: calc(100vh - 80px);
+}
+:root[data-theme="light"] .fv-container,
+:root:not([data-theme]) .fv-container,
+:root[data-theme="light"] .jrn-container,
+:root:not([data-theme]) .jrn-container,
+:root[data-theme="light"] .links-container,
+:root:not([data-theme]) .links-container,
+:root[data-theme="light"] .reviews-container,
+:root:not([data-theme]) .reviews-container,
+:root[data-theme="light"] .cal-container,
+:root:not([data-theme]) .cal-container {
+  background: rgba(255, 255, 255, .35);
+}

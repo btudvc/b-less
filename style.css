@@ -5095,85 +5095,46 @@ body { font-size: 13px; }
    - Drawer becomes static (no transform, no backdrop)
    ─────────────────────────────────────────────────────────── */
 @media (min-width: 1000px) {
-  body {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    grid-template-rows: auto 1fr;
-    grid-template-areas:
-      "sidebar topbar"
-      "sidebar main";
-  }
-  /* Spaces drawer becomes a permanent sidebar */
-  .spaces-drawer {
-    position: static;
-    grid-area: sidebar;
-    transform: none !important;
-    width: auto;
-    border-right: 1px solid var(--border);
-    box-shadow: none;
-    z-index: auto;
-    background: var(--surface);
-    height: 100dvh;
-  }
-  .spaces-drawer-backdrop { display: none !important; }
-  body.spaces-drawer-open .spaces-drawer-backdrop { display: none !important; }
-
-  /* Topbar in column 2 of the grid */
-  .app-topbar {
-    grid-area: topbar;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-  }
-  /* Main fills the rest, max 1280px content width inside */
-  main {
-    grid-area: main;
-    overflow: hidden;
-    display: flex;
-  }
-  /* Hide hamburger — sidebar is already visible */
-  #topbar-burger-btn { display: none; }
-  /* Hide bottom-nav pill — sidebar carries nav now */
-  /* Floating pill nav is now visible on desktop too — alongside the
-     persistent sidebar for quick navigation. */
-  .bnav-dock {
-    /* Anchor over the main column (skip the 280px sidebar) so it sits
-       centered above the working area, not over the sidebar. */
-    left: calc(280px + (100vw - 280px) / 2);
-  }
+  /* Desktop now mirrors the mobile layout: floating pill nav handles
+     primary navigation, the spaces drawer slides out from the left
+     on demand (hamburger), no permanent sidebar eating screen space. */
+  body { display: flex; flex-direction: column; }
+  .spaces-drawer { /* falls back to the mobile slide-out behaviour */ }
+  .spaces-drawer-backdrop { /* re-enabled (was display:none on desktop) */ }
+  /* Floating pill stays centred over the full viewport now that the
+     sidebar isn't claiming the left 280px. */
+  .bnav-dock { left: 50%; }
 
   /* Section containers: lift the max-width caps so content uses the
      available space (still capped at a comfortable reading width). */
+  /* Section containers grow to use the available width, centered. */
   .home-container,
   .reviews-container,
   .links-container,
   .fv-container,
   .cal-container,
   .more-page {
-    max-width: 1280px;
-    margin-left: 0;     /* left-anchored, not centered */
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
   }
   #home.section.active { padding-left: 24px; padding-right: 24px; }
 
-  /* Drawer-nav buttons get a hint of indent on desktop for breathing room */
-  .drawer-nav { padding: 8px 8px 4px; }
+  /* The persistent sidebar nav block is gone — show the drawer-nav
+     items only inside the slide-out drawer (its default display:flex
+     applies to both viewports now). */
 }
 
-/* Larger desktops: a bit more typography breathing room */
-@media (min-width: 1400px) {
-  body { grid-template-columns: 300px 1fr; }
-}
-
-/* ── Drawer system nav (desktop-only; mobile uses the bottom-nav pill) ── */
+/* ── Drawer system nav (visible inside the slide-out drawer on every
+       viewport now — the floating pill only carries 4 top slots, so
+       the drawer is the user's gateway to the long-tail sections.) ── */
 .drawer-nav {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 1px;
   padding: 12px 8px 4px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 6px;
-}
-@media (min-width: 1000px) {
-  .drawer-nav { display: flex; }
 }
 .drawer-nav-btn {
   position: relative;

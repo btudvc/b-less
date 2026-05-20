@@ -6687,3 +6687,58 @@ select:focus {
   width: 100% !important;
   align-self: stretch !important;
 }
+
+/* ════════════════════════════════════════════════════════
+   UNIFIED PRIMARY BUTTONS in section headers
+   Every "+ Add X" button (Meeting / Visit / today / Link /
+   Entry / This week) shares the same size, padding, radius.
+   CV's Edit/Preview tabs match the same look so they don't
+   sit as oversized rectangles.
+   ════════════════════════════════════════════════════════ */
+.fv-header .btn-primary,
+.section-head-pad .btn-primary,
+#vault-add-btn,
+.finance-header-actions .btn-primary,
+.finance-header-actions .btn-ghost {
+  padding: 10px 20px !important;
+  border-radius: 999px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  min-height: 38px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap;
+}
+
+/* Header action row: consistent gap between buttons */
+.finance-header-actions {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* CV tabs: match the primary button size */
+.cv-tabs {
+  display: flex !important;
+  gap: 8px !important;
+  margin: 14px 0 12px !important;
+}
+.cv-tab {
+  flex: 1;
+  padding: 10px 20px !important;
+  border-radius: 999px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  min-height: 38px !important;
+  line-height: 1.2 !important;
+  max-width: 200px;
+}
+
+/* Reviews period toggle should match the same button rhythm */
+.rev-period-btn {
+  padding: 8px 18px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
+  min-height: 36px !important;
+}

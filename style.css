@@ -5751,3 +5751,216 @@ body.is-readonly #robot-content .nb-item { cursor: default !important; }
 }
 .modal-confirm .btn-primary.danger:hover { filter: brightness(.92); }
 
+
+/* ════════════════════════════════════════════════════════
+   CV editor + live A4 preview
+   Same schema as github.com/btudvc/blessed-cv. Two templates
+   (classic, modern). Print stylesheet hides everything but
+   the .cv-preview at A4 paper size.
+   ════════════════════════════════════════════════════════ */
+.cv-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 460px) 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+@media (max-width: 960px) {
+  .cv-layout { grid-template-columns: 1fr; }
+}
+
+/* Editor accordion */
+.cv-editor { display: flex; flex-direction: column; gap: 8px; }
+.cv-acc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.cv-acc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.cv-acc-head:hover { background: var(--surface-2); }
+.cv-acc-head::after {
+  content: '+';
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--muted);
+}
+.cv-acc.open .cv-acc-head::after { content: '–'; }
+.cv-acc-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-2);
+  padding: 1px 7px;
+  border-radius: 999px;
+  margin-left: auto;
+  margin-right: 6px;
+}
+.cv-acc-body { display: none; padding: 4px 14px 14px; flex-direction: column; gap: 10px; }
+.cv-acc.open .cv-acc-body { display: flex; }
+
+.cv-f { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+.cv-f > span { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.cv-f input, .cv-f textarea, .cv-f select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+}
+.cv-f input:focus, .cv-f textarea:focus, .cv-f select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.cv-f textarea { resize: vertical; line-height: 1.5; }
+.cv-check { flex-direction: row; align-items: center; gap: 8px; }
+.cv-check input { width: auto; }
+.cv-check > span { text-transform: none; font-size: 12.5px; color: var(--text); letter-spacing: 0; font-weight: 500; }
+
+.cv-list-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cv-list-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.cv-list-actions button {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 28px; height: 28px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.cv-list-actions button:hover { background: var(--surface-2); color: var(--text); }
+.cv-add-btn { align-self: flex-start; }
+.cv-empty { color: var(--muted); font-size: 12.5px; padding: 6px 0; }
+
+/* Preview pane — sized like A4 (210x297mm) but scaled down so
+   it fits in the viewport. The preview itself stays @ A4 dims
+   so print just outputs it 1:1. */
+.cv-preview-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+.cv-preview {
+  background: #fff;
+  color: #111;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 16mm 14mm;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  border-radius: 6px;
+  transform-origin: top center;
+  transform: scale(.62);
+  margin-bottom: -38vh; /* offset for the scale */
+}
+@media (min-width: 1400px) { .cv-preview { transform: scale(.78); margin-bottom: -22vh; } }
+@media (max-width: 960px) {
+  .cv-preview { transform: scale(.46); margin: 0 auto -45vh; }
+}
+
+/* CV typography */
+.cv { font-size: 11pt; line-height: 1.45; }
+.cv.cv-font-serif { font-family: Georgia, 'Times New Roman', serif; }
+.cv.cv-font-sans  { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+.cv h1 { font-size: 22pt; line-height: 1.1; margin: 0 0 2pt; font-weight: 700; color: #0f1117; }
+.cv h2 {
+  font-size: 12pt;
+  margin: 14pt 0 6pt;
+  padding-bottom: 2pt;
+  border-bottom: 1.5px solid var(--cv-accent, #2563eb);
+  color: var(--cv-accent, #2563eb);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.cv-head { display: flex; align-items: flex-start; gap: 14pt; margin-bottom: 6pt; }
+.cv-photo {
+  width: 28mm; height: 28mm;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  border: 1px solid #d8dbe2;
+}
+.cv-head-text { flex: 1; min-width: 0; }
+.cv-role { font-size: 12pt; color: var(--cv-accent, #2563eb); font-weight: 500; margin-bottom: 4pt; }
+.cv-contact { display: flex; flex-wrap: wrap; gap: 4pt 10pt; font-size: 9.5pt; color: #555; }
+.cv-details { font-size: 9pt; color: #777; margin-top: 3pt; }
+.cv-summary { font-size: 10.5pt; line-height: 1.55; color: #333; }
+.cv-empty-hint { font-size: 10pt; color: #888; font-style: italic; margin: 8pt 0; }
+.cv-entry { margin-bottom: 8pt; }
+.cv-entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8pt; }
+.cv-entry-title { font-weight: 600; font-size: 11pt; color: #111; }
+.cv-entry-sub   { font-size: 10pt; color: #555; }
+.cv-entry-date  { font-size: 9.5pt; color: #777; white-space: nowrap; }
+.cv-entry-desc  { margin-top: 3pt; font-size: 10pt; line-height: 1.5; color: #333; white-space: pre-wrap; }
+.cv-chips { display: flex; flex-wrap: wrap; gap: 4pt 6pt; }
+.cv-chip {
+  font-size: 9.5pt;
+  padding: 2pt 8pt;
+  background: #f1f3f7;
+  border-radius: 999px;
+  color: #222;
+}
+.cv-langs { display: flex; flex-wrap: wrap; gap: 4pt 12pt; font-size: 10pt; color: #333; }
+
+/* Modern template — two-column with sidebar */
+.cv[style] aside.cv-side ~ .cv-main, .cv aside.cv-side {  }
+.cv-preview[data-tpl="modern"] .cv {
+  display: grid;
+  grid-template-columns: 64mm 1fr;
+  gap: 8mm;
+}
+.cv-preview[data-tpl="modern"] .cv-side {
+  background: #f7f8fa;
+  margin: -16mm 0 -16mm -14mm;
+  padding: 16mm 8mm;
+}
+.cv-preview[data-tpl="modern"] .cv-side .cv-head { flex-direction: column; align-items: center; text-align: center; }
+.cv-preview[data-tpl="modern"] .cv-side .cv-photo { width: 32mm; height: 32mm; }
+.cv-preview[data-tpl="modern"] .cv-main .cv-head { display: none; }
+
+/* ── Print: A4, no UI chrome, hide everything except the preview ── */
+@media print {
+  @page { size: A4; margin: 0; }
+  body.cv-printing * { visibility: hidden !important; }
+  body.cv-printing .cv-preview,
+  body.cv-printing .cv-preview * { visibility: visible !important; }
+  body.cv-printing .cv-preview {
+    position: fixed !important;
+    top: 0; left: 0;
+    transform: none !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+}

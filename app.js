@@ -531,7 +531,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '6.26.2';
+var APP_VERSION = '6.27.0';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -5846,6 +5846,7 @@ const TOPBAR_TITLES = {
   reviews: 'Reviews',
   links: 'Links',
   private: 'Passwords',
+  cv: 'CV',
   more: 'Settings',
   settings: 'Settings',
 };
@@ -7478,6 +7479,7 @@ function homeNavigate(target) {
   }
   else if (target === 'links')     { activateSection('links'); (typeof renderLinks === 'function') && renderLinks(); }
   else if (target === 'private')   { activateSection('private'); (typeof renderPrivate === 'function') && renderPrivate(); }
+  else if (target === 'cv')        { activateSection('cv'); (typeof renderCV === 'function') && renderCV(); }
   else if (target === 'reviews')   {
     activateSection('reviews');
     document.getElementById('reviews')?.removeAttribute('data-detail-open');
@@ -8619,3 +8621,346 @@ document.getElementById('vault-add-btn')?.addEventListener('click', () => openVa
 document.getElementById('vault-lock-btn')?.addEventListener('click', () => VaultStore.lock());
 // Activity heartbeat — any click inside the Private section resets auto-lock.
 document.getElementById('private')?.addEventListener('click', () => VaultStore.touchActivity());
+
+// ════════════════════════════════════════════════════════════════════
+// CV — living resume editor + live A4 preview + print-to-PDF.
+// Schema matches github.com/btudvc/blessed-cv ("blessed-cv-data-v1")
+// so users can import/export the same JSON between the two apps.
+// ════════════════════════════════════════════════════════════════════
+const CVStore = (() => {
+  const KEY = 'b-less.cv.v1';
+  const LEGACY = 'blessed-cv-data-v1';
+  function blank() {
+    return {
+      personal: { fullName:'', title:'', email:'', phone:'', location:'', website:'', summary:'', photo:'', military:'', license:'' },
+      experience: [], education: [], skills: [], languages: [], projects: [],
+      certifications: [], courses: [], awards: [], references: [], interests: [], notes: [],
+      settings: { template:'classic', font:'sans', accent:'#a855f7' },
+    };
+  }
+  function read() {
+    try {
+      let raw = localStorage.getItem(KEY);
+      if (!raw) {
+        raw = localStorage.getItem(LEGACY);
+        if (raw) localStorage.setItem(KEY, raw);
+      }
+      if (!raw) return blank();
+      const parsed = JSON.parse(raw);
+      const def = blank();
+      return Object.assign(def, parsed, {
+        personal: Object.assign(def.personal, parsed.personal || {}),
+        settings: Object.assign(def.settings, parsed.settings || {}),
+      });
+    } catch { return blank(); }
+  }
+  let data = read();
+  let saveTimer = null;
+  function save() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
+    }, 350);
+  }
+  function get() { return data; }
+  function importJSON(text) {
+    const next = JSON.parse(text);
+    const def = blank();
+    data = Object.assign(def, next, {
+      personal: Object.assign(def.personal, next.personal || {}),
+      settings: Object.assign(def.settings, next.settings || {}),
+    });
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
+  }
+  function exportJSON() { return JSON.stringify(data, null, 2); }
+  return { get, save, importJSON, exportJSON };
+})();
+
+function _cvEscape(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function _cvDateRange(start, end, current) {
+  const e = current ? 'Present' : (end || '');
+  if (!start && !e) return '';
+  return [start || '', e].filter(Boolean).join(' – ');
+}
+function _cvSectionTitle(s) {
+  return ({
+    personal:'Personal', experience:'Experience', education:'Education',
+    projects:'Projects', skills:'Skills', languages:'Languages',
+    certifications:'Certifications', courses:'Courses', awards:'Awards',
+    references:'References', interests:'Interests',
+  })[s] || s;
+}
+
+function renderCV() {
+  const editor  = document.getElementById('cv-editor');
+  const preview = document.getElementById('cv-preview');
+  if (!editor || !preview) return;
+  const d = CVStore.get();
+  editor.innerHTML  = _cvEditorHtml(d);
+  preview.innerHTML = _cvPreviewHtml(d);
+  preview.dataset.tpl = d.settings.template || 'classic';
+  _cvWireEditor(editor);
+}
+
+function _cvEditorHtml(d) {
+  const fld = (k, v, label, type) =>
+    '<label class="cv-f"><span>' + label + '</span><input data-cv-personal="' + k + '" type="' + (type||'text') + '" value="' + _cvEscape(v) + '" /></label>';
+  const ta = (k, v, label) =>
+    '<label class="cv-f"><span>' + label + '</span><textarea data-cv-personal="' + k + '" rows="4">' + _cvEscape(v) + '</textarea></label>';
+  return [
+    '<div class="cv-acc open" data-cv-key="personal">',
+    '  <button class="cv-acc-head" data-cv-toggle>' + _cvSectionTitle('personal') + '</button>',
+    '  <div class="cv-acc-body">',
+    fld('fullName', d.personal.fullName, 'Full name'),
+    fld('title',    d.personal.title,    'Title / role'),
+    fld('email',    d.personal.email,    'Email', 'email'),
+    fld('phone',    d.personal.phone,    'Phone', 'tel'),
+    fld('location', d.personal.location, 'Location'),
+    fld('website',  d.personal.website,  'Website / LinkedIn', 'url'),
+    ta('summary',   d.personal.summary,  'Summary'),
+    fld('military', d.personal.military, 'Military service'),
+    fld('license',  d.personal.license,  'Driver's license'),
+    '  </div>',
+    '</div>',
+    _cvListAcc('experience', d.experience, [['role','Role'],['company','Company'],['start','Start'],['end','End'],['__current','Currently here'],['__desc','Description']]),
+    _cvListAcc('education',  d.education,  [['school','School'],['degree','Degree'],['field','Field'],['gpa','GPA'],['start','Start'],['end','End'],['__desc','Description']]),
+    _cvListAcc('projects',   d.projects,   [['name','Project name'],['link','Link'],['__desc','Description']]),
+    '<div class="cv-acc" data-cv-key="skills">',
+    '  <button class="cv-acc-head" data-cv-toggle>' + _cvSectionTitle('skills') + ' <span class="cv-acc-count">' + (d.skills||[]).length + '</span></button>',
+    '  <div class="cv-acc-body"><label class="cv-f"><span>Comma-separated</span><textarea data-cv-csv="skills" rows="3">' + _cvEscape((d.skills||[]).join(', ')) + '</textarea></label></div>',
+    '</div>',
+    _cvListAcc('languages',     d.languages,     [['name','Language'],['level','Level']]),
+    _cvListAcc('certifications',d.certifications,[['name','Name'],['issuer','Issuer'],['year','Year'],['link','Link']]),
+    _cvListAcc('courses',       d.courses,       [['name','Name'],['provider','Provider'],['year','Year']]),
+    _cvListAcc('awards',        d.awards,        [['title','Title'],['issuer','Issuer'],['year','Year'],['__desc','Description']]),
+    _cvListAcc('references',    d.references,    [['name','Name'],['role','Role'],['contact','Contact']]),
+    '<div class="cv-acc" data-cv-key="interests">',
+    '  <button class="cv-acc-head" data-cv-toggle>' + _cvSectionTitle('interests') + ' <span class="cv-acc-count">' + (d.interests||[]).length + '</span></button>',
+    '  <div class="cv-acc-body"><label class="cv-f"><span>Comma-separated</span><textarea data-cv-csv="interests" rows="2">' + _cvEscape((d.interests||[]).join(', ')) + '</textarea></label></div>',
+    '</div>',
+    '<div class="cv-acc" data-cv-key="settings">',
+    '  <button class="cv-acc-head" data-cv-toggle>Settings</button>',
+    '  <div class="cv-acc-body">',
+    '    <label class="cv-f"><span>Template</span><select data-cv-setting="template"><option value="classic"' + (d.settings.template==='classic'?' selected':'') + '>Classic</option><option value="modern"' + (d.settings.template==='modern'?' selected':'') + '>Modern (sidebar)</option></select></label>',
+    '    <label class="cv-f"><span>Font</span><select data-cv-setting="font"><option value="sans"' + (d.settings.font==='sans'?' selected':'') + '>Sans</option><option value="serif"' + (d.settings.font==='serif'?' selected':'') + '>Serif</option></select></label>',
+    '    <label class="cv-f"><span>Accent</span><input data-cv-setting="accent" type="color" value="' + _cvEscape(d.settings.accent || '#a855f7') + '" /></label>',
+    '  </div>',
+    '</div>',
+  ].join('\n');
+}
+
+function _cvListAcc(key, items, fields) {
+  const rows = (items || []).map(function(it, i) {
+    const parts = fields.map(function(pair) {
+      const fk = pair[0], label = pair[1];
+      if (fk === '__current') return '<label class="cv-f cv-check"><input type="checkbox" data-cv-listfield="current" ' + (it.current?'checked':'') + ' /><span>' + label + '</span></label>';
+      if (fk === '__desc')    return '<label class="cv-f"><span>' + label + '</span><textarea data-cv-listfield="description" rows="3">' + _cvEscape(it.description || '') + '</textarea></label>';
+      return '<label class="cv-f"><span>' + label + '</span><input type="text" data-cv-listfield="' + fk + '" value="' + _cvEscape(it[fk] || '') + '" /></label>';
+    }).join('');
+    return '<div class="cv-list-item" data-cv-listitem="' + key + '" data-cv-idx="' + i + '">' + parts +
+      '<div class="cv-list-actions">' +
+      '<button type="button" data-cv-move="up" title="Up">↑</button>' +
+      '<button type="button" data-cv-move="down" title="Down">↓</button>' +
+      '<button type="button" data-cv-remove="1" title="Remove">✕</button>' +
+      '</div></div>';
+  }).join('');
+  return '<div class="cv-acc" data-cv-key="' + key + '">' +
+    '<button class="cv-acc-head" data-cv-toggle>' + _cvSectionTitle(key) + ' <span class="cv-acc-count">' + (items||[]).length + '</span></button>' +
+    '<div class="cv-acc-body">' + (rows || '<div class="cv-empty">Nothing yet.</div>') +
+    '<button class="btn-ghost cv-add-btn" type="button" data-cv-add="' + key + '">+ Add</button>' +
+    '</div></div>';
+}
+
+function _cvWireEditor(root) {
+  const d = CVStore.get();
+  root.querySelectorAll('[data-cv-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => btn.closest('.cv-acc').classList.toggle('open'));
+  });
+  root.querySelectorAll('[data-cv-personal]').forEach(el => {
+    el.addEventListener('input', () => {
+      d.personal[el.dataset.cvPersonal] = el.value;
+      CVStore.save();
+      _cvUpdatePreview();
+    });
+  });
+  root.querySelectorAll('[data-cv-listitem]').forEach(item => {
+    const key = item.dataset.cvListitem;
+    const idx = parseInt(item.dataset.cvIdx, 10);
+    item.querySelectorAll('[data-cv-listfield]').forEach(el => {
+      const handler = () => {
+        const v = el.type === 'checkbox' ? el.checked : el.value;
+        d[key][idx][el.dataset.cvListfield] = v;
+        CVStore.save();
+        _cvUpdatePreview();
+      };
+      el.addEventListener('input',  handler);
+      el.addEventListener('change', handler);
+    });
+    item.querySelector('[data-cv-move="up"]')?.addEventListener('click', () => {
+      if (idx <= 0) return;
+      const arr = d[key]; const tmp = arr[idx-1]; arr[idx-1] = arr[idx]; arr[idx] = tmp;
+      CVStore.save(); renderCV();
+    });
+    item.querySelector('[data-cv-move="down"]')?.addEventListener('click', () => {
+      const arr = d[key]; if (idx >= arr.length - 1) return;
+      const tmp = arr[idx+1]; arr[idx+1] = arr[idx]; arr[idx] = tmp;
+      CVStore.save(); renderCV();
+    });
+    item.querySelector('[data-cv-remove]')?.addEventListener('click', async () => {
+      const ok = await (typeof confirmDialog === 'function'
+        ? confirmDialog({ title: 'Remove entry', message: 'Delete this item?', okText: 'Remove' })
+        : Promise.resolve(confirm('Delete this item?')));
+      if (!ok) return;
+      d[key].splice(idx, 1);
+      CVStore.save(); renderCV();
+    });
+  });
+  root.querySelectorAll('[data-cv-add]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.cvAdd;
+      const blanks = {
+        experience:    { role:'', company:'', start:'', end:'', current:false, description:'' },
+        education:     { school:'', degree:'', field:'', gpa:'', start:'', end:'', description:'' },
+        projects:      { name:'', link:'', description:'' },
+        languages:     { name:'', level:'' },
+        certifications:{ name:'', issuer:'', year:'', link:'' },
+        courses:       { name:'', provider:'', year:'' },
+        awards:        { title:'', issuer:'', year:'', description:'' },
+        references:    { name:'', role:'', contact:'' },
+      };
+      d[key].push(blanks[key] || {});
+      CVStore.save(); renderCV();
+    });
+  });
+  root.querySelectorAll('[data-cv-csv]').forEach(el => {
+    el.addEventListener('input', () => {
+      d[el.dataset.cvCsv] = el.value.split(',').map(s => s.trim()).filter(Boolean);
+      CVStore.save();
+      _cvUpdatePreview();
+    });
+  });
+  root.querySelectorAll('[data-cv-setting]').forEach(el => {
+    const fire = () => { d.settings[el.dataset.cvSetting] = el.value; CVStore.save(); _cvUpdatePreview(); };
+    el.addEventListener('input',  fire);
+    el.addEventListener('change', fire);
+  });
+}
+
+function _cvUpdatePreview() {
+  const preview = document.getElementById('cv-preview');
+  if (!preview) return;
+  const d = CVStore.get();
+  preview.innerHTML = _cvPreviewHtml(d);
+  preview.dataset.tpl = d.settings.template || 'classic';
+}
+
+function _cvPreviewHtml(d) {
+  const p = d.personal || {};
+  const acc = d.settings.accent || '#a855f7';
+  const fontClass = d.settings.font === 'serif' ? 'cv-font-serif' : 'cv-font-sans';
+  const isEmpty = !p.fullName && !(d.experience||[]).length && !(d.education||[]).length;
+  const head =
+    '<header class="cv-head">' +
+      (p.photo ? '<div class="cv-photo" style="background-image:url(\'' + _cvEscape(p.photo) + '\')"></div>' : '') +
+      '<div class="cv-head-text">' +
+        '<h1>' + _cvEscape(p.fullName || 'Full Name') + '</h1>' +
+        (p.title ? '<div class="cv-role">' + _cvEscape(p.title) + '</div>' : '') +
+        '<div class="cv-contact">' +
+          (p.email    ? '<span>' + _cvEscape(p.email)    + '</span>' : '') +
+          (p.phone    ? '<span>' + _cvEscape(p.phone)    + '</span>' : '') +
+          (p.location ? '<span>' + _cvEscape(p.location) + '</span>' : '') +
+          (p.website  ? '<span>' + _cvEscape(p.website)  + '</span>' : '') +
+        '</div>' +
+        ((p.military || p.license) ? '<div class="cv-details">' + [p.military, p.license].filter(Boolean).map(_cvEscape).join(' · ') + '</div>' : '') +
+      '</div>' +
+    '</header>';
+  const hint = isEmpty ? '<div class="cv-empty-hint">Start by adding your name and a role under Personal — the preview updates live.</div>' : '';
+  const sec = (title, html) => html ? ('<section><h2>' + title + '</h2>' + html + '</section>') : '';
+  const summary = p.summary ? '<div class="cv-summary">' + _cvEscape(p.summary) + '</div>' : '';
+  const entryHtml = (titleText, subText, dateText, descText) =>
+    '<div class="cv-entry"><div class="cv-entry-head"><div>' +
+    '<div class="cv-entry-title">' + _cvEscape(titleText) + '</div>' +
+    (subText ? '<div class="cv-entry-sub">' + subText + '</div>' : '') +
+    '</div>' + (dateText ? '<div class="cv-entry-date">' + _cvEscape(dateText) + '</div>' : '') +
+    '</div>' + (descText ? '<div class="cv-entry-desc">' + _cvEscape(descText) + '</div>' : '') + '</div>';
+  const exp = (d.experience || []).map(e =>
+    entryHtml(e.role || 'Position', _cvEscape(e.company || ''), _cvDateRange(e.start, e.end, e.current), e.description)
+  ).join('');
+  const edu = (d.education || []).map(e =>
+    entryHtml(e.school || 'School',
+      [e.degree, e.field].filter(Boolean).map(_cvEscape).join(', ') + (e.gpa ? ' · GPA: ' + _cvEscape(e.gpa) : ''),
+      _cvDateRange(e.start, e.end, false), e.description)
+  ).join('');
+  const proj = (d.projects || []).map(e =>
+    entryHtml(e.name || 'Project', '', e.link || '', e.description)
+  ).join('');
+  const skills = (d.skills || []).length
+    ? '<div class="cv-chips">' + d.skills.map(s => '<span class="cv-chip">' + _cvEscape(s) + '</span>').join('') + '</div>' : '';
+  const langs = (d.languages || []).length
+    ? '<div class="cv-langs">' + d.languages.map(l => '<span>' + _cvEscape(l.name) + (l.level?' — '+_cvEscape(l.level):'') + '</span>').join('') + '</div>' : '';
+  const certs = (d.certifications || []).map(e =>
+    entryHtml(e.name || '', [e.issuer, e.link].filter(Boolean).map(_cvEscape).join(' · '), e.year || '', '')
+  ).join('');
+  const crs = (d.courses || []).map(e =>
+    entryHtml(e.name || '', _cvEscape(e.provider || ''), e.year || '', '')
+  ).join('');
+  const awd = (d.awards || []).map(e =>
+    entryHtml(e.title || '', _cvEscape(e.issuer || ''), e.year || '', e.description)
+  ).join('');
+  const refs = (d.references || []).map(e =>
+    '<div class="cv-entry"><div class="cv-entry-title">' + _cvEscape(e.name || '') + '</div><div class="cv-entry-sub">' +
+    [e.role, e.contact].filter(Boolean).map(_cvEscape).join(' · ') + '</div></div>'
+  ).join('');
+  const interests = (d.interests || []).length
+    ? '<div class="cv-langs">' + d.interests.map(s => '<span>' + _cvEscape(s) + '</span>').join('') + '</div>' : '';
+  if (d.settings.template === 'modern') {
+    return '<div class="cv ' + fontClass + '" style="--cv-accent:' + _cvEscape(acc) + '">' +
+      '<aside class="cv-side">' + head + sec('Skills', skills) + sec('Languages', langs) + sec('Interests', interests) + '</aside>' +
+      '<div class="cv-main">' + head + hint + sec('Summary', summary) + sec('Experience', exp) + sec('Education', edu) +
+        sec('Projects', proj) + sec('Certifications', certs) + sec('Courses', crs) + sec('Awards', awd) + sec('References', refs) +
+      '</div></div>';
+  }
+  return '<div class="cv ' + fontClass + '" style="--cv-accent:' + _cvEscape(acc) + '">' +
+    head + hint + sec('Summary', summary) + sec('Experience', exp) + sec('Education', edu) +
+    sec('Projects', proj) + sec('Skills', skills) + sec('Languages', langs) +
+    sec('Certifications', certs) + sec('Courses', crs) + sec('Awards', awd) +
+    sec('References', refs) + sec('Interests', interests) + '</div>';
+}
+
+document.getElementById('cv-print-btn')?.addEventListener('click', () => {
+  document.body.classList.add('cv-printing');
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => document.body.classList.remove('cv-printing'), 200);
+  }, 30);
+});
+document.getElementById('cv-export-btn')?.addEventListener('click', () => {
+  const blob = new Blob([CVStore.exportJSON()], { type: 'application/json' });
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cv-' + stamp + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+document.getElementById('cv-import-btn')?.addEventListener('click', () => {
+  document.getElementById('cv-import-file')?.click();
+});
+document.getElementById('cv-import-file')?.addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    CVStore.importJSON(text);
+    renderCV();
+    if (typeof showAppToast === 'function') showAppToast('CV imported', 'success');
+  } catch (err) {
+    if (typeof alertDialog === 'function') alertDialog({ title:'Import failed', message: err.message || 'Could not read this file.' });
+    else alert(err.message || 'Could not read this file.');
+  }
+  e.target.value = '';
+});

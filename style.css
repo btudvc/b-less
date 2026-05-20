@@ -7057,3 +7057,16 @@ body {
   .cv-editor { max-width: 100%; }
   .cv-layout { max-width: 900px; margin: 0 auto !important; }
 }
+
+/* Desktop: center the panel containers instead of left-aligning. The
+   earlier 'margin: 0 8px !important' rule was making them hug the
+   left edge on wide viewports, leaving the right half empty. */
+@media (min-width: 1000px) {
+  .fv-container,
+  .jrn-container,
+  .links-container,
+  .reviews-container,
+  .cal-container {
+    margin: 0 auto !important;
+  }
+}

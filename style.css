@@ -6634,3 +6634,114 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
 .cv-preview[data-tpl="modern"] .cv-side .cv-head { flex-direction: column; align-items: center; text-align: center; }
 .cv-preview[data-tpl="modern"] .cv-side .cv-photo { width: 32mm; height: 32mm; }
 .cv-preview[data-tpl="modern"] .cv-main .cv-head { display: none; }
+
+
+/* ════════════════════════════════════════════════════════════
+   TEAMS-STYLE RAIL (desktop)
+   - Mobile: drawer shows only Spaces (drawer-nav hidden)
+   - Desktop: vertical icon rail on far left + spaces panel
+     next to it. Implemented with CSS grid on .spaces-drawer.
+   ════════════════════════════════════════════════════════════ */
+
+/* Mobile: drawer-nav stays hidden — floating pill nav covers it */
+@media (max-width: 999px) {
+  .drawer-nav { display: none !important; }
+}
+
+@media (min-width: 1000px) {
+  /* Total sidebar area = 72px rail + 260px spaces = 332px */
+  body { grid-template-columns: 332px 1fr !important; }
+
+  /* spaces-drawer becomes a 2-column grid: rail on left, spaces panel
+     on right. drawer-nav spans full height of rail column. */
+  .spaces-drawer {
+    display: grid !important;
+    grid-template-columns: 72px 260px !important;
+    grid-template-rows: 1fr !important;
+    width: 332px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    height: 100dvh !important;
+  }
+
+  /* Left column: icon rail */
+  .drawer-nav {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    padding: 14px 8px !important;
+    margin: 0 !important;
+    border-right: 1px solid var(--border) !important;
+    border-bottom: none !important;
+    background: var(--bg) !important;
+    overflow-y: auto !important;
+  }
+  .drawer-nav-btn {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    padding: 9px 4px !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    color: var(--muted) !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    min-height: 56px !important;
+  }
+  .drawer-nav-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+    color: var(--muted) !important;
+    flex-shrink: 0 !important;
+  }
+  .drawer-nav-btn span {
+    display: block !important;
+    width: 100% !important;
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  .drawer-nav-btn:hover {
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+  }
+  .drawer-nav-btn:hover svg { color: var(--text) !important; }
+  .drawer-nav-btn.active {
+    background: var(--accent-soft) !important;
+    color: var(--accent) !important;
+    font-weight: 600 !important;
+  }
+  .drawer-nav-btn.active svg { color: var(--accent) !important; }
+
+  /* Right column: spaces panel — wrap everything except drawer-nav */
+  .spaces-drawer-brand,
+  .spaces-drawer-head,
+  .home-spaces,
+  .spaces-drawer-section {
+    grid-column: 2 !important;
+  }
+  /* Each one gets its own row */
+  .spaces-drawer-brand { grid-row: 1; align-self: start; padding: 14px 14px 10px; border-bottom: 1px solid var(--border) !important; }
+  .spaces-drawer-head  { grid-row: 2; align-self: start; padding: 12px 14px 8px; }
+  .home-spaces         {
+    grid-row: 3 !important;
+    align-self: stretch !important;
+    overflow-y: auto !important;
+    padding: 0 8px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+    background: var(--surface) !important;
+    border-left: 1px solid var(--border) !important;
+  }
+  /* Tweak: brand area also surface bg so the whole right column matches */
+  .spaces-drawer-brand { background: var(--surface) !important; border-left: 1px solid var(--border) !important; }
+  .spaces-drawer-head  { background: var(--surface) !important; border-left: 1px solid var(--border) !important; }
+}

@@ -6494,3 +6494,49 @@ select:focus {
 /* Hide the detail editor area when no entry is selected — list IS
    the primary view, same as Reviews + Meetings. */
 #journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }
+
+/* CV — restore the all-viewport tab-switcher (single column).
+   The original base rule had a 460/1fr grid that survived the
+   truncation and was cramming editor + preview into the 900px
+   section width on desktop. */
+.cv-layout {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 0 !important;
+  margin-top: 0 !important;
+}
+.cv-layout[data-active="editor"]  .cv-preview-wrap { display: none !important; }
+.cv-layout[data-active="preview"] .cv-editor       { display: none !important; }
+.cv-tabs { display: flex !important; gap: 6px; margin: 14px 0 10px; }
+.cv-editor { max-width: 100%; }
+.cv-acc { padding: 0 !important; }
+.cv-acc-head { padding: 14px 16px !important; }
+.cv-acc-body { padding: 4px 16px 16px !important; }
+
+/* Section containers: wider on big screens — 900px felt lost in the
+   centre on 1920px+ monitors. Now scales 100% mobile -> 1100px
+   tablet -> 1200px desktop. */
+.fv-container,
+.jrn-container,
+.links-container,
+.reviews-container,
+.cal-container,
+#meetings.section > .sidebar,
+#meetings.section > .content,
+.fv-header,
+.fv-header.section-head-pad {
+  max-width: 1200px !important;
+}
+@media (max-width: 1000px) {
+  .fv-container,
+  .jrn-container,
+  .links-container,
+  .reviews-container,
+  .cal-container,
+  #meetings.section > .sidebar,
+  #meetings.section > .content,
+  .fv-header,
+  .fv-header.section-head-pad {
+    max-width: 100% !important;
+  }
+}

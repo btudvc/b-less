@@ -6996,10 +6996,10 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     width: 100% !important;
     box-sizing: border-box !important;
   }
-  /* Section.active no extra padding — the children are centred via
-     margin: 0 auto. */
+  /* Section padding matches the Reviews page (24px top/bottom +
+     32px horizontal). Children centered inside via margin: 0 auto. */
   #meetings.section.active,
   #journal.section.active {
-    padding: 24px 0 !important;
+    padding: 24px 32px !important;
   }
 }

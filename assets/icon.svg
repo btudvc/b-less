@@ -1,18 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0"   stop-color="#7c3aed"/>
-      <stop offset="0.5" stop-color="#c084fc"/>
-      <stop offset="1"   stop-color="#fb7185"/>
-    </linearGradient>
-  </defs>
-  <!-- Clipboard body -->
-  <rect x="95" y="115" width="310" height="320" rx="50" fill="url(#g)"/>
-  <!-- Clip top -->
-  <rect x="175" y="80" width="150" height="70" rx="14" fill="#1e3a8a"/>
-  <rect x="155" y="105" width="190" height="60" rx="16" fill="#1e3a8a" stroke="#ffffff" stroke-width="14"/>
-  <!-- Checkmark -->
-  <path d="M 160 270 L 225 335 L 345 215"
-        stroke="#ffffff" stroke-width="36"
-        fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Dark navy C-shape: ring with a gap on the upper-right where the check exits -->
+  <path d="M 380 150 A 170 170 0 1 1 360 382"
+        stroke="#0a2a5e" stroke-width="52" stroke-linecap="round"/>
+  <!-- Bright blue checkmark extending past the ring -->
+  <path d="M 165 270 L 235 335 L 395 130"
+        stroke="#3b82f6" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

@@ -6657,17 +6657,17 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
   .spaces-drawer {
     display: grid !important;
     grid-template-columns: 72px 260px !important;
-    grid-template-rows: 1fr !important;
+    grid-template-rows: auto auto 1fr !important;
     width: 332px !important;
     padding: 0 !important;
     overflow: hidden !important;
     height: 100dvh !important;
   }
 
-  /* Left column: icon rail */
+  /* Left column: icon rail — spans all rows so it fills viewport */
   .drawer-nav {
     grid-column: 1 !important;
-    grid-row: 1 !important;
+    grid-row: 1 / -1 !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 4px !important;
@@ -6694,7 +6694,7 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     font-weight: 500 !important;
     cursor: pointer !important;
     text-align: center !important;
-    min-height: 56px !important;
+    min-height: 50px !important;
   }
   .drawer-nav-btn svg {
     width: 20px !important;

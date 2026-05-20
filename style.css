@@ -6797,12 +6797,12 @@ select:focus {
    a real bottom margin. */
 .jrn-container { padding-top: 0 !important; }
 
-/* Passwords vault card: align with the rest of the section column
-   (header + buttons), not centred in the viewport. */
+/* Passwords vault card: centre horizontally — it's a focused
+   unlock/setup form, behaves like a login dialog. */
 .vault-card {
   max-width: 520px !important;
-  margin: 8px 0 24px !important;
-  border-radius: 12px !important;
+  margin: 32px auto !important;
+  border-radius: 14px !important;
 }
 
 /* CV vertical gaps: header -> tabs -> form. */

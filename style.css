@@ -171,7 +171,16 @@ html {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--bg);
+  /* Subtle brand-tinted backdrop. The frosted glass surfaces above pick
+     up colour from these radial blooms so the whole app reads as one
+     piece of softly tinted glass. Fixed attachment keeps the gradients
+     steady while content scrolls. */
+  background:
+    radial-gradient(1200px 800px at 12% -8%, var(--accent-soft, rgba(168, 85, 247, .14)) 0%, transparent 55%),
+    radial-gradient(1000px 700px at 88% 18%, rgba(251, 113, 133, .09) 0%, transparent 60%),
+    radial-gradient(900px 600px at 50% 110%, rgba(124, 58, 237, .07) 0%, transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   /* Use dynamic viewport height so iOS Safari's URL bar doesn't push content
      below the visible area. Falls back to 100vh on older browsers. */
@@ -6004,3 +6013,284 @@ body.is-readonly #robot-content .nb-item { cursor: default !important; }
 .bnav-btn:hover         { color: var(--text); background: var(--surface-2); }
 .bnav-btn.active:hover  { color: var(--accent); background: var(--accent-soft); }
 .bottom-nav { height: 60px; align-items: center; gap: 2px; }
+
+/* ════════════════════════════════════════════════════════
+   THEME V2 — UNIFIED FROSTED GLASS LANGUAGE
+   Single source of truth applied after every section's local
+   styles. Surfaces, chrome and inputs all draw from the same
+   glass tokens; body radial backdrop gives backdrop-filter
+   real colour to blur.
+   ════════════════════════════════════════════════════════ */
+
+/* ── 1. Top-level chrome ── */
+.app-topbar {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border) !important;
+}
+.bottom-nav {
+  background: var(--glass-bg-card) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 8px 28px rgba(15, 20, 30, .14), 0 2px 8px rgba(15, 20, 30, .06);
+}
+.bnav-fab {
+  box-shadow: 0 10px 22px var(--accent-soft2, rgba(168, 85, 247, .35)),
+              0 3px 8px rgba(15, 20, 30, .14);
+}
+.spaces-drawer {
+  background: var(--glass-bg-card) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--glass-border) !important;
+}
+
+/* ── 2. Solid-looking content cards — frosted white ── */
+.home-list-item,
+.wm-cell,
+.home-card,
+.home-journal-card,
+.at-task,
+.visit-row,
+.link-row,
+.rev-row,
+.jrn-entry,
+.vault-row,
+.vault-card,
+.cv-acc,
+.cv-list-item,
+.task-body,
+.task-card,
+.notebook,
+.cal-day,
+.cal-day-panel,
+#meeting-list .robot-item,
+#meetings .robot-item,
+.streak-widget,
+.spaces-drawer-section,
+.bp-account,
+.bp-meta,
+.bp-settings-block {
+  background: var(--glass-bg-card) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border) !important;
+}
+
+/* ── 3. Hover states — accent border + soft halo, keep frost ── */
+.home-list-item:hover,
+.wm-cell:hover,
+.home-card:hover,
+.at-task:hover,
+.visit-row:hover,
+.link-row:hover,
+.rev-row:hover,
+.jrn-entry:hover,
+.vault-row:hover,
+.cal-day:hover,
+#meeting-list .robot-item:hover,
+#meetings .robot-item:hover {
+  background: var(--glass-bg-card) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent-soft, rgba(168, 85, 247, .25)),
+              0 0 18px var(--accent-soft, rgba(168, 85, 247, .18));
+}
+
+/* ── 4. Active / selected states ── */
+.cal-day.selected,
+.jrn-entry.active,
+#meeting-list .robot-item.active,
+#meetings .robot-item.active,
+.rev-row.active,
+.wm-cell.wm-has {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+}
+.wm-cell.wm-today {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent) inset !important;
+}
+.wm-cell.wm-today.wm-has { background: var(--accent-soft) !important; }
+
+/* ── 5. Inner panels stay transparent so the host frost shows ── */
+.task-body .notebook,
+.task-body .att-section,
+.task-body .subtask-list,
+.task-body .task-actions-row,
+.bp-account,
+.bp-meta-row,
+.bp-settings-block {
+  /* Re-declare so the inner panels DON'T get their own opaque fill —
+     they belong to the host card visually. */
+}
+.task-body > .notebook,
+.task-body > .att-section {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Modal already uses glass via its own rules; just make sure the
+   inner sub-blocks inside the popover don't double-stack. */
+.backup-popover .bp-account,
+.backup-popover .bp-meta,
+.backup-popover .bp-settings-block,
+.backup-popover .bp-meta-row {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: var(--glass-border) !important;
+}
+
+/* ── 6. Inputs / textareas — soft glass shell ── */
+.modal input,
+.modal textarea,
+.modal select,
+.cv-f input,
+.cv-f textarea,
+.cv-f select,
+.vault-card input,
+.links-search,
+.reviews-textarea,
+.notes-area,
+.sub-add-row input[type="text"],
+.nb-add-row textarea,
+.nb-add-row input,
+.search-input {
+  background: var(--glass-bg-2, var(--glass-bg)) !important;
+  border: 1px solid var(--glass-border) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text);
+}
+.modal input:focus,
+.modal textarea:focus,
+.modal select:focus,
+.cv-f input:focus,
+.cv-f textarea:focus,
+.cv-f select:focus,
+.vault-card input:focus,
+.links-search:focus,
+.reviews-textarea:focus,
+.notes-area:focus,
+.sub-add-row input[type="text"]:focus,
+.nb-add-row textarea:focus,
+.nb-add-row input:focus,
+.search-input:focus {
+  outline: none !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-soft, rgba(168, 85, 247, .18));
+}
+
+/* ── 7. Buttons (secondary controls) — frosted with subtle border ── */
+.btn-ghost,
+.btn-sm,
+.btn-mini,
+.cal-nav,
+.cal-today-btn,
+.cal-export-btn,
+.action-add-btn,
+.icon-btn:not(.topbar-icon-btn),
+.modal-close,
+.md-back-btn,
+.bp-icon-btn,
+.vault-icon-btn,
+.home-section-icon-btn,
+.lang-btn,
+.task-action-btn,
+.cv-tab,
+.cv-list-actions button {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text);
+}
+.btn-ghost:hover,
+.btn-sm:hover,
+.btn-mini:hover,
+.cal-nav:hover,
+.cal-today-btn:hover,
+.cal-export-btn:hover,
+.action-add-btn:hover,
+.icon-btn:not(.topbar-icon-btn):hover,
+.modal-close:hover,
+.md-back-btn:hover,
+.bp-icon-btn:hover,
+.vault-icon-btn:hover,
+.home-section-icon-btn:hover,
+.lang-btn:hover,
+.task-action-btn:hover,
+.cv-list-actions button:hover {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent-soft, rgba(168, 85, 247, .25));
+  color: var(--text) !important;
+}
+.cv-tab.active,
+.rev-period-btn.active,
+.radio-btn.active {
+  background: var(--accent) !important;
+  color: var(--on-accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* ── 8. Topbar icons stay frameless (visual quiet) ── */
+.topbar-icon-btn,
+.topbar-avatar-btn {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: transparent !important;
+}
+.topbar-icon-btn:hover,
+.topbar-avatar-btn:hover {
+  background: var(--glass-bg) !important;
+  border-color: var(--glass-border) !important;
+}
+
+/* ── 9. Drawer items match the new glass language ── */
+.drawer-nav-btn,
+.spaces-drawer-item {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+.drawer-nav-btn:hover,
+.spaces-drawer-item:hover {
+  background: var(--glass-bg-2, var(--glass-bg)) !important;
+}
+.drawer-nav-btn.active {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+}
+
+/* ── 10. Catch-all reset: kill any leftover solid grey blocks ── */
+.tab-strip,
+.tag-picker,
+.radio-group,
+.reviews-period-toggle {
+  background: transparent !important;
+}
+.reviews-period-toggle {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border) !important;
+}
+
+/* ── 11. Browsers without backdrop-filter — solid fallback ── */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .home-list-item, .wm-cell, .home-card, .home-journal-card,
+  .at-task, .visit-row, .link-row, .rev-row, .jrn-entry,
+  .vault-row, .vault-card, .cv-acc, .cv-list-item,
+  .task-body, .task-card, .notebook,
+  .cal-day, .cal-day-panel,
+  #meeting-list .robot-item, #meetings .robot-item,
+  .streak-widget, .spaces-drawer-section,
+  .bp-account, .bp-meta, .bp-settings-block,
+  .bottom-nav, .spaces-drawer, .app-topbar {
+    background: var(--surface) !important;
+  }
+}

@@ -1,7 +1,7 @@
 {
   "name": "b-less",
   "version": "4.0.0",
-  "description": "B-Less Planner — personal project and task planner.",
+  "description": "B-Less — personal project and task planner.",
   "private": true,
   "scripts": {
     "dev": "node serve.js"

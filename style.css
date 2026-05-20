@@ -6982,3 +6982,24 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
    meeting/journal entry is selected — list IS the primary view. */
 #meetings.section:not([data-detail-open="true"]) > .content { display: none !important; }
 #journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }
+
+/* Meetings + Journal content: same max-width + centring as Reviews */
+@media (min-width: 1000px) {
+  #meetings .fv-header.section-head-pad,
+  #meetings > .sidebar,
+  #meetings > .content,
+  #journal .fv-header.section-head-pad,
+  #journal .jrn-container {
+    max-width: min(1600px, 95vw) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  /* Section.active no extra padding — the children are centred via
+     margin: 0 auto. */
+  #meetings.section.active,
+  #journal.section.active {
+    padding: 24px 0 !important;
+  }
+}

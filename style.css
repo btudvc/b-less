@@ -6742,3 +6742,28 @@ select:focus {
   border-radius: 999px !important;
   min-height: 36px !important;
 }
+
+/* Reasonable max-width for section contents — 1600px was too wide
+   and made the header span far left while CV's form sat at 760px in
+   the middle, breaking alignment. 1100px gives comfortable reading
+   width and the header lines up with the content below. */
+.fv-container,
+.jrn-container,
+.links-container,
+.reviews-container,
+.cal-container,
+#meetings.section > .sidebar,
+#meetings.section > .content,
+.fv-header,
+.fv-header.section-head-pad {
+  max-width: 1100px !important;
+}
+
+/* CV: header AND cv-layout share the same 760px form column so the
+   title sits directly above the form, not way over to the left. */
+#cv .fv-header,
+#cv .cv-tabs,
+#cv .cv-layout {
+  max-width: 760px !important;
+  margin: 0 auto !important;
+}

@@ -6767,3 +6767,32 @@ select:focus {
   max-width: 760px !important;
   margin: 0 auto !important;
 }
+
+/* Consistent vertical gap between section header and the content
+   below — 24px on every page. */
+.fv-header,
+.fv-header.section-head-pad {
+  margin-bottom: 24px !important;
+  padding-bottom: 0 !important;
+}
+@media (max-width: 600px) {
+  .fv-header,
+  .fv-header.section-head-pad {
+    margin-bottom: 18px !important;
+  }
+}
+
+/* Reviews period toggle + this-week button row gets a bit more space
+   below itself when the list follows. */
+.reviews-period-toggle { margin-right: 4px; }
+
+/* Calendar header sits above the grid — same 24px gap. */
+.cal-header { margin-bottom: 24px !important; }
+
+/* Links toolbar (search input) sits between header and list — give
+   it some breathing room from the header too. */
+.links-toolbar { margin: 0 0 16px !important; }
+
+/* Journal container's extra padding-top can go now that header has
+   a real bottom margin. */
+.jrn-container { padding-top: 0 !important; }

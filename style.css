@@ -7027,7 +7027,7 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
   display: none !important;
 }
 #meetings.section[data-detail-open="true"] .fv-container { display: none !important; }
-#meetings.section[data-detail-open="true"] .content { display: flex !important; }
+#meetings.section[data-detail-open="true"] .content { display: block !important; }
 #journal[data-detail-open="true"] .fv-container { display: none !important; }
 #journal[data-detail-open="true"] .jrn-container-detail { display: block !important; }
 

@@ -6305,3 +6305,110 @@ select:focus {
 .inner-tab.active {
   background: var(--surface-2) !important;
 }
+
+/* ════════════════════════════════════════════════════════
+   UNIFIED SECTION LAYOUT
+   Calendar / Meetings / Visits / Journal / Links / Reviews
+   / Passwords / CV all share the same container width and
+   the same card styling. No more grid splits, no more inner
+   max-widths, no more narrow search inputs.
+   ════════════════════════════════════════════════════════ */
+
+/* Section containers: same max-width and padding everywhere */
+.fv-container,
+.jrn-container,
+.links-container,
+.reviews-container,
+.cal-container {
+  max-width: 900px !important;
+  margin: 0 auto !important;
+  padding: 18px 16px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  min-height: auto !important;
+}
+
+/* Reviews layout: single column on every viewport. The 280px
+   sidebar grid was the source of the "narrow centered" feel. */
+.reviews-layout {
+  display: block !important;
+  grid-template-columns: 1fr !important;
+  margin-top: 18px !important;
+}
+.reviews-list {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Links search: fills the container, no narrow max-width */
+.links-search {
+  max-width: none !important;
+}
+
+/* Unified row card style — Calendar tasks, meetings, visits,
+   journal entries, link rows, review rows, vault rows, cv items */
+.visit-row,
+.link-row,
+.rev-row,
+.jrn-entry,
+.vault-row,
+.cv-acc,
+.cv-list-item,
+#meeting-list .robot-item,
+#meetings .robot-item {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  margin-bottom: 8px !important;
+}
+.visit-row:hover,
+.link-row:hover,
+.rev-row:hover,
+.jrn-entry:hover,
+.vault-row:hover,
+.cv-list-item:hover,
+#meeting-list .robot-item:hover,
+#meetings .robot-item:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--border-2) !important;
+}
+.rev-row.active,
+.jrn-entry.active,
+#meeting-list .robot-item.active,
+#meetings .robot-item.active {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+}
+
+/* Section headers: same baseline */
+.fv-header,
+.cal-header {
+  margin-bottom: 18px !important;
+}
+.fv-header h2,
+.reviews-container h2,
+.links-container h2,
+.cal-container h2 {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.02em !important;
+  margin: 0 0 4px !important;
+}
+.fv-subtitle {
+  color: var(--muted) !important;
+  font-size: 13.5px !important;
+  margin: 0 0 14px !important;
+}
+
+/* Mobile: keep generous tap targets, full-width content */
+@media (max-width: 600px) {
+  .fv-container,
+  .jrn-container,
+  .links-container,
+  .reviews-container,
+  .cal-container {
+    padding: 14px 12px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

@@ -6012,11 +6012,14 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
 /* Topbar: sticky */
 @media (max-width: 999px) {
   body { display: flex !important; flex-direction: column !important; }
-  /* Bottom-nav clearance for every section — bar is ~64px + safe-area.
-     Specific containers (.fv-container, .jrn-container, etc.) already
-     have their own padding-bottom; this is the safety net for sections
-     that use bespoke wrappers (#home, #robots, #more, #cv). */
-  main { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important; }
+  /* Bottom-nav clearance: instead of padding-bottom on <main> (which
+     leaves a dead zone when content is shorter than the viewport),
+     use scroll-padding-bottom so only *scrolling* content reserves
+     room for the bar. Last item lands just above the bar; short
+     pages have no empty gap. */
+  main {
+    scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  }
   .app-topbar {
     position: sticky !important;
     top: 0 !important;
@@ -6096,11 +6099,11 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     justify-content: space-around !important;
     height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
     padding: 0 4px env(safe-area-inset-bottom, 0px) !important;
-    background: var(--surface) !important;
+    background: var(--bg) !important;
     border: none !important;
-    border-top: 1px solid var(--border) !important;
+    border-top: none !important;
     border-radius: 0 !important;
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, .12) !important;
+    box-shadow: none !important;
     gap: 0 !important;
   }
   .bnav-btn {

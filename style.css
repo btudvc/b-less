@@ -6658,3 +6658,12 @@ select:focus {
 /* Passwords (Private vault): vault rows in the same card style — they
    already are, but force the gap and remove any sidebar artefacts. */
 .vault-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+
+/* Active section: stack children vertically so .fv-header and the
+   list container don't sit side-by-side as row-flex items (which
+   was making them content-sized — the source of the "tiny narrow
+   centred content" the user reported). */
+.section.active {
+  flex-direction: column !important;
+  align-items: stretch !important;
+}

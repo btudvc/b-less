@@ -1693,6 +1693,11 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 }
 
 /* Day-grouped list (This Week, organised by day) */
+.home-day-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 .home-day-group + .home-day-group { margin-top: 20px; }
 .home-day-head {
   display: inline-flex;     /* hugs content, no solid rectangle */
@@ -1753,11 +1758,11 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 
 .home-list { display: flex; flex-direction: column; gap: 8px; }
 .home-list-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 11px 12px;
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px;
   background: transparent;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   font-family: inherit;
   text-align: left;

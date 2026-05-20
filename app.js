@@ -531,7 +531,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '6.27.4';
+var APP_VERSION = '6.27.5';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -8949,10 +8949,19 @@ document.getElementById('cv-print-btn')?.addEventListener('click', () => {
   const html = '<!doctype html><html><head><meta charset="utf-8"><title>CV</title>' +
     '<style>' + cssDump + '</style>' +
     '<style>' +
-      /* @page margins apply to EVERY printed page (page 1, 2, 3...),
-         so continuation pages get the same top breathing room as the
-         first. .cv-preview padding is zeroed to avoid stacking. */
-      '@page { size: A4; margin: 14mm 12mm; }' +
+      /* @page margins apply to EVERY printed page. The empty @top-*
+         / @bottom-* boxes are the CSS Paged Media way to suppress
+         page-header / footer content — browsers vary on respecting
+         this for their own URL/date strings, but it's harmless. */
+      '@page {' +
+        ' size: A4; margin: 14mm 12mm;' +
+        ' @top-left { content: ""; }' +
+        ' @top-center { content: ""; }' +
+        ' @top-right { content: ""; }' +
+        ' @bottom-left { content: ""; }' +
+        ' @bottom-center { content: ""; }' +
+        ' @bottom-right { content: ""; }' +
+      '}' +
       'html, body { margin: 0; padding: 0; background: #fff; }' +
       '.cv-preview-wrap { display: block; padding: 0; margin: 0; }' +
       '.cv-preview {' +
@@ -8991,6 +9000,11 @@ document.getElementById('cv-print-btn')?.addEventListener('click', () => {
   // Most reliable cross-browser way to populate an iframe synchronously
   // with HTML: write via srcdoc.
   iframe.srcdoc = html;
+  // Heads-up: the browser's own header/footer (date + URL) can't be
+  // suppressed via CSS. Tell the user where the off switch lives.
+  if (typeof showAppToast === 'function') {
+    showAppToast('Tip: in the print dialog, uncheck "Headers and footers" for a clean PDF.', 'sync');
+  }
 });
 document.getElementById('cv-export-btn')?.addEventListener('click', () => {
   const blob = new Blob([CVStore.exportJSON()], { type: 'application/json' });

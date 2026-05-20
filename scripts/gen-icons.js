@@ -1,20 +1,27 @@
-// One-shot: regenerate icon PNGs from assets/icon.svg.
+// One-shot: regenerate icon PNGs from assets/logo-source.png.
 // Run: node scripts/gen-icons.js
-const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
 const root = path.join(__dirname, '..');
-const svgPath = path.join(root, 'assets', 'icon.svg');
-const svg = fs.readFileSync(svgPath);
+const src = path.join(root, 'assets', 'logo-source.png');
 
 async function main() {
-  // Standard icons (192, 512) — transparent background, full-bleed art
-  await sharp(svg).resize(192, 192).png().toFile(path.join(root, 'assets', 'icon-192.png'));
-  await sharp(svg).resize(512, 512).png().toFile(path.join(root, 'assets', 'icon-512.png'));
+  // Standard icons (192, 512) — keep source transparency / proportions
+  await sharp(src)
+    .resize(192, 192, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toFile(path.join(root, 'assets', 'icon-192.png'));
+  await sharp(src)
+    .resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toFile(path.join(root, 'assets', 'icon-512.png'));
 
-  // Maskable: pad the art into a safe zone (80% of canvas), white background
-  const maskableInner = await sharp(svg).resize(410, 410).png().toBuffer();
+  // Maskable: pad art into 80% safe zone with a white background
+  const maskableInner = await sharp(src)
+    .resize(410, 410, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
+    .png()
+    .toBuffer();
   await sharp({
     create: {
       width: 512,
@@ -27,7 +34,7 @@ async function main() {
     .png()
     .toFile(path.join(root, 'assets', 'icon-maskable-512.png'));
 
-  console.log('Icons regenerated.');
+  console.log('Icons regenerated from logo-source.png.');
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

@@ -531,7 +531,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '6.27.3';
+var APP_VERSION = '6.27.4';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -8949,17 +8949,20 @@ document.getElementById('cv-print-btn')?.addEventListener('click', () => {
   const html = '<!doctype html><html><head><meta charset="utf-8"><title>CV</title>' +
     '<style>' + cssDump + '</style>' +
     '<style>' +
-      '@page { size: A4; margin: 0; }' +
+      /* @page margins apply to EVERY printed page (page 1, 2, 3...),
+         so continuation pages get the same top breathing room as the
+         first. .cv-preview padding is zeroed to avoid stacking. */
+      '@page { size: A4; margin: 14mm 12mm; }' +
       'html, body { margin: 0; padding: 0; background: #fff; }' +
       '.cv-preview-wrap { display: block; padding: 0; margin: 0; }' +
       '.cv-preview {' +
         ' position: static !important;' +
         ' transform: none !important;' +
-        ' width: 210mm !important;' +
-        ' min-height: 297mm !important;' +
+        ' width: auto !important;' +
+        ' min-height: 0 !important;' +
         ' max-height: none !important;' +
         ' margin: 0 !important;' +
-        ' padding: 12mm 12mm !important;' +
+        ' padding: 0 !important;' +
         ' box-shadow: none !important;' +
         ' border-radius: 0 !important;' +
       '}' +

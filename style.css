@@ -6667,3 +6667,8 @@ select:focus {
   flex-direction: column !important;
   align-items: stretch !important;
 }
+
+/* Journal: explicit top spacing on the container so the "+ Add today"
+   button in the header doesn't visually overlap the first entry card. */
+.jrn-container { padding-top: 18px !important; }
+.fv-header.section-head-pad { margin-bottom: 0 !important; padding-bottom: 8px !important; }

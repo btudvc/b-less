@@ -6842,3 +6842,151 @@ select:focus {
   border-color: var(--accent) !important;
 }
 .cv-tabs[hidden] { display: none !important; }
+
+/* ════════════════════════════════════════════════════════
+   DESKTOP (>=1000px) — multi-column master-detail layouts
+   - Permanent left sidebar with nav + spaces
+   - Meetings / Reviews / Journal: list on the left, detail on
+     the right (visible simultaneously)
+   - Calendar: grid + day panel side-by-side (existing)
+   - CV: editor + preview side-by-side
+   - Floating pill nav hidden on desktop (sidebar handles it)
+   ════════════════════════════════════════════════════════ */
+@media (min-width: 1000px) {
+  /* Body grid: sidebar (280px) + topbar/main */
+  body {
+    display: grid !important;
+    grid-template-columns: 280px 1fr !important;
+    grid-template-rows: auto 1fr !important;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main" !important;
+  }
+  .app-topbar {
+    grid-area: topbar !important;
+    position: static !important;
+  }
+  main {
+    grid-area: main !important;
+    overflow: hidden !important;
+    display: flex !important;
+  }
+
+  /* Permanent sidebar (was slide-out drawer on mobile) */
+  .spaces-drawer {
+    position: static !important;
+    grid-area: sidebar !important;
+    transform: none !important;
+    width: auto !important;
+    border-right: 1px solid var(--border) !important;
+    box-shadow: none !important;
+    z-index: auto !important;
+    background: var(--surface) !important;
+    height: 100dvh !important;
+  }
+  .spaces-drawer-backdrop { display: none !important; }
+  body.spaces-drawer-open .spaces-drawer-backdrop { display: none !important; }
+  .drawer-nav { display: flex !important; }
+
+  /* Hamburger hidden — sidebar is permanent */
+  #topbar-burger-btn { display: none !important; }
+
+  /* Floating pill + FAB hidden on desktop */
+  .bnav-dock { display: none !important; }
+
+  /* Sections fill the available main area */
+  .section.active {
+    flex-direction: row !important;
+    align-items: stretch !important;
+  }
+
+  /* Section containers: no max-width cap on desktop — fill the
+     available space inside the main area. */
+  .fv-container,
+  .jrn-container,
+  .links-container,
+  .reviews-container,
+  .cal-container,
+  #meetings.section > .sidebar,
+  #meetings.section > .content,
+  .fv-header,
+  .fv-header.section-head-pad {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Meetings master-detail: list left, content right */
+  #meetings.section {
+    flex-direction: row !important;
+  }
+  #meetings.section > .sidebar {
+    width: 320px !important;
+    max-width: 320px !important;
+    flex: 0 0 320px !important;
+    border-right: 1px solid var(--border) !important;
+    overflow-y: auto !important;
+    padding: 18px 14px !important;
+  }
+  #meetings.section > .content {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 24px 28px !important;
+    max-width: none !important;
+  }
+  #meetings .fv-header.section-head-pad {
+    /* Stays at the very top spanning both columns */
+    grid-column: 1 / -1;
+  }
+  /* Show both list AND content simultaneously (no hide-on-detail) */
+  #meetings.section[data-detail-open="true"] > .sidebar { display: flex !important; }
+  #meetings.section:not([data-detail-open="true"]) > .content { display: flex !important; }
+
+  /* Journal master-detail: date list left, entry editor right */
+  #journal .jrn-container {
+    flex-direction: row !important;
+    display: flex !important;
+  }
+  .jrn-sidebar {
+    width: 280px !important;
+    max-width: 280px !important;
+    flex: 0 0 280px !important;
+    border-right: 1px solid var(--border) !important;
+    padding: 0 12px !important;
+  }
+  .jrn-main {
+    flex: 1 !important;
+    padding: 24px 28px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  #journal .jrn-main { display: flex !important; }
+  #journal:not([data-detail-open="true"]) .jrn-main { display: flex !important; }
+
+  /* Reviews master-detail: week list left, note editor right */
+  .reviews-layout {
+    display: grid !important;
+    grid-template-columns: 280px 1fr !important;
+    gap: 18px !important;
+    margin-top: 18px !important;
+    align-items: start !important;
+  }
+  #reviews:not([data-detail-open="true"]) .reviews-editor { display: flex !important; }
+  #reviews[data-detail-open="true"] .reviews-list { display: flex !important; }
+
+  /* CV: editor + preview side-by-side */
+  #cv .cv-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 480px) 1fr !important;
+    gap: 24px !important;
+    max-width: 100% !important;
+  }
+  #cv .cv-tabs { display: none !important; }
+  #cv .cv-editor { display: flex !important; max-width: 480px !important; }
+  #cv .cv-preview-wrap { display: flex !important; justify-content: center; }
+
+  /* Calendar: keep grid + panel side-by-side (existing two-col layout) */
+  .cal-body {
+    grid-template-columns: 1fr 360px !important;
+    gap: 18px !important;
+  }
+}

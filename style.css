@@ -6493,9 +6493,12 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
 }
 .reviews-editor { width: 100%; }
 
-/* Section padding-top fix for sticky topbar on mobile */
+/* Bar clearance now lives on .fv-container (= bar height exactly).
+   The old 110px section padding-bottom was a holdover from the
+   floating-pill era and is what created the dead zone above the
+   docked bar — keep it at 0 here. */
 @media (max-width: 999px) {
-  .section.active { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+  .section.active { padding-bottom: 0; }
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -6976,7 +6979,7 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
 @media (max-width: 999px) {
   #meetings.section.active,
   #journal.section.active {
-    padding: 18px 14px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 18px 14px 0 !important;
   }
 }
 
@@ -6994,7 +6997,7 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
 @media (max-width: 999px) {
   #meetings.section.active,
   #journal.section.active {
-    padding: 18px 14px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 18px 14px 0 !important;
   }
 }
 

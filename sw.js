@@ -1,5 +1,5 @@
 // B-Less service worker — offline-first app shell
-const VERSION = 'b-less-v7.5.4';
+const VERSION = 'b-less-v7.5.5';
 const SHELL = [
   './',
   './index.html',
@@ -10,6 +10,8 @@ const SHELL = [
   './assets/icon-192.png',
   './assets/icon-512.png',
   './assets/icon-maskable-512.png',
+  './assets/favicon-16.png',
+  './assets/favicon-32.png',
 ];
 
 self.addEventListener('install', e => {

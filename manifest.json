@@ -1,6 +1,6 @@
 {
-  "name": "B-Less Planner",
-  "short_name": "B-Less Planner",
+  "name": "B-Less",
+  "short_name": "B-Less",
   "description": "Personal project and daily life planner",
   "start_url": "./index.html",
   "scope": "./",

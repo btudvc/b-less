@@ -531,7 +531,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.5.3';
+var APP_VERSION = '7.5.4';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -5070,7 +5070,7 @@ function buildIcs() {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//B-Less Planner//EN',
+    'PRODID:-//B-Less//EN',
     'CALSCALE:GREGORIAN',
   ];
   const now = new Date();
@@ -7728,7 +7728,7 @@ document.querySelectorAll('.theme-toggle-btn').forEach(b => {
 // (APP_VERSION is var-declared near the top of this file so functions that
 // run during boot — like the popover renderer — can safely reference it.)
 const _verEl = document.getElementById('more-version');
-if (_verEl) _verEl.textContent = 'B-Less Planner v' + APP_VERSION;
+if (_verEl) _verEl.textContent = 'B-Less v' + APP_VERSION;
 
 // Default landing view: Home grid (colorful card overview of every section)
 openHome();
@@ -8077,7 +8077,7 @@ const VaultStore = (() => {
     const challenge = crypto.getRandomValues(new Uint8Array(32));
     const cred = await navigator.credentials.create({
       publicKey: {
-        rp: { name: 'B-Less Planner', id: window.location.hostname },
+        rp: { name: 'B-Less', id: window.location.hostname },
         user: { id: userId, name: 'vault@b-less', displayName: 'Vault' },
         challenge,
         pubKeyCredParams: [

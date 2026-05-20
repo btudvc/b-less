@@ -3539,10 +3539,24 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   .btn-sm { padding: 6px 12px; }
 }
 
-/* Task header: tighter on narrow screens; tags stay inline with title */
+/* Task header: tighter on narrow screens. Tags can't stay inline on
+   phones — when the chip strip is wider than the leftover space the
+   title gets squeezed to 0px and each letter wraps to its own line.
+   Wrap the row so tags drop under the title on narrow screens. */
 @media (max-width: 640px) {
   .task-title-text { font-size: 13.5px; }
   .task-actions-row .btn-sm { flex: 0 1 auto; }
+  .task-header { flex-wrap: wrap; row-gap: 6px; }
+  .task-title-text {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .task-tags {
+    margin-left: 28px;     /* line up with title (after dot + gap) */
+    max-width: 100%;
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
 }
 
 /* ─── SUBTASKS ─────────────────────────────────────────── */

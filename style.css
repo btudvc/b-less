@@ -6999,3 +6999,61 @@ body {
 }
 /* Cancel the experimental section ::before that was layering wrong */
 .section.active::before { content: none !important; }
+
+/* ════════════════════════════════════════════════════════
+   FINAL — calm body + clean section panels (matches the
+   Reviews note editor look the user pointed at).
+   ════════════════════════════════════════════════════════ */
+
+/* Body: two corner accent washes, much calmer than the previous
+   5-bloom mix. The visible panel fill below sections does the rest. */
+body {
+  background:
+    radial-gradient(1100px 800px at 8% -5%, rgba(168, 85, 247, .22) 0%, transparent 50%),
+    radial-gradient(1100px 800px at 95% 8%, rgba(251, 113, 133, .14) 0%, transparent 55%),
+    var(--bg) !important;
+  background-attachment: fixed !important;
+}
+
+/* Section content panels — calm dark gradient that fills the full
+   scroll area, so empty space below short lists is never a grey hole. */
+.fv-container,
+.jrn-container,
+.links-container,
+.reviews-container,
+.cal-container {
+  background: linear-gradient(180deg,
+              rgba(168, 85, 247, .06) 0%,
+              rgba(15, 20, 30, .25) 60%,
+              rgba(124, 58, 237, .04) 100%) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255, 255, 255, .06) !important;
+  min-height: calc(100vh - 100px) !important;
+  margin: 0 8px !important;
+  padding: 22px 18px calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+}
+:root[data-theme="light"] .fv-container,
+:root:not([data-theme]) .fv-container,
+:root[data-theme="light"] .jrn-container,
+:root:not([data-theme]) .jrn-container,
+:root[data-theme="light"] .links-container,
+:root:not([data-theme]) .links-container,
+:root[data-theme="light"] .reviews-container,
+:root:not([data-theme]) .reviews-container,
+:root[data-theme="light"] .cal-container,
+:root:not([data-theme]) .cal-container {
+  background: linear-gradient(180deg,
+              rgba(168, 85, 247, .08) 0%,
+              rgba(255, 255, 255, .55) 60%,
+              rgba(124, 58, 237, .05) 100%) !important;
+  border-color: rgba(15, 20, 30, .08) !important;
+}
+
+/* CV: use the full available width on desktop. Editor accordion was
+   capped to ~460px and the page had huge dead zones on both sides. */
+@media (min-width: 1000px) {
+  .cv-editor { max-width: 100%; }
+  .cv-layout { max-width: 900px; margin: 0 auto !important; }
+}

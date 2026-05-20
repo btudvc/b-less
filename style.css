@@ -6555,3 +6555,106 @@ select:focus {
 .jrn-sidebar   { border-right: none !important; border-bottom: none !important; }
 .jrn-list      { border-bottom: none !important; }
 .jrn-container { border-bottom: none !important; }
+
+/* Reviews + Links + others: same master-detail pattern as Journal/Meetings.
+   List is full-width single column by default; editor pane appears only
+   when a row is selected (and the list hides). */
+.reviews-layout {
+  display: block !important;
+  grid-template-columns: 1fr !important;
+  margin-top: 18px !important;
+  gap: 0 !important;
+}
+.reviews-list {
+  max-height: none !important;
+  overflow: visible !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+#reviews:not([data-detail-open="true"]) .reviews-editor { display: none !important; }
+#reviews[data-detail-open="true"] .reviews-list { display: none !important; }
+
+/* Reviews week rows match the unified card style */
+.rev-row {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  margin-bottom: 0 !important;
+}
+.rev-row:hover  { background: var(--surface-2) !important; border-color: var(--border-2) !important; }
+.rev-row.active { background: var(--accent-soft) !important; border-color: var(--accent) !important; }
+
+/* Reviews editor pane (back / title / textarea) — single column, full width */
+.reviews-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+.reviews-editor-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.reviews-textarea {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  min-height: 60vh !important;
+  color: var(--text);
+  resize: vertical;
+}
+.reviews-textarea:focus {
+  outline: none !important;
+  border-color: var(--accent) !important;
+}
+
+/* Links toolbar: search + filters in a single row, full-width input */
+.links-toolbar {
+  margin: 14px 0 12px !important;
+  width: 100% !important;
+}
+.links-search {
+  width: 100% !important;
+  max-width: none !important;
+  padding: 11px 14px !important;
+  border-radius: 12px !important;
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  font-size: 14px;
+}
+.links-search:focus {
+  outline: none !important;
+  border-color: var(--accent) !important;
+}
+
+/* #links-list — same column gap as other lists */
+#links-list { display: flex !important; flex-direction: column !important; gap: 8px !important; }
+
+/* Link row: unified card pattern */
+.link-row {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  margin-bottom: 0 !important;
+}
+.link-row:hover { background: var(--surface-2) !important; border-color: var(--border-2) !important; }
+
+/* Calendar: ensure the grid + day panel sit centered like the others */
+.cal-body { gap: 14px !important; }
+.cal-day-panel {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+}
+
+/* Passwords (Private vault): vault rows in the same card style — they
+   already are, but force the gap and remove any sidebar artefacts. */
+.vault-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }

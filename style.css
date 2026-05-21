@@ -6187,10 +6187,11 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
   }
   .bnav-fab:hover { background: var(--accent-h) !important; }
 
-  /* CV: tab-switcher (only one pane at a time on mobile) */
-  .cv-tabs { display: flex !important; gap: 8px !important; margin: 0 0 18px !important; }
+  /* CV: tab-switcher (only one pane at a time on mobile). On mobile
+     keep the inline Edit/Preview buttons visible — they're the only
+     way to flip panes since the layout collapses to a single column. */
   .cv-tabs[hidden] { display: none !important; }
-  .cv-tab-inline { display: none !important; }  /* inline only on desktop */
+  .cv-tab-inline { display: inline-flex !important; }
   .cv-layout {
     display: grid !important;
     grid-template-columns: 1fr !important;

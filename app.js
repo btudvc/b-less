@@ -531,7 +531,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.5.14';
+var APP_VERSION = '7.6.0';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -3375,14 +3375,40 @@ const BackupManager = (() => {
     });
   }
 
+  // Snapshot any non-state stores that should travel with the backup
+  // (CV editor data lives in its own localStorage key, but users
+  // expect it to sync across devices the same way tasks do).
+  function _extras() {
+    const out = {};
+    try {
+      if (typeof CVStore !== 'undefined' && CVStore.get) out.cv = CVStore.get();
+    } catch {}
+    return out;
+  }
+
   async function doBackup() {
     if (!DriveAPI.isSignedIn()) return;
-    const json = JSON.stringify({ exportedAt: new Date().toISOString(), data: state }, null, 2);
+    const json = JSON.stringify({
+      exportedAt: new Date().toISOString(),
+      data: state,
+      extras: _extras(),
+    }, null, 2);
     try {
       await DriveAPI.saveBackup(json, filename);
       setLastBackup(Date.now());
       render();
     } catch (e) { console.warn('Backup failed:', e); }
+  }
+
+  // Apply non-state stores from a backup payload. Mirrors _extras().
+  function _applyExtras(extras) {
+    if (!extras || typeof extras !== 'object') return;
+    try {
+      if (extras.cv && typeof CVStore !== 'undefined' && CVStore.importJSON) {
+        CVStore.importJSON(JSON.stringify(extras.cv));
+        if (typeof renderCV === 'function') renderCV();
+      }
+    } catch (e) { console.warn('Apply extras failed:', e); }
   }
 
   // Quietly fetch the Drive backup and apply it if it's newer than the most
@@ -3398,6 +3424,7 @@ const BackupManager = (() => {
     const GRACE = 5000;
     if (lastBackup && driveTime <= lastBackup + GRACE) return false;
     Object.assign(state, backup.data);
+    _applyExtras(backup.extras);
     setLastBackup(driveTime);
     save();
     if (typeof renderAll === 'function') renderAll();
@@ -3428,6 +3455,7 @@ const BackupManager = (() => {
       : true;
     if (proceed) {
       Object.assign(state, backup.data);
+      _applyExtras(backup.extras);
       const driveTime = new Date(backup.exportedAt).getTime();
       if (Number.isFinite(driveTime)) setLastBackup(driveTime);
       save();
@@ -8660,6 +8688,13 @@ const CVStore = (() => {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
+      // Keep CV in sync across devices — piggy-back on the main
+      // backup so a Drive push gets debounced with the rest.
+      try {
+        if (typeof BackupManager !== 'undefined' && BackupManager.onDataChange) {
+          BackupManager.onDataChange();
+        }
+      } catch {}
     }, 350);
   }
   function get() { return data; }

@@ -2120,17 +2120,34 @@ function refreshAssigneeSelect(selectedEmail) {
 }
 
 // Owner + collaborators with stable shape { email, name, picture, role }.
+// Prefers sp.members (the safe list published in the space payload, available
+// to all collaborators) so non-owners also see the full member list.
 function collectSharedSpaceMembers(sp) {
   if (!sp) return [];
+
+  // If the space carries a pre-built members list (from payload), use it —
+  // it already contains owner + all collaborators with display names.
+  if (Array.isArray(sp.members) && sp.members.length > 0) {
+    const seen = new Set();
+    return sp.members.filter(m => {
+      if (!m || !m.email) return false;
+      const k = m.email.toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  }
+
+  // Fallback: build from raw owner + collaborators fields (owner-side only).
   const seen = new Set();
   const out = [];
   if (sp.ownerEmail) {
     seen.add(sp.ownerEmail.toLowerCase());
     out.push({
-      email: sp.ownerEmail,
-      name: sp.ownerName || sp.ownerEmail,
+      email:   sp.ownerEmail,
+      name:    sp.ownerName || sp.ownerEmail,
       picture: sp.ownerPicture || null,
-      role: 'owner',
+      role:    'owner',
     });
   }
   (sp.collaborators || []).forEach(c => {
@@ -2138,7 +2155,7 @@ function collectSharedSpaceMembers(sp) {
     const key = c.email.toLowerCase();
     if (seen.has(key)) return;
     seen.add(key);
-    out.push({ email: c.email, name: c.email, picture: null, role: c.role || 'reader' });
+    out.push({ email: c.email, name: c.name || c.email, picture: c.picture || null, role: c.role || 'reader' });
   });
   return out;
 }
@@ -3022,10 +3039,27 @@ const DriveAPI = (() => {
       });
       return Object.assign({}, r, { tasks });
     };
+    // Build a safe member list (email + name + picture + role) — NO permissionId.
+    // This lets collaborators populate the assignee dropdown with all members.
+    const safeMembers = [];
+    if (ownerEmail) {
+      const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo) ? DriveAPI.getUserInfo() : null;
+      safeMembers.push({
+        email:   ownerEmail,
+        name:    (me && me.email && me.email.toLowerCase() === ownerEmail.toLowerCase() ? (me.name || ownerEmail) : (space.ownerName || ownerEmail)),
+        picture: (me && me.email && me.email.toLowerCase() === ownerEmail.toLowerCase() ? (me.picture || null) : (space.ownerPicture || null)),
+        role:    'owner',
+      });
+    }
+    (space.collaborators || []).forEach(c => {
+      if (!c || !c.email) return;
+      safeMembers.push({ email: c.email, name: c.name || c.email, picture: c.picture || null, role: c.role || 'writer' });
+    });
+
     return {
       schema: 'b-less.space.v1',
       ownerEmail,
-      space:  { id: space.id, name: space.name, items: shareableItems },
+      space:  { id: space.id, name: space.name, items: shareableItems, members: safeMembers },
       robots: (state.robots || []).filter(r => refs.list.has(r.id)).map(stripTaskUI),
       // Meetings/visits intentionally omitted — they are personal,
       // not space-scoped, and must not propagate through shared files.
@@ -6984,6 +7018,11 @@ function mergeImportedSpacePayload(pull) {
     return true; // journal / finance / etc. singletons keep
   });
 
+  // space.members carries the safe (no permissionId) member list the owner
+  // published. Store it so collaborators can populate the assignee dropdown.
+  // Owner keeps their own collaborators array (with permissionIds) untouched.
+  const payloadMembers = Array.isArray(space.members) ? space.members : null;
+
   const merged = {
     id:   space.id,
     name: space.name,
@@ -6995,6 +7034,8 @@ function mergeImportedSpacePayload(pull) {
     ownerPicture:       pull.ownerPicture || prev.ownerPicture || null,
     myRole:             pull.myRole || 'reader',
     collaborators:      prev.collaborators || [],
+    // Safe member list from payload — always overwrite so additions/removals propagate.
+    members:            payloadMembers || prev.members || [],
     lastSyncedRevision: pull.revisionId,
     lastSyncedAt:       Date.now(),
   };

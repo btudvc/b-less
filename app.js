@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.10.2';
+var APP_VERSION = '7.10.3';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4730,11 +4730,9 @@ function renderReviews() {
   } else {
     listEl.innerHTML = keys.map(k => {
       const isActive = k === currentReviewKey;
-      const preview = (map[k] || '').replace(/\s+/g, ' ').slice(0, 60);
       return `
         <button class="rev-row ${isActive ? 'active' : ''}" data-rev-key="${escapeHtml(k)}" type="button">
           <span class="rev-row-label">${escapeHtml(formatReviewLabel(reviewPeriod, k))}</span>
-          ${preview ? `<span class="rev-row-preview">${escapeHtml(preview)}</span>` : ''}
         </button>`;
     }).join('');
     listEl.querySelectorAll('.rev-row').forEach(b => {

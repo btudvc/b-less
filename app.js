@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.9.0';
+var APP_VERSION = '7.9.1';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -674,6 +674,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     }
     if (tab.dataset.tab === 'calendar')   renderCalendar();
     if (tab.dataset.tab === 'all-tasks')  renderAllTasks();
+    if (tab.dataset.tab === 'reviews')    refreshAllSharedSpaces();
     if (MORE_SUBTABS.has(tab.dataset.tab)) {
       setBottomNavActive('more');
     } else {
@@ -7255,6 +7256,7 @@ async function maybeAutoPull(spaceId, force) {
       if (typeof renderHome === 'function') renderHome();
       if (typeof renderRobotList === 'function') renderRobotList();
       if (typeof renderRobotDetail === 'function') renderRobotDetail();
+      if (typeof renderReviews === 'function') renderReviews();
     }
   } catch {
     // Silent — manual Pull button is still there if user wants visibility.
@@ -7984,6 +7986,7 @@ function homeNavigate(target) {
     activateSection('reviews');
     document.getElementById('reviews')?.removeAttribute('data-detail-open');
     (typeof renderReviews === 'function') && renderReviews();
+    refreshAllSharedSpaces(); // pull latest space goals before rendering
   }
 }
 

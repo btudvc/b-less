@@ -1190,28 +1190,6 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
 .topbar-icon-btn:hover { background: var(--surface-2); }
 .topbar-icon-btn:active { transform: scale(.97); }
 
-/* Brand logo in the topbar — mobile only. Desktop shows the logo at
-   the top of the persistent sidebar instead (true top-left of the
-   viewport, since the topbar starts after the sidebar column). */
-.topbar-logo {
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  min-height: 28px;
-  max-width: 28px;
-  max-height: 28px;
-  border-radius: 0;
-  flex-shrink: 0;
-  display: block;
-  margin-right: 6px;
-  object-fit: contain;
-}
-@media (min-width: 1000px) {
-  /* On desktop the logo lives at the topbar's left edge — directly to
-     the right of the spaces sidebar — so the brand sits exactly where
-     the main content starts. */
-  .topbar-logo { display: block; }
-}
 
 /* Brand block — used to show only inside the (now-removed) persistent
    desktop sidebar. With the unified mobile-style layout the slide-out
@@ -6279,7 +6257,6 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
     border-bottom: 1px solid var(--border) !important;
     z-index: 60;
   }
-  .topbar-logo { display: block !important; }
   #topbar-burger-btn { display: inline-flex !important; }
 
   /* Spaces drawer: slide-out (default mobile behaviour) */

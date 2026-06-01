@@ -1537,6 +1537,10 @@ window.deleteTask = async function(id) {
   if (!(await confirmDialog({ message: t('conf.delete_task'), danger: true, okText: t('btn.delete') || 'Delete' }))) return;
   const robot = getCurrentContainer();
   robot.tasks = robot.tasks.filter(t => t.id !== id);
+  // Tombstone: record that this task was intentionally deleted so that
+  // collaborators who still have it locally don't resurrect it on next merge.
+  if (!Array.isArray(robot.deletedTaskIds)) robot.deletedTaskIds = [];
+  if (!robot.deletedTaskIds.includes(id)) robot.deletedTaskIds.push(id);
   save();
   renderCurrentDetail();
   if (activeSection === 'topics') renderTopicList(); else renderRobotList();
@@ -6909,9 +6913,15 @@ function mergeImportedSpacePayload(pull) {
       }
       seen.add(rt.id);
     });
-    // Second pass: local-only tasks (newer adds not yet on remote) preserved.
+    // Second pass: local-only tasks (newer adds not yet on remote) preserved,
+    // UNLESS the remote explicitly tombstoned the task (intentional deletion).
+    const remoteTombstones = new Set(remoteRobot.deletedTaskIds || []);
     (localRobot.tasks || []).forEach(lt => {
       if (!seen.has(lt.id)) {
+        if (remoteTombstones.has(lt.id)) {
+          // Collaborator deleted this task — honour their deletion, don't resurrect.
+          return;
+        }
         out.push(lt);
         stats.localKept++;
       }
@@ -6939,7 +6949,12 @@ function mergeImportedSpacePayload(pull) {
     // Preserve issues list with the newer parent — we don't merge issues
     // per-id yet because the UI rarely uses them now.
     const issues = rUpd >= lUpd ? (rr.issues || []) : (lr.issues || []);
-    state.robots[idx] = Object.assign({}, lr, head, { tasks, issues });
+    // Merge tombstone lists as a union so deletions from either side survive.
+    const mergedTombstones = Array.from(new Set([
+      ...(lr.deletedTaskIds || []),
+      ...(rr.deletedTaskIds || []),
+    ]));
+    state.robots[idx] = Object.assign({}, lr, head, { tasks, issues, deletedTaskIds: mergedTombstones });
   });
 
   // Meetings & visits are personal/global — never imported from a

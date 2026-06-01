@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.9.4';
+var APP_VERSION = '7.9.5';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -1224,16 +1224,40 @@ function dueClass(iso, status) {
   if (d.getTime() === today.getTime()) return 'today';
   return '';
 }
+// Look up the freshest name/picture for an email across all spaces.
+// Falls back gracefully when there is no match.
+function findMemberByEmail(email) {
+  if (!email) return null;
+  const k = email.toLowerCase();
+  for (const sp of (state.spaces || [])) {
+    for (const m of (sp.members || [])) {
+      if (m && m.email && m.email.toLowerCase() === k) return m;
+    }
+    for (const c of (sp.collaborators || [])) {
+      if (c && c.email && c.email.toLowerCase() === k) return c;
+    }
+  }
+  // Also check the current signed-in user
+  const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
+  if (me && me.email && me.email.toLowerCase() === k) return me;
+  return null;
+}
+
 // Small avatar / initial chip used on assigned tasks.
+// Always uses the freshest picture/name from space.members so chips
+// are consistent regardless of when the task was assigned.
 function renderAssigneeChip(a) {
   if (!a || !a.email) return '';
+  // Get fresh member data — picture or name may have updated since assignment
+  const fresh = findMemberByEmail(a.email);
+  const picture = (fresh && fresh.picture) || a.picture || null;
+  const name    = (fresh && fresh.name)    || a.name    || a.email;
   const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
   const isMe = me && me.email && a.email.toLowerCase() === me.email.toLowerCase();
-  const label = a.name || a.email;
-  const initial = (label[0] || '?').toUpperCase();
-  const tooltip = `${label}${isMe ? ' (you)' : ''}`;
-  const inner = a.picture
-    ? `<img src="${escapeAttr(a.picture)}" alt="" referrerpolicy="no-referrer">`
+  const initial = (name[0] || '?').toUpperCase();
+  const tooltip = `${name}${isMe ? ' (you)' : ''}`;
+  const inner = picture
+    ? `<img src="${escapeAttr(picture)}" alt="" referrerpolicy="no-referrer">`
     : `<span class="assignee-initial">${escapeHtml(initial)}</span>`;
   return `<span class="task-assignee-chip ${isMe ? 'is-me' : ''}" title="${escapeAttr(tooltip)}">${inner}</span>`;
 }

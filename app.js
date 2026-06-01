@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.9.6';
+var APP_VERSION = '7.9.7';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4503,6 +4503,14 @@ window.toggleTaskWeeklyGoal = function(taskId) {
   const idx = ids.indexOf(taskId);
   if (idx === -1) ids.push(taskId);
   else ids.splice(idx, 1);
+  // Auto-create this week's review entry so the goal is immediately visible
+  // in the Reviews section without the user needing to click "+ Bu hafta" first.
+  if (!state.reviews.week[key]) state.reviews.week[key] = '';
+  // Also point the review panel at this week so the goal shows up right away.
+  if (!currentReviewKey || reviewPeriod !== 'week') {
+    reviewPeriod = 'week';
+    currentReviewKey = key;
+  }
   save();
   renderCurrentDetail();
   if (typeof renderReviews === 'function') renderReviews();
@@ -4671,11 +4679,18 @@ function renderReviews() {
   const goalsEl = document.getElementById('rev-goals-section');
   const completedEl = document.getElementById('rev-completed-section');
   const notesLabelEl = document.getElementById('rev-notes-label');
+  // Goals are always tied to the current week — show them even when the user
+  // hasn't explicitly opened a review entry yet (currentReviewKey might be null
+  // or pointing at a past week). Fall back to the current-week key so task
+  // goals added via the "Goal" button are immediately visible.
+  const goalsWeekKey = (reviewPeriod === 'week')
+    ? (currentReviewKey || reviewWeekKey())
+    : null;
   const isWeekPeriod = reviewPeriod === 'week' && currentReviewKey;
 
   if (goalsEl) {
-    if (isWeekPeriod) {
-      const weekData = state.weeklyGoals?.[currentReviewKey] || {};
+    if (goalsWeekKey) {
+      const weekData = state.weeklyGoals?.[goalsWeekKey] || {};
       const taskIds = weekData.taskIds || [];
       const textGoals = weekData.goals || [];
 
@@ -4702,17 +4717,17 @@ function renderReviews() {
             <span class="rev-goal-project">${escapeHtml(robotName)}</span>
             <span class="rev-goal-title">${escapeHtml(task.title)}</span>
           </span>
-          <button class="rev-goal-remove" onclick="removeTaskFromWeeklyGoal('${escapeAttr(currentReviewKey)}','${task.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
+          <button class="rev-goal-remove" onclick="removeTaskFromWeeklyGoal('${escapeAttr(goalsWeekKey)}','${task.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
         </div>`;
       }
 
       for (const g of textGoals) {
         html += `<div class="rev-goal-item${g.done ? ' done' : ''}">
-          <button class="rev-goal-check${g.done ? ' checked' : ''}" onclick="toggleWeeklyGoalText('${escapeAttr(currentReviewKey)}','${g.id}')">${g.done ? ICO_CHECK_SM : ''}</button>
+          <button class="rev-goal-check${g.done ? ' checked' : ''}" onclick="toggleWeeklyGoalText('${escapeAttr(goalsWeekKey)}','${g.id}')">${g.done ? ICO_CHECK_SM : ''}</button>
           <span class="rev-goal-body">
             <span class="rev-goal-title">${escapeHtml(g.title)}</span>
           </span>
-          <button class="rev-goal-remove" onclick="removeWeeklyGoalText('${escapeAttr(currentReviewKey)}','${g.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
+          <button class="rev-goal-remove" onclick="removeWeeklyGoalText('${escapeAttr(goalsWeekKey)}','${g.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
         </div>`;
       }
 
@@ -4732,7 +4747,7 @@ function renderReviews() {
       goalsEl.style.display = '';
     } else {
       goalsEl.innerHTML = '';
-      goalsEl.style.display = 'none';
+      goalsEl.style.display = reviewPeriod === 'week' ? '' : 'none';
     }
   }
 

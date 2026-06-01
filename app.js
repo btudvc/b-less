@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.8.0';
+var APP_VERSION = '7.9.0';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -6527,27 +6527,28 @@ function openShareSpaceModal(spaceId) {
     setTimeout(async () => {
       try {
         if (sp.myRole === 'owner' || sp.myRole === 'writer') {
-          // Writers also push (after pulling & merging first so no data is lost).
-          // Pull → merge → push ensures collaborators see each other's goals & tasks.
-          if (sp.myRole === 'writer') {
-            const pulled = await DriveAPI.pullSpaceFile(sp.driveFileId);
-            if (pulled && pulled.payload && pulled.payload.space) {
-              const savedCollabs = sp.collaborators || [];
-              mergeImportedSpacePayload(pulled);
-              const updated = findSpace(sp.id);
-              if (updated) { updated.collaborators = savedCollabs; sp = updated; }
-            }
+          // Both owner and writer: pull → merge → push.
+          // This ensures each side's spaceGoals, tasks, etc. are combined
+          // before writing back — no one overwrites the other's additions.
+          const pulled = await DriveAPI.pullSpaceFile(sp.driveFileId);
+          if (pulled && pulled.payload && pulled.payload.space) {
+            const savedCollabs = sp.collaborators || [];
+            mergeImportedSpacePayload(pulled);
+            const updated = findSpace(sp.id);
+            if (updated) { updated.collaborators = savedCollabs; sp = updated; }
           }
-          const r = await DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.myRole === 'writer' ? null : sp.lastSyncedRevision);
-          sp.lastSyncedRevision = r.revisionId;
-          sp.lastSyncedAt       = Date.now();
+          // Push merged state; skip conflict check (we just pulled).
+          const r = await DriveAPI.pushSpaceFile(sp.driveFileId, findSpace(sp.id), null);
+          const fresh = findSpace(sp.id);
+          if (fresh) { fresh.lastSyncedRevision = r.revisionId; fresh.lastSyncedAt = Date.now(); }
           save();
           if (typeof renderHome === 'function') renderHome();
           if (typeof renderSidebar === 'function') renderSidebar();
           if (typeof renderRobotList === 'function') renderRobotList();
           if (typeof renderRobotDetail === 'function') renderRobotDetail();
+          if (typeof renderReviews === 'function') renderReviews();
           if (_shareTargetSpaceId === sp.id && document.getElementById('modal-share-space')?.classList.contains('open')) {
-            renderShareSpaceBody({ status: (sp.myRole === 'writer' ? 'Synced' : 'Pushed') + ' (' + payloadCounts(sp) + ').' });
+            renderShareSpaceBody({ status: 'Synced (' + payloadCounts(findSpace(sp.id)) + ').' });
           }
         } else {
           // Reader: pull only
@@ -6562,6 +6563,7 @@ function openShareSpaceModal(spaceId) {
             if (typeof renderSidebar === 'function') renderSidebar();
             if (typeof renderRobotList === 'function') renderRobotList();
             if (typeof renderRobotDetail === 'function') renderRobotDetail();
+            if (typeof renderReviews === 'function') renderReviews();
             if (_shareTargetSpaceId === sp.id && document.getElementById('modal-share-space')?.classList.contains('open')) {
               renderShareSpaceBody({ status: 'Pulled latest from Drive (' + payloadCountsFromPayload(r.payload) + ').' });
             }
@@ -7179,35 +7181,31 @@ function schedulePush(spaceId) {
   _pendingPushes.set(spaceId, t);
 }
 
-async function doAutoPush(spaceId, retry) {
+async function doAutoPush(spaceId) {
   _pendingPushes.delete(spaceId);
   const sp = findSpace(spaceId);
   if (!_canPush(sp)) return;
   try {
-    const r = await DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.lastSyncedRevision);
-    sp.lastSyncedRevision = r.revisionId;
-    sp.lastSyncedAt       = Date.now();
-    // Persist new revisionId/lastSyncedAt without re-firing the save() wrapper
-    // chain — going through save() would schedule another push and loop.
+    // Always pull → merge → push so no collaborator's data is overwritten.
+    // The extra Drive read is cheap compared to data loss from last-write-wins.
+    const pr = await DriveAPI.pullSpaceFile(sp.driveFileId);
+    if (pr && pr.payload && pr.payload.space) {
+      const savedCollabs = sp.collaborators || [];
+      mergeImportedSpacePayload(pr);
+      const updated = findSpace(spaceId);
+      if (updated) updated.collaborators = savedCollabs;
+    }
+    const fresh = findSpace(spaceId);
+    if (!fresh) return;
+    const r = await DriveAPI.pushSpaceFile(fresh.driveFileId, fresh, null);
+    fresh.lastSyncedRevision = r.revisionId;
+    fresh.lastSyncedAt       = Date.now();
+    // Persist without re-firing save() to avoid push loop.
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
     if (typeof renderHome === 'function') renderHome();
-  } catch (e) {
-    if (e && e.conflict && (retry || 0) < 2) {
-      // Pull → merge → retry push. Last-write-wins on shared fields.
-      try {
-        const pr = await DriveAPI.pullSpaceFile(sp.driveFileId);
-        if (pr && pr.payload && pr.payload.space) {
-          const savedCollabs = sp.collaborators || [];
-          mergeImportedSpacePayload(pr);
-          const updated = findSpace(sp.id);
-          if (updated) updated.collaborators = savedCollabs;
-          // Persist new revisionId/lastSyncedAt without re-firing the save() wrapper
-    // chain — going through save() would schedule another push and loop.
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
-        }
-        setTimeout(() => doAutoPush(spaceId, (retry || 0) + 1), 250);
-      } catch {}
-    }
+    if (typeof renderReviews === 'function') renderReviews();
+  } catch {
+    // Transient error — next debounced push will retry.
   }
 }
 

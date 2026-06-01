@@ -5135,6 +5135,45 @@ body { font-size: 13px; }
 }
 .rev-completed-title { color: var(--text); }
 
+/* Space Goals section */
+.rev-space-goals-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 8px;
+}
+.rev-space-header {
+  justify-content: flex-start;
+  gap: 8px;
+}
+.rev-space-select {
+  margin-left: auto;
+  font: 11px/1.4 inherit;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.rev-space-name-badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.rev-space-goal-item {
+  border-left: 2px solid var(--accent);
+}
+.rev-space-goal-by {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
 .reviews-editor-foot {
   display: flex;
   justify-content: flex-end;

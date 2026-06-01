@@ -165,6 +165,10 @@ const I18N = {
     'reviews.no_goals':      'No goals yet.',
     'reviews.no_completed':  'No tasks completed this week.',
     'reviews.notes':         'Notes',
+    'reviews.space_goals':   'Space Goals',
+    'reviews.space_goals_ph':'Add a space goal…',
+    'reviews.no_space_goals':'No space goals yet.',
+    'reviews.space_select':  'Space:',
     'btn.weekly_goal':       'Goal',
     'more.section.tools': 'Tools',
   },
@@ -441,13 +445,17 @@ Object.assign(I18N.tr, {
   'reviews.saved':         'Kaydedildi',
   'reviews.week_label':    'Hafta',
   'reviews.placeholder':   'Kazanimlar, takiliklar, dersler, bir sonraki adim…',
-  'reviews.goals':         'Haftalık Hedefler',
+  'reviews.goals':         'Kişisel Hedefler',
   'reviews.goals_ph':      'Hedef ekle…',
   'reviews.goals_add':     'Ekle',
   'reviews.completed':     'Bu hafta tamamlananlar',
   'reviews.no_goals':      'Henüz hedef eklenmedi.',
   'reviews.no_completed':  'Bu hafta tamamlanan task yok.',
   'reviews.notes':         'Notlar',
+  'reviews.space_goals':   'Space Hedefleri',
+  'reviews.space_goals_ph':'Space hedefi ekle…',
+  'reviews.no_space_goals':'Henüz space hedefi yok.',
+  'reviews.space_select':  'Space:',
   'btn.weekly_goal':       'Hedef',
   'more.section.tools': 'Araclar',
 });
@@ -3017,6 +3025,8 @@ const DriveAPI = (() => {
       robots: (state.robots || []).filter(r => refs.list.has(r.id)).map(stripTaskUI),
       // Meetings/visits intentionally omitted — they are personal,
       // not space-scoped, and must not propagate through shared files.
+      // Shared weekly goal pool: all members' goals for this space.
+      spaceGoals: (state.spaceGoals && state.spaceGoals[space.id]) ? state.spaceGoals[space.id] : {},
       updatedAt: Date.now(),
       updatedBy: ownerEmail,
     };
@@ -4202,7 +4212,88 @@ function ensureReviewsState() {
   if (!state.reviews.week)  state.reviews.week  = {};
   if (!state.reviews.month) state.reviews.month = {};
   if (!state.weeklyGoals || typeof state.weeklyGoals !== 'object') state.weeklyGoals = {};
+  if (!state.spaceGoals  || typeof state.spaceGoals  !== 'object') state.spaceGoals  = {};
 }
+
+function ensureSpaceGoalWeek(spaceId, weekKey) {
+  if (!state.spaceGoals) state.spaceGoals = {};
+  if (!state.spaceGoals[spaceId] || typeof state.spaceGoals[spaceId] !== 'object') state.spaceGoals[spaceId] = {};
+  if (!Array.isArray(state.spaceGoals[spaceId][weekKey])) state.spaceGoals[spaceId][weekKey] = [];
+}
+
+// Returns shared spaces (those with .shared = true or those with items)
+function getSharedSpaces() {
+  return (state.spaces || []).filter(s => s.shared && s.driveFileId);
+}
+
+let _reviewSpaceId = null; // which space is selected in the review space-goals panel
+
+window.addSpaceGoal = function() {
+  if (!currentReviewKey || reviewPeriod !== 'week') return;
+  const spaceId = _reviewSpaceId || (getSharedSpaces()[0] && getSharedSpaces()[0].id);
+  if (!spaceId) return;
+  const inp = document.getElementById('rev-space-goal-input');
+  const title = (inp?.value || '').trim();
+  if (!title) return;
+  ensureReviewsState();
+  ensureSpaceGoalWeek(spaceId, currentReviewKey);
+  const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo) ? DriveAPI.getUserInfo() : null;
+  state.spaceGoals[spaceId][currentReviewKey].push({
+    id: uid(),
+    title,
+    done: false,
+    addedBy:     me?.email    || null,
+    addedByName: me?.name     || me?.email || null,
+    createdAt:   Date.now(),
+    updatedAt:   Date.now(),
+  });
+  inp.value = '';
+  save();
+  renderReviews();
+  // Trigger a space push so collaborators see the new goal
+  const sp = findSpace(spaceId);
+  if (sp && sp.driveFileId && sp.myRole === 'owner' && typeof DriveAPI !== 'undefined' && DriveAPI.isSignedIn && DriveAPI.isSignedIn()) {
+    DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.lastSyncedRevision)
+      .then(r => { sp.lastSyncedRevision = r.revisionId; sp.lastSyncedAt = Date.now(); save(); })
+      .catch(() => {});
+  }
+};
+
+window.toggleSpaceGoal = function(spaceId, weekKey, goalId) {
+  const goals = state.spaceGoals?.[spaceId]?.[weekKey];
+  if (!goals) return;
+  const goal = goals.find(g => g.id === goalId);
+  if (!goal) return;
+  goal.done      = !goal.done;
+  goal.updatedAt = Date.now();
+  save();
+  renderReviews();
+  // Push if owner
+  const sp = findSpace(spaceId);
+  if (sp && sp.driveFileId && sp.myRole === 'owner' && typeof DriveAPI !== 'undefined' && DriveAPI.isSignedIn && DriveAPI.isSignedIn()) {
+    DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.lastSyncedRevision)
+      .then(r => { sp.lastSyncedRevision = r.revisionId; sp.lastSyncedAt = Date.now(); save(); })
+      .catch(() => {});
+  }
+};
+
+window.removeSpaceGoal = function(spaceId, weekKey, goalId) {
+  if (!state.spaceGoals?.[spaceId]?.[weekKey]) return;
+  state.spaceGoals[spaceId][weekKey] = state.spaceGoals[spaceId][weekKey].filter(g => g.id !== goalId);
+  save();
+  renderReviews();
+  const sp = findSpace(spaceId);
+  if (sp && sp.driveFileId && sp.myRole === 'owner' && typeof DriveAPI !== 'undefined' && DriveAPI.isSignedIn && DriveAPI.isSignedIn()) {
+    DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.lastSyncedRevision)
+      .then(r => { sp.lastSyncedRevision = r.revisionId; sp.lastSyncedAt = Date.now(); save(); })
+      .catch(() => {});
+  }
+};
+
+window.setReviewSpaceId = function(id) {
+  _reviewSpaceId = id;
+  renderReviews();
+};
 
 function ensureWeekGoal(weekKey) {
   if (!state.weeklyGoals) state.weeklyGoals = {};
@@ -4508,6 +4599,68 @@ function renderReviews() {
       notesLabelEl.style.display = '';
     } else {
       notesLabelEl.style.display = 'none';
+    }
+  }
+
+  // ── Space Goals pool (weekly, shared spaces only) ─────────
+  const spaceGoalsEl = document.getElementById('rev-space-goals-section');
+  if (spaceGoalsEl) {
+    const sharedSpaces = getSharedSpaces();
+    if (isWeekPeriod && sharedSpaces.length > 0) {
+      // Init selected space
+      if (!_reviewSpaceId || !sharedSpaces.find(s => s.id === _reviewSpaceId)) {
+        _reviewSpaceId = sharedSpaces[0].id;
+      }
+      const sp = findSpace(_reviewSpaceId);
+      const goals = state.spaceGoals?.[_reviewSpaceId]?.[currentReviewKey] || [];
+
+      const ICO_GROUP = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+      const ICO_CLOSE_SM = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+      const ICO_CHECK_SM = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+      // Header with space selector
+      let html = `<div class="rev-section-header rev-space-header">${ICO_GROUP} ${escapeHtml(t('reviews.space_goals') || 'Space Hedefleri')}`;
+      if (sharedSpaces.length > 1) {
+        html += `<select class="rev-space-select" onchange="setReviewSpaceId(this.value)">
+          ${sharedSpaces.map(s => `<option value="${escapeAttr(s.id)}"${s.id === _reviewSpaceId ? ' selected' : ''}>${escapeHtml(s.name)}</option>`).join('')}
+        </select>`;
+      } else {
+        html += `<span class="rev-space-name-badge">${escapeHtml(sp ? sp.name : '')}</span>`;
+      }
+      html += '</div>';
+
+      // Goals list
+      html += '<div class="rev-goals-list">';
+      if (goals.length) {
+        for (const g of goals) {
+          const byLabel = g.addedByName ? escapeHtml(g.addedByName) : (g.addedBy ? escapeHtml(g.addedBy.split('@')[0]) : '');
+          html += `<div class="rev-goal-item rev-space-goal-item${g.done ? ' done' : ''}">
+            <button class="rev-goal-check${g.done ? ' checked' : ''}" onclick="toggleSpaceGoal('${escapeAttr(_reviewSpaceId)}','${escapeAttr(currentReviewKey)}','${g.id}')">${g.done ? ICO_CHECK_SM : ''}</button>
+            <span class="rev-goal-body">
+              <span class="rev-goal-title">${escapeHtml(g.title)}</span>
+              ${byLabel ? `<span class="rev-space-goal-by">${byLabel}</span>` : ''}
+            </span>
+            <button class="rev-goal-remove" onclick="removeSpaceGoal('${escapeAttr(_reviewSpaceId)}','${escapeAttr(currentReviewKey)}','${g.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
+          </div>`;
+        }
+      } else {
+        html += `<div class="rev-goal-empty">${escapeHtml(t('reviews.no_space_goals') || 'Henüz space hedefi yok.')}</div>`;
+      }
+      html += '</div>';
+
+      // Add input
+      html += `<div class="rev-goal-add">
+        <input class="rev-goal-input" id="rev-space-goal-input" type="text"
+          placeholder="${escapeAttr(t('reviews.space_goals_ph') || 'Space hedefi ekle…')}"
+          onkeydown="if(event.key==='Enter')addSpaceGoal()">
+        <button class="btn-sm" onclick="addSpaceGoal()">${escapeHtml(t('reviews.goals_add') || 'Ekle')}</button>
+      </div>`;
+
+      spaceGoalsEl.innerHTML = html;
+      spaceGoalsEl.style.display = '';
+    } else {
+      spaceGoalsEl.innerHTML = '';
+      spaceGoalsEl.style.display = 'none';
     }
   }
 }
@@ -6832,6 +6985,22 @@ function mergeImportedSpacePayload(pull) {
   };
   if (sIdx >= 0) state.spaces[sIdx] = merged;
   else state.spaces.push(merged);
+
+  // Merge shared space goals pool — union by goal id, newer updatedAt wins.
+  if (p.spaceGoals && typeof p.spaceGoals === 'object') {
+    if (!state.spaceGoals) state.spaceGoals = {};
+    if (!state.spaceGoals[space.id]) state.spaceGoals[space.id] = {};
+    for (const [weekKey, remoteGoals] of Object.entries(p.spaceGoals)) {
+      if (!Array.isArray(remoteGoals)) continue;
+      const localGoals = state.spaceGoals[space.id][weekKey] || [];
+      const byId = new Map(localGoals.map(g => [g.id, g]));
+      for (const rg of remoteGoals) {
+        const lg = byId.get(rg.id);
+        if (!lg || (rg.updatedAt || 0) >= (lg.updatedAt || 0)) byId.set(rg.id, rg);
+      }
+      state.spaceGoals[space.id][weekKey] = Array.from(byId.values());
+    }
+  }
 
   // Surface a toast if the merge involved any cross-edit so the user
   // knows their session was synced with someone else's changes.

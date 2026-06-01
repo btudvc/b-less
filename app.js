@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.11.1';
+var APP_VERSION = '7.12.0';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -1322,6 +1322,7 @@ function renderTask(task) {
           ${renderSubtasks(task)}
           ${renderNotebook(task)}
           ${renderAttachments('task', task.id, task.attachments)}
+          ${renderTaskPhotos(task)}
         </div>
       </div>
     </div>
@@ -2677,6 +2678,27 @@ document.getElementById('save-meeting').addEventListener('click', () => {
 const ATT_PAPERCLIP = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
 const ATT_FILE      = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
 const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+const MAX_PHOTO_BYTES      = 10 * 1024 * 1024; // 10 MB per photo
+
+// Compress an image File to a small base64 JPEG thumbnail for offline preview
+function compressPhotoPreview(file, maxSize = 240, quality = 0.72) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > h) { if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; } }
+      else        { if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; } }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    img.src = url;
+  });
+}
 
 function formatSize(bytes) {
   if (!bytes && bytes !== 0) return '';
@@ -2805,6 +2827,152 @@ window.deleteAttachment = async function(type, id, filename) {
     if (type === 'visit'   && typeof renderVisits === 'function') renderVisits();
   }
 };
+
+// ── PHOTOS ─────────────────────────────────────────────
+window.attachPhotos = function(taskId) {
+  if (!DriveAPI || !DriveAPI.isSignedIn()) {
+    alertDialog({ message: 'Fotoğraf eklemek için Google Drive bağlantısı gerekli.' });
+    return;
+  }
+  let input = document.getElementById('photo-file-input');
+  if (!input) {
+    input = document.createElement('input');
+    input.type = 'file';
+    input.id = 'photo-file-input';
+    input.multiple = true;
+    input.accept = 'image/*';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+    input.addEventListener('change', handlePhotoUpload);
+  }
+  input.dataset.taskId = taskId;
+  input.click();
+};
+
+async function handlePhotoUpload(e) {
+  const input  = e.target;
+  const taskId = input.dataset.taskId;
+  const files  = Array.from(input.files || []);
+  input.value  = '';
+  if (!files.length) return;
+
+  let foundTask = null;
+  for (const r of (state.robots || [])) {
+    const t = (r.tasks || []).find(t => t.id === taskId);
+    if (t) { foundTask = t; break; }
+  }
+  if (!foundTask) return;
+
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    if (file.size > MAX_PHOTO_BYTES) {
+      alertDialog({ message: `"${file.name}" çok büyük (max 10 MB).` });
+      continue;
+    }
+    try {
+      const preview = await compressPhotoPreview(file);
+      const result  = await DriveAPI.savePhoto(taskId, file.name, file);
+      if (!foundTask.photos) foundTask.photos = [];
+      foundTask.photos.push({
+        id:       uid(),
+        fileId:   result.fileId,
+        filename: result.filename,
+        size:     result.size,
+        preview,
+        addedAt:  Date.now(),
+      });
+    } catch (err) {
+      alertDialog({ message: `Yükleme hatası: ${err.message || err}` });
+    }
+  }
+  save();
+  renderCurrentDetail();
+}
+
+window.deleteTaskPhoto = async function(taskId, photoId) {
+  if (!(await confirmDialog({ message: 'Fotoğraf silinsin mi?', danger: true, okText: 'Sil' }))) return;
+  let foundTask = null;
+  for (const r of (state.robots || [])) {
+    const t = (r.tasks || []).find(t => t.id === taskId);
+    if (t) { foundTask = t; break; }
+  }
+  if (!foundTask) return;
+  const photo = (foundTask.photos || []).find(p => p.id === photoId);
+  if (!photo) return;
+  if (DriveAPI && DriveAPI.isSignedIn() && photo.fileId) {
+    try { await DriveAPI.deletePhoto(photo.fileId); } catch {}
+  }
+  foundTask.photos = (foundTask.photos || []).filter(p => p.id !== photoId);
+  save();
+  renderCurrentDetail();
+};
+
+window.openTaskPhoto = async function(taskId, photoId) {
+  let foundTask = null;
+  for (const r of (state.robots || [])) {
+    const t = (r.tasks || []).find(t => t.id === taskId);
+    if (t) { foundTask = t; break; }
+  }
+  if (!foundTask) return;
+  const photo = (foundTask.photos || []).find(p => p.id === photoId);
+  if (!photo) return;
+
+  const existing = document.getElementById('photo-lightbox');
+  if (existing) existing.remove();
+
+  const lb = document.createElement('div');
+  lb.id = 'photo-lightbox';
+  lb.innerHTML = `
+    <div class="photo-lb-overlay" onclick="closePhotoLightbox()"></div>
+    <div class="photo-lb-content">
+      <img class="photo-lb-img" src="${escapeAttr(photo.preview || '')}" alt="${escapeAttr(photo.filename)}">
+      <button class="photo-lb-close" onclick="closePhotoLightbox()" aria-label="Kapat">×</button>
+    </div>
+  `;
+  document.body.appendChild(lb);
+
+  // Load full-size from Drive in the background
+  if (DriveAPI && DriveAPI.isSignedIn() && photo.fileId) {
+    DriveAPI.downloadPhoto(photo.fileId).then(blob => {
+      const url = URL.createObjectURL(blob);
+      const img = lb.querySelector('.photo-lb-img');
+      if (!img) { URL.revokeObjectURL(url); return; }
+      const full = new Image();
+      full.onload = () => { img.src = url; };
+      full.src = url;
+    }).catch(() => {});
+  }
+};
+
+window.closePhotoLightbox = function() {
+  const lb = document.getElementById('photo-lightbox');
+  if (lb) lb.remove();
+};
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('photo-lightbox')) closePhotoLightbox();
+});
+
+function renderTaskPhotos(task) {
+  const photos = task.photos || [];
+  const ICO_PHOTO = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+  const items = photos.map(p => `
+    <div class="photo-thumb-wrap">
+      <img class="photo-thumb" src="${escapeAttr(p.preview || '')}" alt="${escapeAttr(p.filename)}"
+           onclick="openTaskPhoto('${escapeAttr(task.id)}','${escapeAttr(p.id)}')" loading="lazy">
+      <button class="photo-thumb-del" onclick="event.stopPropagation();deleteTaskPhoto('${escapeAttr(task.id)}','${escapeAttr(p.id)}')" title="Sil">×</button>
+    </div>
+  `).join('');
+  return `
+    <div class="photo-section">
+      <div class="att-section-head">
+        <span class="att-label">${ICO_PHOTO}<span>Fotoğraflar${photos.length ? ` <span class="count-pill">${photos.length}</span>` : ''}</span></span>
+        <button class="att-add-btn" onclick="attachPhotos('${escapeAttr(task.id)}')">+ Ekle</button>
+      </div>
+      ${items ? `<div class="photo-grid">${items}</div>` : ''}
+    </div>
+  `;
+}
 
 // ── DRIVE API (PWA / browser path) ─────────────────────
 // Uses Google Identity Services + Drive REST API.
@@ -3059,6 +3227,32 @@ const DriveAPI = (() => {
     if (!f) return false;
     await deleteFile(f.id);
     return true;
+  }
+
+  // ── Photos ──
+  async function savePhoto(entityId, originalName, blob) {
+    const root         = await ensureFolder();
+    const photoRoot    = await ensureFolder('photos', root);
+    const entityFolder = await ensureFolder(entityId, photoRoot);
+    let name = originalName;
+    let n = 1;
+    while (await findFile(name, entityFolder)) {
+      const ext  = name.includes('.') ? name.slice(name.lastIndexOf('.')) : '';
+      const base = ext ? name.slice(0, -ext.length) : name;
+      name = `${base} (${n})${ext}`;
+      n++;
+    }
+    const meta = await uploadBlob(name, blob, entityFolder, null, blob.type);
+    return { fileId: meta.id, filename: meta.name, size: parseInt(meta.size || blob.size, 10) };
+  }
+
+  async function deletePhoto(fileId) {
+    await deleteFile(fileId);
+  }
+
+  async function downloadPhoto(fileId) {
+    const r = await api('GET', `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
+    return r.blob();
   }
 
   // ──────────────────────────────────────────────────────────
@@ -3339,6 +3533,7 @@ const DriveAPI = (() => {
     getUserInfo: () => userInfo,
     saveBackup, readBackup,
     saveAttachment, openAttachment, deleteAttachment,
+    savePhoto, deletePhoto, downloadPhoto,
     // Shared spaces (Phase 1: API only)
     createSharedSpaceFile, pullSpaceFile, pushSpaceFile, renameSpaceFile,
     listAccessibleSharedSpaces,

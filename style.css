@@ -1447,21 +1447,6 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
 .home-goal-item:last-child { border-bottom: none; }
 .home-goal-item:hover { background: var(--surface-2); border-radius: var(--radius-xs); }
 .home-goal-item.done .home-goal-title { text-decoration: line-through; color: var(--muted); }
-.home-goal-chk {
-  flex-shrink: 0;
-  width: 18px; height: 18px;
-  border-radius: 5px;
-  border: 1.5px solid var(--border-2);
-  background: transparent;
-  display: inline-flex; align-items: center; justify-content: center;
-  color: var(--accent);
-  cursor: pointer;
-  font: inherit;
-  transition: background .12s var(--ease), border-color .12s var(--ease);
-  padding: 0;
-}
-.home-goal-chk.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
-button.home-goal-chk:hover { border-color: var(--accent); }
 .home-goal-body {
   flex: 1;
   min-width: 0;
@@ -1482,6 +1467,14 @@ button.home-goal-chk:hover { border-color: var(--accent); }
   color: var(--muted);
 }
 .home-goal-arr { flex-shrink: 0; color: var(--muted); }
+/* Small coloured dot to visually distinguish space goals */
+.home-goal-badge-space {
+  flex-shrink: 0;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: .65;
+}
 .home-goals-more {
   display: block;
   width: 100%;

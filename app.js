@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.1';
+var APP_VERSION = '7.12.2';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -8229,9 +8229,9 @@ function renderHome() {
     });
   }
 
-  // This Week's Goals
-  const goalsEl    = document.getElementById('home-goals-list');
-  const goalsCntEl = document.getElementById('home-goals-count');
+  // This Week's Goals (personal + space)
+  const goalsEl     = document.getElementById('home-goals-list');
+  const goalsCntEl  = document.getElementById('home-goals-count');
   const goalsMoreEl = document.getElementById('home-goals-more');
   if (goalsEl) {
     const wk       = reviewWeekKey();
@@ -8239,7 +8239,7 @@ function renderHome() {
     const taskIds  = weekData.taskIds || [];
     const txtGoals = weekData.goals   || [];
 
-    // Count done
+    // ── Personal task-linked goals ──
     let doneCount = 0;
     const taskGoalRows = taskIds.map(taskId => {
       let foundTask = null, foundRobot = null;
@@ -8249,64 +8249,84 @@ function renderHome() {
       }
       if (!foundTask) return null;
       if (foundTask.status === 'done') doneCount++;
-      return { type: 'task', task: foundTask, robot: foundRobot };
+      return { kind: 'ptask', task: foundTask, robot: foundRobot };
     }).filter(Boolean);
 
+    // ── Personal text goals ──
     doneCount += txtGoals.filter(g => g.done).length;
-    const total = taskGoalRows.length + txtGoals.length;
 
+    // ── Space goals ──
+    const spaceGoalRows = [];
+    for (const sp of getSharedSpaces()) {
+      const spGoals = (state.spaceGoals?.[sp.id]?.[wk] || []).filter(g => !g.deleted);
+      for (const g of spGoals) {
+        if (g.done) doneCount++;
+        // resolve live task if task-linked
+        let liveTask = null, liveRobot = null;
+        if (g.taskId) {
+          for (const r of (state.robots || [])) {
+            const t = (r.tasks || []).find(t => t.id === g.taskId);
+            if (t) { liveTask = t; liveRobot = r; break; }
+          }
+        }
+        spaceGoalRows.push({ kind: 'sgoal', goal: g, space: sp, liveTask, liveRobot });
+      }
+    }
+
+    const total = taskGoalRows.length + txtGoals.length + spaceGoalRows.length;
     if (goalsCntEl) goalsCntEl.textContent = total ? `${doneCount}/${total}` : '';
 
     if (!total) {
-      goalsEl.innerHTML = '<div class="home-list-empty">Bu hafta için hedef yok.</div>';
+      goalsEl.innerHTML = '<div class="home-list-empty">No goals set for this week.</div>';
     } else {
-      const CHK = ICO.checkSm;
+      const ARR = '<svg class="home-goal-arr" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
       const rows = [
+        // Personal task-linked
         ...taskGoalRows.map(({ task, robot }) => {
           const isDone = task.status === 'done';
-          return `
-            <button class="home-goal-item${isDone ? ' done' : ''}"
-                    data-goal-kind="task"
-                    data-goal-tid="${escapeAttr(task.id)}"
-                    data-goal-rid="${escapeAttr(robot?.id || '')}"
-                    type="button">
-              <span class="home-goal-chk ${isDone ? 'checked' : ''}">${isDone ? CHK : ''}</span>
-              <span class="home-goal-body">
-                <span class="home-goal-title">${escapeHtml(task.title)}</span>
-                ${robot ? `<span class="home-goal-sub">${escapeHtml(robot.name)}</span>` : ''}
-              </span>
-              <svg class="home-goal-arr" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-            </button>`;
+          return `<button class="home-goal-item${isDone ? ' done' : ''}" data-goal-kind="ptask"
+                    data-goal-tid="${escapeAttr(task.id)}" data-goal-rid="${escapeAttr(robot?.id || '')}" type="button">
+            <span class="home-goal-body">
+              <span class="home-goal-title">${escapeHtml(task.title)}</span>
+              ${robot ? `<span class="home-goal-sub">${escapeHtml(robot.name)}</span>` : ''}
+            </span>${ARR}</button>`;
         }),
+        // Personal text
         ...txtGoals.map(g => `
-          <div class="home-goal-item${g.done ? ' done' : ''}">
-            <button class="home-goal-chk ${g.done ? 'checked' : ''}"
-                    data-goal-kind="text"
-                    data-goal-gid="${escapeAttr(g.id)}"
-                    data-goal-wk="${escapeAttr(wk)}"
-                    type="button">${g.done ? CHK : ''}</button>
+          <button class="home-goal-item${g.done ? ' done' : ''}" data-goal-kind="text" type="button">
             <span class="home-goal-body">
               <span class="home-goal-title">${escapeHtml(g.title)}</span>
-            </span>
-          </div>`),
+            </span>${ARR}</button>`),
+        // Space goals
+        ...spaceGoalRows.map(({ goal, space, liveTask, liveRobot }) => {
+          const isDone = liveTask ? liveTask.status === 'done' : goal.done;
+          const title  = liveTask ? liveTask.title : (goal.title || '');
+          const sub    = space.name || '';
+          const hasNav = !!(liveTask && liveRobot);
+          return `<button class="home-goal-item${isDone ? ' done' : ''}" data-goal-kind="${hasNav ? 'stask' : 'sgoal'}"
+                    data-goal-tid="${escapeAttr(liveTask?.id || '')}" data-goal-rid="${escapeAttr(liveRobot?.id || '')}"
+                    type="button">
+            <span class="home-goal-badge-space" title="${escapeAttr(sub)}"></span>
+            <span class="home-goal-body">
+              <span class="home-goal-title">${escapeHtml(title)}</span>
+              <span class="home-goal-sub">${escapeHtml(sub)}</span>
+            </span>${ARR}</button>`;
+        }),
       ];
       goalsEl.innerHTML = rows.join('');
 
-      goalsEl.querySelectorAll('[data-goal-kind="task"]').forEach(el => {
+      // Navigate: task-linked personal & space goals → go to task
+      goalsEl.querySelectorAll('[data-goal-kind="ptask"],[data-goal-kind="stask"]').forEach(el => {
         el.addEventListener('click', () => {
           if (typeof goToTask === 'function') goToTask(el.dataset.goalRid, el.dataset.goalTid);
         });
       });
-      goalsEl.querySelectorAll('[data-goal-kind="text"]').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          if (typeof toggleWeeklyGoalText === 'function') toggleWeeklyGoalText(btn.dataset.goalWk, btn.dataset.goalGid);
-        });
+      // Text / space-text goals → open Reviews
+      goalsEl.querySelectorAll('[data-goal-kind="text"],[data-goal-kind="sgoal"]').forEach(el => {
+        el.addEventListener('click', () => homeNavigate('reviews'));
       });
     }
-    if (goalsMoreEl) {
-      goalsMoreEl.onclick = () => homeNavigate('reviews');
-    }
+    if (goalsMoreEl) goalsMoreEl.onclick = () => homeNavigate('reviews');
   }
 
   // Today's Journal — preview if exists, otherwise prompt

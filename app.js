@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.9.9';
+var APP_VERSION = '7.10.0';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -1288,7 +1288,7 @@ function renderTask(task) {
           ${escapeHtml(task.title)}
         </div>
         <div class="task-tags">
-          ${task.assignee && task.assignee.email ? renderAssigneeChip(task.assignee) : ''}
+          ${getTaskAssignees(task).map(a => renderAssigneeChip(a)).join('')}
           ${(task.tags || []).map(tg => `<span class="task-label-chip" data-tag="${escapeAttr(tg)}">${escapeHtml(tg)}</span>`).join('')}
           ${task.dueDate ? `<span class="task-due ${dueClass(task.dueDate, task.status)}">${formatDueShort(task.dueDate)}</span>` : ''}
           ${task.priority !== 'normal' ? `<span class="priority-tag ${task.priority}">${task.priority}</span>` : ''}
@@ -1735,7 +1735,7 @@ window.editTask = function(id) {
   if (ti) ti.value = (task.tags || []).join(', ');
   const rc = document.getElementById('task-recurrence');
   if (rc) rc.value = (task.recurrence && task.recurrence.type) || 'none';
-  refreshAssigneeSelect((task.assignee && task.assignee.email) || '');
+  refreshAssigneeSelect(getTaskAssignees(task).map(a => a.email).filter(Boolean));
   renderTagPicker(task.tags || []);
   document.querySelector('#modal-task h3').textContent = t('modal.edit_task');
   document.getElementById('save-task').textContent = t('btn.save_changes');
@@ -2113,35 +2113,52 @@ window.openTaskModal = function() {
 // of the Space the current robot lives in. If the Space isn't shared (or
 // has no members), the dropdown stays hidden so the modal stays compact
 // for the personal-only use case.
-function refreshAssigneeSelect(selectedEmail) {
-  const sel = document.getElementById('task-assignee');
-  const lbl = document.getElementById('task-assignee-label');
-  if (!sel) return;
+// Returns all assignees for a task, handling both old (single) and new (array) format.
+function getTaskAssignees(task) {
+  if (!task) return [];
+  if (Array.isArray(task.assignees) && task.assignees.length) return task.assignees;
+  if (task.assignee && task.assignee.email) return [task.assignee];
+  return [];
+}
+
+function refreshAssigneeSelect(selectedEmails) {
+  // selectedEmails: string (legacy single email) OR array of emails
+  const selected = new Set(
+    Array.isArray(selectedEmails)
+      ? selectedEmails.map(e => (e || '').toLowerCase())
+      : selectedEmails ? [selectedEmails.toLowerCase()] : []
+  );
+  const wrap = document.getElementById('task-assignees-wrap');
+  const list = document.getElementById('task-assignees-list');
+  const lbl  = document.getElementById('task-assignee-label');
+  if (!wrap || !list) return;
   const robot = getCurrentContainer();
   const sp = robot && typeof findSpaceOfRobot === 'function' ? findSpaceOfRobot(robot.id) : null;
   if (!sp || !sp.shared) {
-    sel.style.display = 'none';
+    wrap.style.display = 'none';
     if (lbl) lbl.style.display = 'none';
-    sel.value = '';
+    list.innerHTML = '';
     return;
   }
   const members = collectSharedSpaceMembers(sp);
   if (!members.length) {
-    sel.style.display = 'none';
+    wrap.style.display = 'none';
     if (lbl) lbl.style.display = 'none';
-    sel.value = '';
+    list.innerHTML = '';
     return;
   }
-  sel.style.display = '';
+  wrap.style.display = '';
   if (lbl) lbl.style.display = '';
   const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
-  sel.innerHTML = `<option value="">Unassigned</option>` +
-    members.map(m => {
-      const label = m.name || m.email;
-      const youTag = me && m.email && me.email && m.email.toLowerCase() === me.email.toLowerCase() ? ' (you)' : '';
-      return `<option value="${escapeAttr(m.email)}">${escapeHtml(label + youTag)}</option>`;
-    }).join('');
-  sel.value = (selectedEmail && members.some(m => m.email === selectedEmail)) ? selectedEmail : '';
+  list.innerHTML = members.map(m => {
+    const label = m.name || m.email;
+    const youTag = me && m.email && me.email && m.email.toLowerCase() === me.email.toLowerCase() ? ' (you)' : '';
+    const checked = selected.has((m.email || '').toLowerCase()) ? 'checked' : '';
+    return `<label class="assignee-check-row">
+      <input type="checkbox" class="assignee-cb" value="${escapeAttr(m.email)}" ${checked}>
+      <span>${escapeHtml(label + youTag)}</span>
+    </label>`;
+  }).join('');
 }
 
 // Owner + collaborators with stable shape { email, name, picture, role }.
@@ -2199,52 +2216,55 @@ document.getElementById('save-task').addEventListener('click', () => {
   const tags     = tagsRaw ? Array.from(new Set(tagsRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean))) : [];
   const recVal   = (document.getElementById('task-recurrence')?.value || 'none');
   const recurrence = recVal && recVal !== 'none' ? { type: recVal } : null;
-  const assigneeEmail = (document.getElementById('task-assignee')?.value || '').trim();
+  // Collect all checked assignees from the checkbox list
   const robot = getCurrentContainer();
   if (!robot) return;
-  // Resolve assignee object from current Space members so we can store
-  // name + picture (a future rename won't lose context).
   const sp = typeof findSpaceOfRobot === 'function' ? findSpaceOfRobot(robot.id) : null;
-  let assignee = null;
-  if (assigneeEmail && sp) {
+  const checkedEmails = Array.from(
+    document.querySelectorAll('#task-assignees-list .assignee-cb:checked')
+  ).map(cb => cb.value.trim()).filter(Boolean);
+  let assignees = [];
+  if (checkedEmails.length && sp) {
     const members = collectSharedSpaceMembers(sp);
-    const m = members.find(x => x.email && x.email.toLowerCase() === assigneeEmail.toLowerCase());
-    if (m) assignee = { email: m.email, name: m.name || null, picture: m.picture || null };
-    else assignee = { email: assigneeEmail, name: null, picture: null };
+    assignees = checkedEmails.map(email => {
+      const m = members.find(x => x.email && x.email.toLowerCase() === email.toLowerCase());
+      return m ? { email: m.email, name: m.name || null, picture: m.picture || null }
+               : { email, name: null, picture: null };
+    });
   }
-  // Capture who did the assignment so collaborators can spot tasks
-  // that landed on their plate (Inbox surfaces these).
+  // Keep legacy task.assignee pointing at first assignee for backward compat
+  const assignee = assignees[0] || null;
+  // Capture who did the assignment
   const meInfo = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
   const myEmail = (meInfo && meInfo.email) || null;
-  const assignedByEmail = (assignee && assignee.email && myEmail && assignee.email.toLowerCase() !== myEmail.toLowerCase())
-    ? myEmail
-    : null;
   if (editingTaskId) {
     const task = robot.tasks.find(t => t.id === editingTaskId);
     if (task) {
-      const prevAssigneeEmail = (task.assignee && task.assignee.email) || null;
+      const prevEmails = new Set(getTaskAssignees(task).map(a => a.email?.toLowerCase()));
       task.title = title; task.priority = priority; task.status = status;
       task.dueDate = dueDate || null; task.tags = tags;
       task.recurrence = recurrence;
-      task.assignee = assignee;
-      // Only stamp assignedBy when the assignee actually changed AND the
-      // task got handed to someone else. Re-saving your own task without
-      // changing the assignee shouldn't keep marking it as "from X".
-      const newAssigneeEmail = (assignee && assignee.email) || null;
-      if (newAssigneeEmail && newAssigneeEmail !== prevAssigneeEmail && assignedByEmail) {
-        task.assignedBy = assignedByEmail;
+      task.assignees = assignees;
+      task.assignee  = assignee; // legacy compat
+      // Mark assignedBy for newly-added assignees that aren't the editor themselves
+      const newEmails = assignees.map(a => a.email?.toLowerCase());
+      const hasNewOthers = newEmails.some(e => e && e !== myEmail?.toLowerCase() && !prevEmails.has(e));
+      if (hasNewOthers && myEmail) {
+        task.assignedBy = myEmail;
         task.assignedAt = Date.now();
-      } else if (!newAssigneeEmail) {
-        // Unassigned — drop the audit fields.
+      } else if (!assignees.length) {
         delete task.assignedBy;
         delete task.assignedAt;
       }
       stampTask(task);
     }
   } else {
+    const hasNewOthers = assignees.some(a => a.email?.toLowerCase() !== myEmail?.toLowerCase());
+    const assignedByEmail = (hasNewOthers && myEmail) ? myEmail : null;
     const newTask = {
       id: uid(), title, priority, status,
-      dueDate: dueDate || null, tags, recurrence, assignee,
+      dueDate: dueDate || null, tags, recurrence,
+      assignees, assignee, // assignee = first for backward compat
       notebook: [], expanded: false, createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -4348,32 +4368,19 @@ window.syncSpaceGoals = function() {
   (async () => {
     try {
       const r = await DriveAPI.pullSpaceFile(sp.driveFileId);
-      console.log('[syncSpaceGoals] pulled payload keys:', r && r.payload ? Object.keys(r.payload) : 'no payload');
-      console.log('[syncSpaceGoals] spaceGoals in Drive:', JSON.stringify(r?.payload?.spaceGoals));
-      console.log('[syncSpaceGoals] currentReviewKey:', currentReviewKey, '  _reviewSpaceId:', spaceId);
-      console.log('[syncSpaceGoals] local state.spaceGoals:', JSON.stringify(state.spaceGoals));
-      // spaceGoals in payload is keyed by weekKey directly (space.id is the outer key in state, stripped when building payload)
-      const driveAllGoals = r.payload?.spaceGoals || {};
-      const driveWeekGoals = driveAllGoals[currentReviewKey] || [];
-      const localBeforeMerge = (state.spaceGoals?.[spaceId]?.[currentReviewKey] || []).length;
-      console.log('[syncSpaceGoals] Drive spaceGoals full object:', JSON.stringify(driveAllGoals));
-      console.log('[syncSpaceGoals] Drive goals for', currentReviewKey, ':', driveWeekGoals.length);
-      console.log('[syncSpaceGoals] Local goals before merge:', localBeforeMerge);
       if (r && r.payload && r.payload.space) {
         const savedCollabs = sp.collaborators || [];
         mergeImportedSpacePayload(r);
         const updated = findSpace(spaceId);
         if (updated) updated.collaborators = savedCollabs;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
-        const localAfterMerge = (state.spaceGoals?.[spaceId]?.[currentReviewKey] || []).length;
-        showAppToast(`Drive: ${driveWeekGoals.length} goal(s) | local: ${localBeforeMerge}→${localAfterMerge} | week: ${currentReviewKey || 'none'} | spaceId: ${spaceId?.slice(-6)}`);
         renderReviews();
+        showAppToast('Goals synced ✓');
       } else {
-        showAppToast('syncSpaceGoals: pull returned no valid space payload', 'error');
+        showAppToast('Sync: no valid space payload from Drive', 'error');
       }
     } catch(e) {
-      showAppToast('syncSpaceGoals error: ' + (e && e.message || String(e)), 'error');
-      console.error('[syncSpaceGoals] error:', e);
+      showAppToast('Sync error: ' + (e && e.message || String(e)), 'error');
     }
     if (btn) { btn.disabled = false; btn.textContent = '↺'; }
   })();
@@ -4411,10 +4418,9 @@ function _pushSpaceGoals(spaceId) {
 }
 
 window.addSpaceGoal = function() {
-  console.log('[addSpaceGoal] currentReviewKey:', currentReviewKey, 'reviewPeriod:', reviewPeriod, '_reviewSpaceId:', _reviewSpaceId);
-  if (!currentReviewKey || reviewPeriod !== 'week') { console.warn('[addSpaceGoal] aborted: no currentReviewKey or not week period'); return; }
+  if (!currentReviewKey || reviewPeriod !== 'week') return;
   const spaceId = _reviewSpaceId || (getSharedSpaces()[0] && getSharedSpaces()[0].id);
-  if (!spaceId) { console.warn('[addSpaceGoal] aborted: no spaceId'); return; }
+  if (!spaceId) return;
   const inp = document.getElementById('rev-space-goal-input');
   const title = (inp?.value || '').trim();
   if (!title) return;
@@ -4425,6 +4431,7 @@ window.addSpaceGoal = function() {
     id: uid(),
     title,
     done: false,
+    contributors: me ? [{ email: me.email, name: me.name || me.email || null }] : [],
     addedBy:     me?.email    || null,
     addedByName: me?.name     || me?.email || null,
     createdAt:   Date.now(),
@@ -4432,9 +4439,6 @@ window.addSpaceGoal = function() {
   });
   inp.value = '';
   save();
-  const totalNow = state.spaceGoals[spaceId][currentReviewKey].length;
-  console.log('[addSpaceGoal] goal saved. total for week:', totalNow, '  pushing to Drive...');
-  showAppToast(`Goal added (${totalNow} total). Pushing to Drive…`);
   renderReviews();
   _pushSpaceGoals(spaceId);
 };
@@ -4530,17 +4534,31 @@ window.toggleTaskWeeklyGoal = function(taskId) {
       ensureSpaceGoalWeek(sp.id, key);
       const spaceGoals = state.spaceGoals[sp.id][key];
       const task = robot.tasks.find(t => t.id === taskId);
+      const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo) ? DriveAPI.getUserInfo() : null;
       if (adding) {
-        // Add to space goals if not already there (by taskId reference)
-        const alreadyThere = spaceGoals.some(g => g.taskId === taskId && !g.deleted);
-        if (!alreadyThere && task) {
-          const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo) ? DriveAPI.getUserInfo() : null;
+        // Check if another user already added this task to the space goal pool
+        const existing = spaceGoals.find(g => g.taskId === taskId && !g.deleted);
+        if (existing) {
+          // Entry already exists — just add self as a contributor
+          if (!existing.contributors) {
+            // Bootstrap contributors array from addedBy field (legacy entry)
+            existing.contributors = existing.addedBy
+              ? [{ email: existing.addedBy, name: existing.addedByName || null }]
+              : [];
+          }
+          if (me && !existing.contributors.some(c => (c.email || '').toLowerCase() === (me.email || '').toLowerCase())) {
+            existing.contributors.push({ email: me.email, name: me.name || me.email || null });
+          }
+          existing.updatedAt = Date.now();
+        } else if (task) {
+          // No entry yet — create one with contributors array
           spaceGoals.push({
             id: uid(),
-            taskId,                           // link back to the task
+            taskId,
             title: task.title,
             listName: robot.name,
             done: task.status === 'done',
+            contributors: me ? [{ email: me.email, name: me.name || me.email || null }] : [],
             addedBy:     me?.email    || null,
             addedByName: me?.name     || me?.email || null,
             createdAt: Date.now(),
@@ -4548,10 +4566,18 @@ window.toggleTaskWeeklyGoal = function(taskId) {
           });
         }
       } else {
-        // Soft-delete matching space goal entries for this task
+        // Removing — remove self from contributors; soft-delete only if no contributors remain
         spaceGoals.forEach(g => {
           if (g.taskId === taskId && !g.deleted) {
-            g.deleted = true;
+            if (me && g.contributors && g.contributors.length > 0) {
+              g.contributors = g.contributors.filter(
+                c => (c.email || '').toLowerCase() !== (me.email || '').toLowerCase()
+              );
+              if (g.contributors.length === 0) g.deleted = true;
+            } else {
+              // Legacy entry with no contributors array — just soft-delete
+              g.deleted = true;
+            }
             g.updatedAt = Date.now();
           }
         });
@@ -4871,7 +4897,16 @@ function renderReviews() {
       html += '<div class="rev-goals-list">';
       if (goals.length) {
         for (const g of goals) {
-          const byLabel = g.addedByName ? escapeHtml(g.addedByName) : (g.addedBy ? escapeHtml(g.addedBy.split('@')[0]) : '');
+          const byLabel = (() => {
+            if (g.contributors && g.contributors.length > 0) {
+              return g.contributors
+                .map(c => escapeHtml(c.name || (c.email ? c.email.split('@')[0] : '')))
+                .join(', ');
+            }
+            if (g.addedByName) return escapeHtml(g.addedByName);
+            if (g.addedBy)     return escapeHtml(g.addedBy.split('@')[0]);
+            return '';
+          })();
           html += `<div class="rev-goal-item rev-space-goal-item${g.done ? ' done' : ''}">
             <button class="rev-goal-check${g.done ? ' checked' : ''}" onclick="toggleSpaceGoal('${escapeAttr(_reviewSpaceId)}','${escapeAttr(currentReviewKey)}','${g.id}')">${g.done ? ICO_CHECK_SM : ''}</button>
             <span class="rev-goal-body">
@@ -7261,7 +7296,8 @@ function mergeImportedSpacePayload(pull) {
   if (sIdx >= 0) state.spaces[sIdx] = merged;
   else state.spaces.push(merged);
 
-  // Merge shared space goals pool — union by goal id, newer updatedAt wins.
+  // Merge shared space goals pool — union by goal id, newer updatedAt wins,
+  // contributors arrays are unioned so both sides' names survive.
   if (p.spaceGoals && typeof p.spaceGoals === 'object') {
     if (!state.spaceGoals) state.spaceGoals = {};
     if (!state.spaceGoals[space.id]) state.spaceGoals[space.id] = {};
@@ -7271,8 +7307,53 @@ function mergeImportedSpacePayload(pull) {
       const byId = new Map(localGoals.map(g => [g.id, g]));
       for (const rg of remoteGoals) {
         const lg = byId.get(rg.id);
-        if (!lg || (rg.updatedAt || 0) >= (lg.updatedAt || 0)) byId.set(rg.id, rg);
+        if (!lg) {
+          byId.set(rg.id, rg);
+        } else {
+          // Merge: newer updatedAt wins for top-level fields, but always union contributors
+          const winner = (rg.updatedAt || 0) >= (lg.updatedAt || 0) ? { ...rg } : { ...lg };
+          const allC = [...(lg.contributors || []), ...(rg.contributors || [])];
+          const seenE = new Set();
+          winner.contributors = allC.filter(c => {
+            if (!c.email) return false;
+            const k = c.email.toLowerCase();
+            if (seenE.has(k)) return false;
+            seenE.add(k);
+            return true;
+          });
+          byId.set(rg.id, winner);
+        }
       }
+
+      // Deduplicate entries with the same taskId (both not deleted) — can happen
+      // when two users goal the same task independently before syncing.
+      // Keep the older entry (canonical), union its contributors, soft-delete the dupe.
+      const byTaskId = new Map();
+      const all = Array.from(byId.values());
+      for (const g of all) {
+        if (!g.taskId || g.deleted) continue;
+        const prev = byTaskId.get(g.taskId);
+        if (!prev) { byTaskId.set(g.taskId, g); continue; }
+        // Two active entries for same task — merge into the older one
+        const canon = (prev.createdAt || 0) <= (g.createdAt || 0) ? prev : g;
+        const dupe  = canon === prev ? g : prev;
+        // Union contributors into canonical entry
+        const allC  = [...(canon.contributors || []), ...(dupe.contributors || [])];
+        const seenE = new Set();
+        canon.contributors = allC.filter(c => {
+          if (!c.email) return false;
+          const k = c.email.toLowerCase();
+          if (seenE.has(k)) return false;
+          seenE.add(k);
+          return true;
+        });
+        canon.updatedAt = Math.max(canon.updatedAt || 0, dupe.updatedAt || 0);
+        if (dupe.done) canon.done = true;
+        // Soft-delete the duplicate so it doesn't come back from Drive
+        byId.set(dupe.id, { ...dupe, deleted: true, updatedAt: Date.now() });
+        byTaskId.set(g.taskId, canon);
+      }
+
       state.spaceGoals[space.id][weekKey] = Array.from(byId.values());
     }
   }

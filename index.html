@@ -681,9 +681,9 @@
       <label data-i18n="label.due_date">Bitiş Tarihi</label>
       <input type="date" id="task-due-date" />
       <label id="task-assignee-label" style="display:none">Assigned to</label>
-      <select id="task-assignee" style="display:none">
-        <option value="">Unassigned</option>
-      </select>
+      <div id="task-assignees-wrap" style="display:none">
+        <div id="task-assignees-list" class="task-assignees-checklist"></div>
+      </div>
       <label>Recurring</label>
       <select id="task-recurrence">
         <option value="none">None — one-off task</option>

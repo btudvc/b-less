@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.9.7';
+var APP_VERSION = '7.9.8';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4452,8 +4452,15 @@ window.toggleSpaceGoal = function(spaceId, weekKey, goalId) {
 };
 
 window.removeSpaceGoal = function(spaceId, weekKey, goalId) {
-  if (!state.spaceGoals?.[spaceId]?.[weekKey]) return;
-  state.spaceGoals[spaceId][weekKey] = state.spaceGoals[spaceId][weekKey].filter(g => g.id !== goalId);
+  const goals = state.spaceGoals?.[spaceId]?.[weekKey];
+  if (!goals) return;
+  // Soft-delete: mark deleted + bump updatedAt so the merge propagates the
+  // deletion to other members. Hard-removing causes resurrection on next pull
+  // (remote still has it, merge re-adds it since local is missing).
+  const goal = goals.find(g => g.id === goalId);
+  if (!goal) return;
+  goal.deleted = true;
+  goal.updatedAt = Date.now();
   save();
   renderReviews();
   _pushSpaceGoals(spaceId);
@@ -4796,7 +4803,9 @@ function renderReviews() {
         _reviewSpaceId = sharedSpaces[0].id;
       }
       const sp = findSpace(_reviewSpaceId);
-      const goals = state.spaceGoals?.[_reviewSpaceId]?.[currentReviewKey] || [];
+      // Filter out soft-deleted goals (deleted:true) — they stay in state so
+      // the deletion can propagate to other members via merge, but aren't shown.
+      const goals = (state.spaceGoals?.[_reviewSpaceId]?.[currentReviewKey] || []).filter(g => !g.deleted);
 
       const ICO_GROUP = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
       const ICO_CLOSE_SM = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';

@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.10.4';
+var APP_VERSION = '7.10.5';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4797,7 +4797,7 @@ function renderReviews() {
       const taskGoals = [];
       for (const r of (state.robots || [])) {
         for (const task of (r.tasks || [])) {
-          if (taskIds.includes(task.id)) taskGoals.push({ task, robotName: r.name });
+          if (taskIds.includes(task.id)) taskGoals.push({ task, robotName: r.name, robotId: r.id });
         }
       }
 
@@ -4808,15 +4808,15 @@ function renderReviews() {
       let html = `<div class="rev-section-header">${ICO_TARGET} ${escapeHtml(t('reviews.goals') || 'Haftalık Hedefler')}</div>`;
       html += '<div class="rev-goals-list">';
 
-      for (const { task, robotName } of taskGoals) {
+      for (const { task, robotName, robotId } of taskGoals) {
         const isDone = task.status === 'done';
-        html += `<div class="rev-goal-item${isDone ? ' done' : ''}">
-          <button class="rev-goal-check${isDone ? ' checked' : ''}" onclick="toggleTaskDone('${task.id}')" title="${isDone ? 'Yeniden aç' : 'Tamamlandı olarak işaretle'}">${isDone ? ICO_CHECK_SM : ''}</button>
+        html += `<div class="rev-goal-item rev-goal-item--link${isDone ? ' done' : ''}" onclick="goToTask('${escapeAttr(robotId)}','${escapeAttr(task.id)}')" title="Taska git">
+          <span class="rev-goal-check${isDone ? ' checked' : ''}">${isDone ? ICO_CHECK_SM : ''}</span>
           <span class="rev-goal-body">
             <span class="rev-goal-project">${escapeHtml(robotName)}</span>
             <span class="rev-goal-title">${escapeHtml(task.title)}</span>
           </span>
-          <button class="rev-goal-remove" onclick="removeTaskFromWeeklyGoal('${escapeAttr(goalsWeekKey)}','${task.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
+          <button class="rev-goal-remove" onclick="event.stopPropagation();removeTaskFromWeeklyGoal('${escapeAttr(goalsWeekKey)}','${escapeAttr(task.id)}')" title="Kaldır">${ICO_CLOSE_SM}</button>
         </div>`;
       }
 

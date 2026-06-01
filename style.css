@@ -5097,6 +5097,8 @@ body { font-size: 13px; }
 }
 .rev-goal-item:hover .rev-goal-remove { opacity: 1; }
 .rev-goal-remove:hover { background: var(--danger-soft, #fee2e2); color: var(--danger, #ef4444); }
+.rev-goal-item--link { cursor: pointer; }
+.rev-goal-item--link:hover { background: var(--hover); }
 .rev-goal-empty {
   font-size: 12px;
   color: var(--muted);

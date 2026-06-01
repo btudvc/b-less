@@ -5888,21 +5888,31 @@ body.is-readonly #robot-content .nb-item { cursor: default !important; }
   overflow-y: auto;
   padding: 4px 0;
 }
-.assignee-check-row {
+/* .modal label overrides (uppercase, 11px) must be neutralised here */
+label.assignee-check-row {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 4px 6px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
-  color: var(--fg);
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: var(--text) !important;
   transition: background 0.12s;
 }
-.assignee-check-row:hover { background: var(--hover); }
-.assignee-cb {
-  width: 15px;
-  height: 15px;
+label.assignee-check-row:hover { background: var(--hover); }
+/* .modal input { width:100% } would stretch the checkbox — override it */
+label.assignee-check-row .assignee-cb {
+  width: 15px !important;
+  height: 15px !important;
+  min-width: 15px;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   accent-color: var(--accent);
   cursor: pointer;
   flex-shrink: 0;

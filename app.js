@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.10.0';
+var APP_VERSION = '7.10.1';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -7301,6 +7301,24 @@ function mergeImportedSpacePayload(pull) {
   if (p.spaceGoals && typeof p.spaceGoals === 'object') {
     if (!state.spaceGoals) state.spaceGoals = {};
     if (!state.spaceGoals[space.id]) state.spaceGoals[space.id] = {};
+
+    // Helper: return contributors array, bootstrapping from addedBy for legacy entries.
+    const getContribs = g => {
+      if (Array.isArray(g.contributors) && g.contributors.length > 0) return g.contributors;
+      return g.addedBy ? [{ email: g.addedBy, name: g.addedByName || null }] : [];
+    };
+    // Helper: union two contributors arrays, deduplicating by email.
+    const unionContribs = (a, b) => {
+      const seen = new Set();
+      return [...a, ...b].filter(c => {
+        if (!c.email) return false;
+        const k = c.email.toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    };
+
     for (const [weekKey, remoteGoals] of Object.entries(p.spaceGoals)) {
       if (!Array.isArray(remoteGoals)) continue;
       const localGoals = state.spaceGoals[space.id][weekKey] || [];
@@ -7311,16 +7329,9 @@ function mergeImportedSpacePayload(pull) {
           byId.set(rg.id, rg);
         } else {
           // Merge: newer updatedAt wins for top-level fields, but always union contributors
+          // (including legacy entries that stored only addedBy instead of contributors[]).
           const winner = (rg.updatedAt || 0) >= (lg.updatedAt || 0) ? { ...rg } : { ...lg };
-          const allC = [...(lg.contributors || []), ...(rg.contributors || [])];
-          const seenE = new Set();
-          winner.contributors = allC.filter(c => {
-            if (!c.email) return false;
-            const k = c.email.toLowerCase();
-            if (seenE.has(k)) return false;
-            seenE.add(k);
-            return true;
-          });
+          winner.contributors = unionContribs(getContribs(lg), getContribs(rg));
           byId.set(rg.id, winner);
         }
       }
@@ -7337,16 +7348,7 @@ function mergeImportedSpacePayload(pull) {
         // Two active entries for same task — merge into the older one
         const canon = (prev.createdAt || 0) <= (g.createdAt || 0) ? prev : g;
         const dupe  = canon === prev ? g : prev;
-        // Union contributors into canonical entry
-        const allC  = [...(canon.contributors || []), ...(dupe.contributors || [])];
-        const seenE = new Set();
-        canon.contributors = allC.filter(c => {
-          if (!c.email) return false;
-          const k = c.email.toLowerCase();
-          if (seenE.has(k)) return false;
-          seenE.add(k);
-          return true;
-        });
+        canon.contributors = unionContribs(getContribs(canon), getContribs(dupe));
         canon.updatedAt = Math.max(canon.updatedAt || 0, dupe.updatedAt || 0);
         if (dupe.done) canon.done = true;
         // Soft-delete the duplicate so it doesn't come back from Drive

@@ -1428,6 +1428,77 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
   font-weight: 600;
   color: var(--accent);
 }
+/* Home — This Week's Goals */
+.home-goal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 9px 4px;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: background .1s var(--ease);
+}
+.home-goal-item:last-child { border-bottom: none; }
+.home-goal-item:hover { background: var(--surface-2); border-radius: var(--radius-xs); }
+.home-goal-item.done .home-goal-title { text-decoration: line-through; color: var(--muted); }
+.home-goal-chk {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border-2);
+  background: transparent;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  transition: background .12s var(--ease), border-color .12s var(--ease);
+  padding: 0;
+}
+.home-goal-chk.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.home-goal-chk:hover { border-color: var(--accent); }
+.home-goal-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.home-goal-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+.home-goal-sub {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.home-goal-arr { flex-shrink: 0; color: var(--muted); }
+.home-goals-more {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px 0;
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: center;
+  letter-spacing: .3px;
+  transition: opacity .12s var(--ease);
+}
+.home-goals-more:hover { opacity: .75; }
+
 .home-section-head {
   display: flex; align-items: center; justify-content: space-between;
   font-size: 12.5px; font-weight: 700;

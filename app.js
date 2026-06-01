@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.0';
+var APP_VERSION = '7.12.1';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4854,6 +4854,7 @@ window.toggleWeeklyGoalText = function(weekKey, goalId) {
   goal.done = !goal.done;
   save();
   renderReviews();
+  if (typeof renderHome === 'function') renderHome();
 };
 
 window.removeTaskFromWeeklyGoal = function(weekKey, taskId) {
@@ -8226,6 +8227,86 @@ function renderHome() {
         if (typeof homeNavigate === 'function') homeNavigate('calendar');
       });
     });
+  }
+
+  // This Week's Goals
+  const goalsEl    = document.getElementById('home-goals-list');
+  const goalsCntEl = document.getElementById('home-goals-count');
+  const goalsMoreEl = document.getElementById('home-goals-more');
+  if (goalsEl) {
+    const wk       = reviewWeekKey();
+    const weekData = state.weeklyGoals?.[wk] || { taskIds: [], goals: [] };
+    const taskIds  = weekData.taskIds || [];
+    const txtGoals = weekData.goals   || [];
+
+    // Count done
+    let doneCount = 0;
+    const taskGoalRows = taskIds.map(taskId => {
+      let foundTask = null, foundRobot = null;
+      for (const r of (state.robots || [])) {
+        const t = (r.tasks || []).find(t => t.id === taskId);
+        if (t) { foundTask = t; foundRobot = r; break; }
+      }
+      if (!foundTask) return null;
+      if (foundTask.status === 'done') doneCount++;
+      return { type: 'task', task: foundTask, robot: foundRobot };
+    }).filter(Boolean);
+
+    doneCount += txtGoals.filter(g => g.done).length;
+    const total = taskGoalRows.length + txtGoals.length;
+
+    if (goalsCntEl) goalsCntEl.textContent = total ? `${doneCount}/${total}` : '';
+
+    if (!total) {
+      goalsEl.innerHTML = '<div class="home-list-empty">Bu hafta için hedef yok.</div>';
+    } else {
+      const CHK = ICO.checkSm;
+      const rows = [
+        ...taskGoalRows.map(({ task, robot }) => {
+          const isDone = task.status === 'done';
+          return `
+            <button class="home-goal-item${isDone ? ' done' : ''}"
+                    data-goal-kind="task"
+                    data-goal-tid="${escapeAttr(task.id)}"
+                    data-goal-rid="${escapeAttr(robot?.id || '')}"
+                    type="button">
+              <span class="home-goal-chk ${isDone ? 'checked' : ''}">${isDone ? CHK : ''}</span>
+              <span class="home-goal-body">
+                <span class="home-goal-title">${escapeHtml(task.title)}</span>
+                ${robot ? `<span class="home-goal-sub">${escapeHtml(robot.name)}</span>` : ''}
+              </span>
+              <svg class="home-goal-arr" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>`;
+        }),
+        ...txtGoals.map(g => `
+          <div class="home-goal-item${g.done ? ' done' : ''}">
+            <button class="home-goal-chk ${g.done ? 'checked' : ''}"
+                    data-goal-kind="text"
+                    data-goal-gid="${escapeAttr(g.id)}"
+                    data-goal-wk="${escapeAttr(wk)}"
+                    type="button">${g.done ? CHK : ''}</button>
+            <span class="home-goal-body">
+              <span class="home-goal-title">${escapeHtml(g.title)}</span>
+            </span>
+          </div>`),
+      ];
+      goalsEl.innerHTML = rows.join('');
+
+      goalsEl.querySelectorAll('[data-goal-kind="task"]').forEach(el => {
+        el.addEventListener('click', () => {
+          if (typeof goToTask === 'function') goToTask(el.dataset.goalRid, el.dataset.goalTid);
+        });
+      });
+      goalsEl.querySelectorAll('[data-goal-kind="text"]').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          if (typeof toggleWeeklyGoalText === 'function') toggleWeeklyGoalText(btn.dataset.goalWk, btn.dataset.goalGid);
+        });
+      });
+    }
+    if (goalsMoreEl) {
+      goalsMoreEl.onclick = () => homeNavigate('reviews');
+    }
   }
 
   // Today's Journal — preview if exists, otherwise prompt

@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.9.5';
+var APP_VERSION = '7.9.6';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4352,16 +4352,21 @@ window.syncSpaceGoals = function() {
       console.log('[syncSpaceGoals] spaceGoals in Drive:', JSON.stringify(r?.payload?.spaceGoals));
       console.log('[syncSpaceGoals] currentReviewKey:', currentReviewKey, '  _reviewSpaceId:', spaceId);
       console.log('[syncSpaceGoals] local state.spaceGoals:', JSON.stringify(state.spaceGoals));
+      // spaceGoals in payload is keyed by weekKey directly (space.id is the outer key in state, stripped when building payload)
+      const driveAllGoals = r.payload?.spaceGoals || {};
+      const driveWeekGoals = driveAllGoals[currentReviewKey] || [];
+      const localBeforeMerge = (state.spaceGoals?.[spaceId]?.[currentReviewKey] || []).length;
+      console.log('[syncSpaceGoals] Drive spaceGoals full object:', JSON.stringify(driveAllGoals));
+      console.log('[syncSpaceGoals] Drive goals for', currentReviewKey, ':', driveWeekGoals.length);
+      console.log('[syncSpaceGoals] Local goals before merge:', localBeforeMerge);
       if (r && r.payload && r.payload.space) {
         const savedCollabs = sp.collaborators || [];
         mergeImportedSpacePayload(r);
         const updated = findSpace(spaceId);
         if (updated) updated.collaborators = savedCollabs;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
-        // Surface what we found so the user can confirm
-        const driveGoals = r.payload.spaceGoals?.[spaceId]?.[currentReviewKey] || [];
-        const localGoals = state.spaceGoals?.[spaceId]?.[currentReviewKey] || [];
-        showAppToast(`Sync: Drive had ${driveGoals.length} goal(s) | local now ${localGoals.length} | week: ${currentReviewKey || 'none'}`);
+        const localAfterMerge = (state.spaceGoals?.[spaceId]?.[currentReviewKey] || []).length;
+        showAppToast(`Drive: ${driveWeekGoals.length} goal(s) | local: ${localBeforeMerge}→${localAfterMerge} | week: ${currentReviewKey || 'none'} | spaceId: ${spaceId?.slice(-6)}`);
         renderReviews();
       } else {
         showAppToast('syncSpaceGoals: pull returned no valid space payload', 'error');
@@ -4427,6 +4432,9 @@ window.addSpaceGoal = function() {
   });
   inp.value = '';
   save();
+  const totalNow = state.spaceGoals[spaceId][currentReviewKey].length;
+  console.log('[addSpaceGoal] goal saved. total for week:', totalNow, '  pushing to Drive...');
+  showAppToast(`Goal added (${totalNow} total). Pushing to Drive…`);
   renderReviews();
   _pushSpaceGoals(spaceId);
 };

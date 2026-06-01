@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.9.1';
+var APP_VERSION = '7.9.2';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -674,7 +674,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     }
     if (tab.dataset.tab === 'calendar')   renderCalendar();
     if (tab.dataset.tab === 'all-tasks')  renderAllTasks();
-    if (tab.dataset.tab === 'reviews')    refreshAllSharedSpaces();
+    if (tab.dataset.tab === 'reviews')    { refreshAllSharedSpaces(); startReviewsPoll(); }
     if (MORE_SUBTABS.has(tab.dataset.tab)) {
       setBottomNavActive('more');
     } else {
@@ -4281,6 +4281,45 @@ function getSharedSpaces() {
 }
 
 let _reviewSpaceId = null; // which space is selected in the review space-goals panel
+let _reviewsPollTimer = null; // periodic sync while Reviews section is active
+
+function startReviewsPoll() {
+  if (_reviewsPollTimer) return;
+  _reviewsPollTimer = setInterval(() => {
+    if (document.getElementById('reviews')?.classList.contains('active')) {
+      refreshAllSharedSpaces();
+    } else {
+      stopReviewsPoll();
+    }
+  }, 30000);
+}
+function stopReviewsPoll() {
+  if (_reviewsPollTimer) { clearInterval(_reviewsPollTimer); _reviewsPollTimer = null; }
+}
+
+window.syncSpaceGoals = function() {
+  const btn = document.getElementById('rev-space-sync-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const spaceId = _reviewSpaceId;
+  if (!spaceId) return;
+  const sp = findSpace(spaceId);
+  if (!sp || !sp.driveFileId) return;
+  if (typeof DriveAPI === 'undefined' || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) return;
+  (async () => {
+    try {
+      const r = await DriveAPI.pullSpaceFile(sp.driveFileId);
+      if (r && r.payload && r.payload.space) {
+        const savedCollabs = sp.collaborators || [];
+        mergeImportedSpacePayload(r);
+        const updated = findSpace(spaceId);
+        if (updated) updated.collaborators = savedCollabs;
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+        renderReviews();
+      }
+    } catch {}
+    if (btn) { btn.disabled = false; btn.textContent = '↺'; }
+  })();
+};
 
 // Helper: push space goals to Drive (owner or writer). Writers pull-first
 // to avoid overwriting concurrent changes from other collaborators.
@@ -4291,21 +4330,19 @@ function _pushSpaceGoals(spaceId) {
   if (typeof DriveAPI === 'undefined' || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) return;
   (async () => {
     try {
-      let revision = sp.lastSyncedRevision;
-      if (sp.myRole === 'writer') {
-        const pulled = await DriveAPI.pullSpaceFile(sp.driveFileId);
-        if (pulled && pulled.payload && pulled.payload.space) {
-          const saved = sp.collaborators || [];
-          mergeImportedSpacePayload(pulled);
-          const updated = findSpace(spaceId);
-          if (updated) updated.collaborators = saved;
-        }
-        revision = null; // skip conflict check — we just merged
+      // Always pull → merge → push for every role so no one overwrites
+      // another member's goals regardless of who pushes first.
+      const pulled = await DriveAPI.pullSpaceFile(sp.driveFileId);
+      if (pulled && pulled.payload && pulled.payload.space) {
+        const saved = sp.collaborators || [];
+        mergeImportedSpacePayload(pulled);
+        const updated = findSpace(spaceId);
+        if (updated) updated.collaborators = saved;
       }
-      const r = await DriveAPI.pushSpaceFile(sp.driveFileId, findSpace(spaceId), revision);
+      const r = await DriveAPI.pushSpaceFile(sp.driveFileId, findSpace(spaceId), null);
       const fresh = findSpace(spaceId);
       if (fresh) { fresh.lastSyncedRevision = r.revisionId; fresh.lastSyncedAt = Date.now(); }
-      save();
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
       renderReviews();
     } catch {}
   })();
@@ -4684,7 +4721,8 @@ function renderReviews() {
       const ICO_CLOSE_SM = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
       const ICO_CHECK_SM = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 
-      // Header with space selector
+      // Header with space selector + sync button
+      const ICO_REFRESH = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
       let html = `<div class="rev-section-header rev-space-header">${ICO_GROUP} ${escapeHtml(t('reviews.space_goals') || 'Space Hedefleri')}`;
       if (sharedSpaces.length > 1) {
         html += `<select class="rev-space-select" onchange="setReviewSpaceId(this.value)">
@@ -4693,6 +4731,7 @@ function renderReviews() {
       } else {
         html += `<span class="rev-space-name-badge">${escapeHtml(sp ? sp.name : '')}</span>`;
       }
+      html += `<button id="rev-space-sync-btn" class="rev-space-sync-btn" onclick="syncSpaceGoals()" title="Sync goals from Drive">${ICO_REFRESH}</button>`;
       html += '</div>';
 
       // Goals list
@@ -7987,6 +8026,7 @@ function homeNavigate(target) {
     document.getElementById('reviews')?.removeAttribute('data-detail-open');
     (typeof renderReviews === 'function') && renderReviews();
     refreshAllSharedSpaces(); // pull latest space goals before rendering
+    startReviewsPoll();
   }
 }
 

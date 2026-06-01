@@ -5165,6 +5165,20 @@ body { font-size: 13px; }
   padding: 2px 8px;
   border-radius: 20px;
 }
+.rev-space-sync-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  color: var(--muted);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+}
+.rev-space-sync-btn:hover { opacity: 1; color: var(--accent); }
+.rev-space-sync-btn:disabled { opacity: 0.4; cursor: default; }
 .rev-space-goal-item {
   border-left: 2px solid var(--accent);
 }

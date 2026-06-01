@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.10.3';
+var APP_VERSION = '7.10.4';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -1489,25 +1489,41 @@ window.deleteNoteEntry = function(taskId, entryId) {
   }
 };
 
-window.setStatus = function(id, status) {
-  const robot = getCurrentContainer();
-  const task = robot.tasks.find(t => t.id === id);
+// Core status-change logic — works with any robot/task pair.
+// Used by setStatus (current container) and toggleTaskDone (cross-context).
+function _applyTaskStatus(robot, task, status) {
   const wasNotDone = task.status !== 'done';
   task.status = status;
-  // Stamp completion time on transitions into done so the streak widget can
-  // count what was finished in the last N days. Cleared on reopen.
   if (status === 'done') task.completedAt = Date.now();
   else delete task.completedAt;
   stampTask(task);
-  // Recurring tasks: when a task is marked done for the first time and
-  // has a recurrence rule, spawn the next instance with a fresh due date.
-  // The completed instance stays in place as history.
   if (wasNotDone && status === 'done' && task.recurrence && task.recurrence.type) {
     spawnNextRecurrenceFromTask(robot, task);
   }
+}
+
+window.setStatus = function(id, status) {
+  const robot = getCurrentContainer();
+  const task = robot.tasks.find(t => t.id === id);
+  _applyTaskStatus(robot, task, status);
   save();
   renderCurrentDetail();
   if (activeSection === 'topics') renderTopicList(); else renderRobotList();
+};
+
+// Toggle done/active for a task by id, usable from any section (e.g. Reviews goals).
+window.toggleTaskDone = function(taskId) {
+  let found = null;
+  for (const r of (state.robots || [])) {
+    const t = (r.tasks || []).find(t => t.id === taskId);
+    if (t) { found = { robot: r, task: t }; break; }
+  }
+  if (!found) return;
+  const newStatus = found.task.status === 'done' ? 'active' : 'done';
+  _applyTaskStatus(found.robot, found.task, newStatus);
+  save();
+  renderCurrentDetail();
+  if (typeof renderReviews === 'function') renderReviews();
 };
 
 // Compute the next due date for a recurring task.
@@ -4795,7 +4811,7 @@ function renderReviews() {
       for (const { task, robotName } of taskGoals) {
         const isDone = task.status === 'done';
         html += `<div class="rev-goal-item${isDone ? ' done' : ''}">
-          <span class="rev-goal-status">${isDone ? ICO_CHECK_SM : ''}</span>
+          <button class="rev-goal-check${isDone ? ' checked' : ''}" onclick="toggleTaskDone('${task.id}')" title="${isDone ? 'Yeniden aç' : 'Tamamlandı olarak işaretle'}">${isDone ? ICO_CHECK_SM : ''}</button>
           <span class="rev-goal-body">
             <span class="rev-goal-project">${escapeHtml(robotName)}</span>
             <span class="rev-goal-title">${escapeHtml(task.title)}</span>

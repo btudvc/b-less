@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.10.6';
+var APP_VERSION = '7.10.7';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -752,6 +752,14 @@ function getCurrentContainer() {
   }
   return state.robots.find(r => r.id === state.currentRobotId);
 }
+
+// Collapse all expanded tasks in the currently-open list before navigating away.
+// task.expanded is device-local UI state — write directly to localStorage, no push.
+function collapseCurrentListTasks() {
+  const robot = state.robots.find(r => r.id === state.currentRobotId);
+  if (robot) robot.tasks.forEach(t => { t.expanded = false; });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
 function renderCurrentDetail() {
   if (activeSection === 'topics') renderTopicDetail();
   else renderRobotDetail();
@@ -823,6 +831,7 @@ function renderRobotList() {
 
   list.querySelectorAll('.robot-item').forEach(item => {
     item.addEventListener('click', () => {
+      if (item.dataset.id !== state.currentRobotId) collapseCurrentListTasks();
       state.currentRobotId = item.dataset.id;
       renderRobotList();
       renderRobotDetail();
@@ -3995,6 +4004,7 @@ window.goToTask = function(projectId, taskId) {
       if (it.type === 'list' && it.refId === projectId) { spaceId = sp.id; itemId = it.id; }
     });
   });
+  if (projectId !== state.currentRobotId) collapseCurrentListTasks();
   if (spaceId && itemId && typeof selectSpaceItem === 'function') selectSpaceItem(spaceId, itemId);
   else { state.currentRobotId = projectId; activateSection('robots'); renderRobotList(); renderRobotDetail(); }
   const robot = (state.robots || []).find(r => r.id === projectId);
@@ -6483,6 +6493,7 @@ function selectSpaceItem(spaceId, itemId) {
   state.currentItemId  = itemId;
 
   if (item.type === 'list') {
+    if (item.refId !== state.currentRobotId) collapseCurrentListTasks();
     state.currentRobotId = item.refId;
     activateSection('robots');
     if (typeof renderRobotList === 'function')   renderRobotList();

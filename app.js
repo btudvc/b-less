@@ -3039,26 +3039,41 @@ const DriveAPI = (() => {
       });
       return Object.assign({}, r, { tasks });
     };
+    // The true owner of this space — always use space.ownerEmail so that
+    // when a writer pushes, the payload still carries the correct owner.
+    const trueOwnerEmail = space.ownerEmail || ownerEmail;
+
     // Build a safe member list (email + name + picture + role) — NO permissionId.
     // This lets collaborators populate the assignee dropdown with all members.
     const safeMembers = [];
-    if (ownerEmail) {
+    if (trueOwnerEmail) {
       const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo) ? DriveAPI.getUserInfo() : null;
+      const isOwnerMe = me && me.email && me.email.toLowerCase() === trueOwnerEmail.toLowerCase();
       safeMembers.push({
-        email:   ownerEmail,
-        name:    (me && me.email && me.email.toLowerCase() === ownerEmail.toLowerCase() ? (me.name || ownerEmail) : (space.ownerName || ownerEmail)),
-        picture: (me && me.email && me.email.toLowerCase() === ownerEmail.toLowerCase() ? (me.picture || null) : (space.ownerPicture || null)),
+        email:   trueOwnerEmail,
+        name:    isOwnerMe ? (me.name || trueOwnerEmail) : (space.ownerName || trueOwnerEmail),
+        picture: isOwnerMe ? (me.picture || null)        : (space.ownerPicture || null),
         role:    'owner',
       });
     }
+    // Include the current pusher in members if they're a collaborator not yet listed
+    const memberEmails = new Set(safeMembers.map(m => m.email.toLowerCase()));
     (space.collaborators || []).forEach(c => {
       if (!c || !c.email) return;
-      safeMembers.push({ email: c.email, name: c.name || c.email, picture: c.picture || null, role: c.role || 'writer' });
+      if (!memberEmails.has(c.email.toLowerCase())) {
+        safeMembers.push({ email: c.email, name: c.name || c.email, picture: c.picture || null, role: c.role || 'writer' });
+        memberEmails.add(c.email.toLowerCase());
+      }
     });
+    // If the pusher is a collaborator not in collaborators list (edge case), add them
+    if (ownerEmail && !memberEmails.has(ownerEmail.toLowerCase())) {
+      const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo) ? DriveAPI.getUserInfo() : null;
+      safeMembers.push({ email: ownerEmail, name: (me && me.name) || ownerEmail, picture: (me && me.picture) || null, role: 'writer' });
+    }
 
     return {
       schema: 'b-less.space.v1',
-      ownerEmail,
+      ownerEmail: trueOwnerEmail,   // always the real space owner
       space:  { id: space.id, name: space.name, items: shareableItems, members: safeMembers },
       robots: (state.robots || []).filter(r => refs.list.has(r.id)).map(stripTaskUI),
       // Meetings/visits intentionally omitted — they are personal,
@@ -3066,7 +3081,7 @@ const DriveAPI = (() => {
       // Shared weekly goal pool: all members' goals for this space.
       spaceGoals: (state.spaceGoals && state.spaceGoals[space.id]) ? state.spaceGoals[space.id] : {},
       updatedAt: Date.now(),
-      updatedBy: ownerEmail,
+      updatedBy: ownerEmail,  // who pushed this version
     };
   }
 
@@ -4266,6 +4281,35 @@ function getSharedSpaces() {
 
 let _reviewSpaceId = null; // which space is selected in the review space-goals panel
 
+// Helper: push space goals to Drive (owner or writer). Writers pull-first
+// to avoid overwriting concurrent changes from other collaborators.
+function _pushSpaceGoals(spaceId) {
+  const sp = findSpace(spaceId);
+  if (!sp || !sp.driveFileId) return;
+  if (sp.myRole !== 'owner' && sp.myRole !== 'writer') return;
+  if (typeof DriveAPI === 'undefined' || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) return;
+  (async () => {
+    try {
+      let revision = sp.lastSyncedRevision;
+      if (sp.myRole === 'writer') {
+        const pulled = await DriveAPI.pullSpaceFile(sp.driveFileId);
+        if (pulled && pulled.payload && pulled.payload.space) {
+          const saved = sp.collaborators || [];
+          mergeImportedSpacePayload(pulled);
+          const updated = findSpace(spaceId);
+          if (updated) updated.collaborators = saved;
+        }
+        revision = null; // skip conflict check — we just merged
+      }
+      const r = await DriveAPI.pushSpaceFile(sp.driveFileId, findSpace(spaceId), revision);
+      const fresh = findSpace(spaceId);
+      if (fresh) { fresh.lastSyncedRevision = r.revisionId; fresh.lastSyncedAt = Date.now(); }
+      save();
+      renderReviews();
+    } catch {}
+  })();
+}
+
 window.addSpaceGoal = function() {
   if (!currentReviewKey || reviewPeriod !== 'week') return;
   const spaceId = _reviewSpaceId || (getSharedSpaces()[0] && getSharedSpaces()[0].id);
@@ -4288,13 +4332,7 @@ window.addSpaceGoal = function() {
   inp.value = '';
   save();
   renderReviews();
-  // Trigger a space push so collaborators see the new goal
-  const sp = findSpace(spaceId);
-  if (sp && sp.driveFileId && sp.myRole === 'owner' && typeof DriveAPI !== 'undefined' && DriveAPI.isSignedIn && DriveAPI.isSignedIn()) {
-    DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.lastSyncedRevision)
-      .then(r => { sp.lastSyncedRevision = r.revisionId; sp.lastSyncedAt = Date.now(); save(); })
-      .catch(() => {});
-  }
+  _pushSpaceGoals(spaceId);
 };
 
 window.toggleSpaceGoal = function(spaceId, weekKey, goalId) {
@@ -4306,13 +4344,7 @@ window.toggleSpaceGoal = function(spaceId, weekKey, goalId) {
   goal.updatedAt = Date.now();
   save();
   renderReviews();
-  // Push if owner
-  const sp = findSpace(spaceId);
-  if (sp && sp.driveFileId && sp.myRole === 'owner' && typeof DriveAPI !== 'undefined' && DriveAPI.isSignedIn && DriveAPI.isSignedIn()) {
-    DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.lastSyncedRevision)
-      .then(r => { sp.lastSyncedRevision = r.revisionId; sp.lastSyncedAt = Date.now(); save(); })
-      .catch(() => {});
-  }
+  _pushSpaceGoals(spaceId);
 };
 
 window.removeSpaceGoal = function(spaceId, weekKey, goalId) {
@@ -4320,12 +4352,7 @@ window.removeSpaceGoal = function(spaceId, weekKey, goalId) {
   state.spaceGoals[spaceId][weekKey] = state.spaceGoals[spaceId][weekKey].filter(g => g.id !== goalId);
   save();
   renderReviews();
-  const sp = findSpace(spaceId);
-  if (sp && sp.driveFileId && sp.myRole === 'owner' && typeof DriveAPI !== 'undefined' && DriveAPI.isSignedIn && DriveAPI.isSignedIn()) {
-    DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.lastSyncedRevision)
-      .then(r => { sp.lastSyncedRevision = r.revisionId; sp.lastSyncedAt = Date.now(); save(); })
-      .catch(() => {});
-  }
+  _pushSpaceGoals(spaceId);
 };
 
 window.setReviewSpaceId = function(id) {
@@ -6499,15 +6526,31 @@ function openShareSpaceModal(spaceId) {
   if (sp.shared && sp.driveFileId && DriveAPI && DriveAPI.isSignedIn && DriveAPI.isSignedIn()) {
     setTimeout(async () => {
       try {
-        if (sp.myRole === 'owner') {
-          const r = await DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.lastSyncedRevision);
+        if (sp.myRole === 'owner' || sp.myRole === 'writer') {
+          // Writers also push (after pulling & merging first so no data is lost).
+          // Pull → merge → push ensures collaborators see each other's goals & tasks.
+          if (sp.myRole === 'writer') {
+            const pulled = await DriveAPI.pullSpaceFile(sp.driveFileId);
+            if (pulled && pulled.payload && pulled.payload.space) {
+              const savedCollabs = sp.collaborators || [];
+              mergeImportedSpacePayload(pulled);
+              const updated = findSpace(sp.id);
+              if (updated) { updated.collaborators = savedCollabs; sp = updated; }
+            }
+          }
+          const r = await DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.myRole === 'writer' ? null : sp.lastSyncedRevision);
           sp.lastSyncedRevision = r.revisionId;
           sp.lastSyncedAt       = Date.now();
           save();
+          if (typeof renderHome === 'function') renderHome();
+          if (typeof renderSidebar === 'function') renderSidebar();
+          if (typeof renderRobotList === 'function') renderRobotList();
+          if (typeof renderRobotDetail === 'function') renderRobotDetail();
           if (_shareTargetSpaceId === sp.id && document.getElementById('modal-share-space')?.classList.contains('open')) {
-            renderShareSpaceBody({ status: 'Pushed local snapshot to Drive (' + payloadCounts(sp) + ').' });
+            renderShareSpaceBody({ status: (sp.myRole === 'writer' ? 'Synced' : 'Pushed') + ' (' + payloadCounts(sp) + ').' });
           }
         } else {
+          // Reader: pull only
           const r = await DriveAPI.pullSpaceFile(sp.driveFileId);
           if (r && r.payload && r.payload.space) {
             const savedCollabs = sp.collaborators || [];

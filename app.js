@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.9.2';
+var APP_VERSION = '7.9.3';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -3046,30 +3046,46 @@ const DriveAPI = (() => {
 
     // Build a safe member list (email + name + picture + role) — NO permissionId.
     // This lets collaborators populate the assignee dropdown with all members.
+    // Priority: 1) owner  2) space.collaborators (owner-side, has everyone + roles)
+    //           3) space.members (accumulated from previous pushes — preserves
+    //              full list even when a writer pushes and has no collaborators)
+    //           4) pusher themselves as a fallback
     const safeMembers = [];
+    const memberEmails = new Set();
+
+    const addMember = (m) => {
+      if (!m || !m.email) return;
+      const k = m.email.toLowerCase();
+      if (memberEmails.has(k)) return;
+      memberEmails.add(k);
+      safeMembers.push(m);
+    };
+
+    // 1. Owner
     if (trueOwnerEmail) {
       const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo) ? DriveAPI.getUserInfo() : null;
       const isOwnerMe = me && me.email && me.email.toLowerCase() === trueOwnerEmail.toLowerCase();
-      safeMembers.push({
+      addMember({
         email:   trueOwnerEmail,
         name:    isOwnerMe ? (me.name || trueOwnerEmail) : (space.ownerName || trueOwnerEmail),
         picture: isOwnerMe ? (me.picture || null)        : (space.ownerPicture || null),
         role:    'owner',
       });
     }
-    // Include the current pusher in members if they're a collaborator not yet listed
-    const memberEmails = new Set(safeMembers.map(m => m.email.toLowerCase()));
+    // 2. Full collaborators list (owner-side only — has everyone with correct roles)
     (space.collaborators || []).forEach(c => {
       if (!c || !c.email) return;
-      if (!memberEmails.has(c.email.toLowerCase())) {
-        safeMembers.push({ email: c.email, name: c.name || c.email, picture: c.picture || null, role: c.role || 'writer' });
-        memberEmails.add(c.email.toLowerCase());
-      }
+      addMember({ email: c.email, name: c.name || c.email, picture: c.picture || null, role: c.role || 'writer' });
     });
-    // If the pusher is a collaborator not in collaborators list (edge case), add them
+    // 3. Existing space.members from last pull — preserves the full list when a
+    //    writer (who has no collaborators array) pushes, so other members aren't dropped.
+    (space.members || []).forEach(m => {
+      addMember({ email: m.email, name: m.name || m.email, picture: m.picture || null, role: m.role || 'writer' });
+    });
+    // 4. Pusher themselves — last-resort if somehow not covered above
     if (ownerEmail && !memberEmails.has(ownerEmail.toLowerCase())) {
       const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo) ? DriveAPI.getUserInfo() : null;
-      safeMembers.push({ email: ownerEmail, name: (me && me.name) || ownerEmail, picture: (me && me.picture) || null, role: 'writer' });
+      addMember({ email: ownerEmail, name: (me && me.name) || ownerEmail, picture: (me && me.picture) || null, role: 'writer' });
     }
 
     return {

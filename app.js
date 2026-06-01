@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.10.8';
+var APP_VERSION = '7.11.0';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4682,6 +4682,102 @@ function isoWeek(d) {
 function reviewWeekKey(d = new Date())  { const w = isoWeek(d); return `${w.year}-W${String(w.week).padStart(2, '0')}`; }
 function reviewMonthKey(d = new Date()) { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}`; }
 
+// Returns the ISO week key for the week immediately before the given key.
+function prevWeekKey(wk) {
+  const [y, w] = wk.split('-W').map(Number);
+  if (w > 1) return `${y}-W${String(w - 1).padStart(2, '0')}`;
+  // Week 1 → last week of the previous year (Dec 28 is always in the final ISO week).
+  const dec28 = new Date(y - 1, 11, 28);
+  const last  = isoWeek(dec28);
+  return `${last.year}-W${String(last.week).padStart(2, '0')}`;
+}
+
+// Auto carry-over: copy unfinished goals from the previous week into the
+// current week. Runs at most once per week (guarded by .carriedOverFrom).
+function autoCarryOverGoals() {
+  const currentKey = reviewWeekKey();
+  ensureReviewsState();
+  ensureWeekGoal(currentKey);
+  const current = state.weeklyGoals[currentKey];
+
+  if (current.carriedOverFrom) return; // already done for this week
+  const prevKey = prevWeekKey(currentKey);
+  current.carriedOverFrom = prevKey;   // mark first so re-renders are no-ops
+
+  const prev = state.weeklyGoals?.[prevKey];
+  let personalChanged = false;
+
+  if (prev) {
+    // ── Task-linked goals ──────────────────────────────────
+    for (const taskId of (prev.taskIds || [])) {
+      let task = null;
+      for (const r of (state.robots || [])) {
+        task = (r.tasks || []).find(t => t.id === taskId);
+        if (task) break;
+      }
+      // Carry over only if the task still exists and isn't done yet
+      if (task && task.status !== 'done' && !(current.taskIds || []).includes(taskId)) {
+        current.taskIds.push(taskId);
+        personalChanged = true;
+      }
+    }
+
+    // ── Text goals ─────────────────────────────────────────
+    for (const g of (prev.goals || [])) {
+      if (!g.done) {
+        const already = (current.goals || []).some(cg => cg.title === g.title);
+        if (!already) {
+          current.goals.push({ id: uid(), title: g.title, done: false, createdAt: Date.now(), carriedOver: true });
+          personalChanged = true;
+        }
+      }
+    }
+
+    // Ensure the review entry exists so goals are visible immediately
+    if (personalChanged && !state.reviews.week[currentKey]) {
+      state.reviews.week[currentKey] = '';
+    }
+  }
+
+  // ── Space goals ────────────────────────────────────────────
+  let spacePushNeeded = [];
+  for (const sp of getSharedSpaces()) {
+    const prevGoals = (state.spaceGoals?.[sp.id]?.[prevKey] || [])
+      .filter(g => !g.deleted && !g.done);
+    if (!prevGoals.length) continue;
+
+    ensureSpaceGoalWeek(sp.id, currentKey);
+    const curGoals = state.spaceGoals[sp.id][currentKey];
+    let spaceChanged = false;
+
+    for (const g of prevGoals) {
+      const exists = curGoals.some(cg =>
+        !cg.deleted && (g.taskId ? cg.taskId === g.taskId : cg.title === g.title)
+      );
+      if (!exists) {
+        curGoals.push({
+          ...g,
+          id: uid(),
+          done: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          carriedOver: true,
+        });
+        spaceChanged = true;
+      }
+    }
+    if (spaceChanged) spacePushNeeded.push(sp.id);
+  }
+
+  if (personalChanged || spacePushNeeded.length) {
+    save();
+    spacePushNeeded.forEach(id => { if (typeof _pushSpaceGoals === 'function') _pushSpaceGoals(id); });
+  } else {
+    // Save just the carriedOverFrom flag without triggering push
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+  }
+}
+
 // Convert a key back to a Date pointing to the start of that period
 function reviewKeyToStart(key) {
   if (/^\d{4}-W\d{2}$/.test(key)) {
@@ -4796,6 +4892,11 @@ function renderReviews() {
     ? (currentReviewKey || reviewWeekKey())
     : null;
   const isWeekPeriod = reviewPeriod === 'week' && currentReviewKey;
+
+  // Auto carry-over: runs at most once per week when the user views the current week.
+  if (reviewPeriod === 'week' && goalsWeekKey === reviewWeekKey()) {
+    autoCarryOverGoals();
+  }
 
   if (goalsEl) {
     if (goalsWeekKey) {

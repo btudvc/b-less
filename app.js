@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.9.8';
+var APP_VERSION = '7.9.9';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4508,8 +4508,10 @@ window.toggleTaskWeeklyGoal = function(taskId) {
   ensureWeekGoal(key);
   const ids = state.weeklyGoals[key].taskIds;
   const idx = ids.indexOf(taskId);
-  if (idx === -1) ids.push(taskId);
+  const adding = idx === -1;
+  if (adding) ids.push(taskId);
   else ids.splice(idx, 1);
+
   // Auto-create this week's review entry so the goal is immediately visible
   // in the Reviews section without the user needing to click "+ Bu hafta" first.
   if (!state.reviews.week[key]) state.reviews.week[key] = '';
@@ -4518,6 +4520,47 @@ window.toggleTaskWeeklyGoal = function(taskId) {
     reviewPeriod = 'week';
     currentReviewKey = key;
   }
+
+  // If the task belongs to a shared space, also mirror it in the Space Goals
+  // pool so all team members can see it.
+  const robot = (state.robots || []).find(r => (r.tasks || []).some(t => t.id === taskId));
+  if (robot) {
+    const sp = (typeof findSpaceOfRobot === 'function') ? findSpaceOfRobot(robot.id) : null;
+    if (sp && sp.shared) {
+      ensureSpaceGoalWeek(sp.id, key);
+      const spaceGoals = state.spaceGoals[sp.id][key];
+      const task = robot.tasks.find(t => t.id === taskId);
+      if (adding) {
+        // Add to space goals if not already there (by taskId reference)
+        const alreadyThere = spaceGoals.some(g => g.taskId === taskId && !g.deleted);
+        if (!alreadyThere && task) {
+          const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo) ? DriveAPI.getUserInfo() : null;
+          spaceGoals.push({
+            id: uid(),
+            taskId,                           // link back to the task
+            title: task.title,
+            listName: robot.name,
+            done: task.status === 'done',
+            addedBy:     me?.email    || null,
+            addedByName: me?.name     || me?.email || null,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+        }
+      } else {
+        // Soft-delete matching space goal entries for this task
+        spaceGoals.forEach(g => {
+          if (g.taskId === taskId && !g.deleted) {
+            g.deleted = true;
+            g.updatedAt = Date.now();
+          }
+        });
+      }
+      // Push updated space goals to Drive
+      if (typeof _pushSpaceGoals === 'function') _pushSpaceGoals(sp.id);
+    }
+  }
+
   save();
   renderCurrentDetail();
   if (typeof renderReviews === 'function') renderReviews();
@@ -4832,6 +4875,7 @@ function renderReviews() {
           html += `<div class="rev-goal-item rev-space-goal-item${g.done ? ' done' : ''}">
             <button class="rev-goal-check${g.done ? ' checked' : ''}" onclick="toggleSpaceGoal('${escapeAttr(_reviewSpaceId)}','${escapeAttr(currentReviewKey)}','${g.id}')">${g.done ? ICO_CHECK_SM : ''}</button>
             <span class="rev-goal-body">
+              ${g.listName ? `<span class="rev-goal-project">${escapeHtml(g.listName)}</span>` : ''}
               <span class="rev-goal-title">${escapeHtml(g.title)}</span>
               ${byLabel ? `<span class="rev-space-goal-by">${byLabel}</span>` : ''}
             </span>

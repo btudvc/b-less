@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.11.0';
+var APP_VERSION = '7.11.1';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4554,6 +4554,17 @@ window.toggleTaskWeeklyGoal = function(taskId) {
     currentReviewKey = key;
   }
 
+  // Set due date to end of current week when adding to goals (if task has no due date yet).
+  // User can always edit the task to move it earlier; carry-over will shift it forward.
+  if (adding) {
+    const goalRobot = (state.robots || []).find(r => (r.tasks || []).some(t => t.id === taskId));
+    const goalTask  = goalRobot && (goalRobot.tasks || []).find(t => t.id === taskId);
+    if (goalTask && !goalTask.dueDate) {
+      const weekEnd = weekEndDate(key);
+      if (weekEnd) { goalTask.dueDate = weekEnd; stampTask(goalTask); }
+    }
+  }
+
   // If the task belongs to a shared space, also mirror it in the Space Goals
   // pool so all team members can see it.
   const robot = (state.robots || []).find(r => (r.tasks || []).some(t => t.id === taskId));
@@ -4682,6 +4693,15 @@ function isoWeek(d) {
 function reviewWeekKey(d = new Date())  { const w = isoWeek(d); return `${w.year}-W${String(w.week).padStart(2, '0')}`; }
 function reviewMonthKey(d = new Date()) { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}`; }
 
+// Returns the Sunday (last day) of the ISO week as a YYYY-MM-DD string.
+function weekEndDate(weekKey) {
+  const monday = reviewKeyToStart(weekKey);
+  if (!monday) return null;
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return sunday.toISOString().slice(0, 10);
+}
+
 // Returns the ISO week key for the week immediately before the given key.
 function prevWeekKey(wk) {
   const [y, w] = wk.split('-W').map(Number);
@@ -4707,6 +4727,9 @@ function autoCarryOverGoals() {
   const prev = state.weeklyGoals?.[prevKey];
   let personalChanged = false;
 
+  const newWeekEnd  = weekEndDate(currentKey);
+  const prevWeekEnd = weekEndDate(prevKey);
+
   if (prev) {
     // ── Task-linked goals ──────────────────────────────────
     for (const taskId of (prev.taskIds || [])) {
@@ -4718,6 +4741,12 @@ function autoCarryOverGoals() {
       // Carry over only if the task still exists and isn't done yet
       if (task && task.status !== 'done' && !(current.taskIds || []).includes(taskId)) {
         current.taskIds.push(taskId);
+        // Shift due date to end of new week if it was at or before the previous week-end
+        // (covers auto-set dates and overdue manual dates).
+        if (newWeekEnd && (!task.dueDate || task.dueDate <= prevWeekEnd)) {
+          task.dueDate = newWeekEnd;
+          stampTask(task);
+        }
         personalChanged = true;
       }
     }

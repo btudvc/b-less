@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.10.5';
+var APP_VERSION = '7.10.6';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4810,13 +4810,11 @@ function renderReviews() {
 
       for (const { task, robotName, robotId } of taskGoals) {
         const isDone = task.status === 'done';
-        html += `<div class="rev-goal-item rev-goal-item--link${isDone ? ' done' : ''}" onclick="goToTask('${escapeAttr(robotId)}','${escapeAttr(task.id)}')" title="Taska git">
-          <span class="rev-goal-check${isDone ? ' checked' : ''}">${isDone ? ICO_CHECK_SM : ''}</span>
+        html += `<div class="rev-goal-item rev-goal-item--link${isDone ? ' done' : ''}" onclick="goToTask('${escapeAttr(robotId)}','${escapeAttr(task.id)}')">
           <span class="rev-goal-body">
             <span class="rev-goal-project">${escapeHtml(robotName)}</span>
             <span class="rev-goal-title">${escapeHtml(task.title)}</span>
           </span>
-          <button class="rev-goal-remove" onclick="event.stopPropagation();removeTaskFromWeeklyGoal('${escapeAttr(goalsWeekKey)}','${escapeAttr(task.id)}')" title="Kaldır">${ICO_CLOSE_SM}</button>
         </div>`;
       }
 
@@ -4932,19 +4930,37 @@ function renderReviews() {
           })();
           // Live-lookup the current task title so renames are reflected immediately.
           // Fall back to the stored snapshot if the task no longer exists.
-          const liveTask = g.taskId
-            ? (state.robots || []).flatMap(r => r.tasks || []).find(t => t.id === g.taskId)
-            : null;
+          // Live-lookup: find robot id for navigation, and current task title.
+          let liveRobotId = null;
+          let liveTask = null;
+          if (g.taskId) {
+            for (const r of (state.robots || [])) {
+              const t = (r.tasks || []).find(t => t.id === g.taskId);
+              if (t) { liveTask = t; liveRobotId = r.id; break; }
+            }
+          }
           const goalTitle = (liveTask && liveTask.title) || g.title;
-          html += `<div class="rev-goal-item rev-space-goal-item${g.done ? ' done' : ''}">
-            <button class="rev-goal-check${g.done ? ' checked' : ''}" onclick="toggleSpaceGoal('${escapeAttr(_reviewSpaceId)}','${escapeAttr(currentReviewKey)}','${g.id}')">${g.done ? ICO_CHECK_SM : ''}</button>
-            <span class="rev-goal-body">
-              ${g.listName ? `<span class="rev-goal-project">${escapeHtml(g.listName)}</span>` : ''}
-              <span class="rev-goal-title">${escapeHtml(goalTitle)}</span>
-              ${byLabel ? `<span class="rev-space-goal-by">${byLabel}</span>` : ''}
-            </span>
-            <button class="rev-goal-remove" onclick="removeSpaceGoal('${escapeAttr(_reviewSpaceId)}','${escapeAttr(currentReviewKey)}','${g.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
-          </div>`;
+          if (liveRobotId) {
+            // Task-linked goal — whole row navigates to the task, no buttons
+            html += `<div class="rev-goal-item rev-space-goal-item rev-goal-item--link${g.done ? ' done' : ''}" onclick="goToTask('${escapeAttr(liveRobotId)}','${escapeAttr(g.taskId)}')">
+              <span class="rev-goal-body">
+                ${g.listName ? `<span class="rev-goal-project">${escapeHtml(g.listName)}</span>` : ''}
+                <span class="rev-goal-title">${escapeHtml(goalTitle)}</span>
+                ${byLabel ? `<span class="rev-space-goal-by">${byLabel}</span>` : ''}
+              </span>
+            </div>`;
+          } else {
+            // Text-only space goal (no task link) — keep remove button
+            html += `<div class="rev-goal-item rev-space-goal-item${g.done ? ' done' : ''}">
+              <button class="rev-goal-check${g.done ? ' checked' : ''}" onclick="toggleSpaceGoal('${escapeAttr(_reviewSpaceId)}','${escapeAttr(currentReviewKey)}','${g.id}')">${g.done ? ICO_CHECK_SM : ''}</button>
+              <span class="rev-goal-body">
+                ${g.listName ? `<span class="rev-goal-project">${escapeHtml(g.listName)}</span>` : ''}
+                <span class="rev-goal-title">${escapeHtml(goalTitle)}</span>
+                ${byLabel ? `<span class="rev-space-goal-by">${byLabel}</span>` : ''}
+              </span>
+              <button class="rev-goal-remove" onclick="removeSpaceGoal('${escapeAttr(_reviewSpaceId)}','${escapeAttr(currentReviewKey)}','${g.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
+            </div>`;
+          }
         }
       } else {
         html += `<div class="rev-goal-empty">${escapeHtml(t('reviews.no_space_goals') || 'Henüz space hedefi yok.')}</div>`;

@@ -158,6 +158,14 @@ const I18N = {
     'reviews.saved':         'Saved',
     'reviews.week_label':    'Week',
     'reviews.placeholder':   'Wins, blockers, things to revisit, lessons…',
+    'reviews.goals':         'Goals',
+    'reviews.goals_ph':      'Add a goal…',
+    'reviews.goals_add':     'Add',
+    'reviews.completed':     'Completed this week',
+    'reviews.no_goals':      'No goals yet.',
+    'reviews.no_completed':  'No tasks completed this week.',
+    'reviews.notes':         'Notes',
+    'btn.weekly_goal':       'Goal',
     'more.section.tools': 'Tools',
   },
   tr: {
@@ -433,6 +441,14 @@ Object.assign(I18N.tr, {
   'reviews.saved':         'Kaydedildi',
   'reviews.week_label':    'Hafta',
   'reviews.placeholder':   'Kazanimlar, takiliklar, dersler, bir sonraki adim…',
+  'reviews.goals':         'Haftalık Hedefler',
+  'reviews.goals_ph':      'Hedef ekle…',
+  'reviews.goals_add':     'Ekle',
+  'reviews.completed':     'Bu hafta tamamlananlar',
+  'reviews.no_goals':      'Henüz hedef eklenmedi.',
+  'reviews.no_completed':  'Bu hafta tamamlanan task yok.',
+  'reviews.notes':         'Notlar',
+  'btn.weekly_goal':       'Hedef',
   'more.section.tools': 'Araclar',
 });
 
@@ -1255,6 +1271,7 @@ function renderTask(task) {
             ${task.status !== 'done'    ? `<button class="btn-sm ${isToday(task.dueDate) ? 'active-toggle' : ''}" onclick="event.stopPropagation();assignToday('${task.id}')" title="${isToday(task.dueDate) ? t('btn.remove_today_title') : t('btn.start_today_title')}">${isToday(task.dueDate) ? t('btn.today_star') : t('btn.add_to_today')}</button>` : ''}
             ${task.status !== 'done'    ? `<button class="btn-sm" onclick="event.stopPropagation();snoozeTask('${task.id}',1)" title="Push to tomorrow">+1d</button>` : ''}
             ${task.status !== 'done'    ? `<button class="btn-sm" onclick="event.stopPropagation();snoozeTask('${task.id}',7)" title="Push by a week">+1w</button>` : ''}
+            <button class="btn-sm${isTaskWeeklyGoal(task.id) ? ' active-toggle' : ''}" onclick="event.stopPropagation();toggleTaskWeeklyGoal('${task.id}')" title="${t('btn.weekly_goal') || 'Haftalık hedef'}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>${t('btn.weekly_goal') || 'Hedef'}</span></button>
             ${task.status === 'active'  ? `<button class="btn-sm" onclick="event.stopPropagation();setStatus('${task.id}','pending')">${ICO.pause}<span>Pending</span></button>` : ''}
             ${task.status === 'pending' ? `<button class="btn-sm" onclick="event.stopPropagation();setStatus('${task.id}','active')">${ICO.play}<span>Activate</span></button>` : ''}
             <button class="btn-sm" onclick="event.stopPropagation();editTask('${task.id}')">Edit</button>
@@ -4184,7 +4201,92 @@ function ensureReviewsState() {
   if (!state.reviews || typeof state.reviews !== 'object') state.reviews = { week: {}, month: {} };
   if (!state.reviews.week)  state.reviews.week  = {};
   if (!state.reviews.month) state.reviews.month = {};
+  if (!state.weeklyGoals || typeof state.weeklyGoals !== 'object') state.weeklyGoals = {};
 }
+
+function ensureWeekGoal(weekKey) {
+  if (!state.weeklyGoals) state.weeklyGoals = {};
+  if (!state.weeklyGoals[weekKey] || typeof state.weeklyGoals[weekKey] !== 'object' || Array.isArray(state.weeklyGoals[weekKey])) {
+    state.weeklyGoals[weekKey] = { taskIds: [], goals: [] };
+  }
+  if (!Array.isArray(state.weeklyGoals[weekKey].taskIds)) state.weeklyGoals[weekKey].taskIds = [];
+  if (!Array.isArray(state.weeklyGoals[weekKey].goals))   state.weeklyGoals[weekKey].goals   = [];
+}
+
+function isTaskWeeklyGoal(taskId) {
+  const key = reviewWeekKey();
+  return (state.weeklyGoals?.[key]?.taskIds || []).includes(taskId);
+}
+
+function getCompletedTasksForWeek(weekKey) {
+  const start = reviewKeyToStart(weekKey);
+  if (!start) return [];
+  const end = new Date(start);
+  end.setDate(start.getDate() + 7);
+  const results = [];
+  for (const robot of (state.robots || [])) {
+    for (const task of (robot.tasks || [])) {
+      if (task.status === 'done' && task.completedAt) {
+        const d = new Date(task.completedAt);
+        if (d >= start && d < end) results.push({ task, robotName: robot.name });
+      }
+    }
+  }
+  return results;
+}
+
+window.toggleTaskWeeklyGoal = function(taskId) {
+  ensureReviewsState();
+  const key = reviewWeekKey();
+  ensureWeekGoal(key);
+  const ids = state.weeklyGoals[key].taskIds;
+  const idx = ids.indexOf(taskId);
+  if (idx === -1) ids.push(taskId);
+  else ids.splice(idx, 1);
+  save();
+  renderCurrentDetail();
+  if (typeof renderReviews === 'function') renderReviews();
+};
+
+window.addWeeklyGoalText = function() {
+  if (!currentReviewKey || reviewPeriod !== 'week') return;
+  const inp = document.getElementById('rev-goal-input');
+  const title = (inp?.value || '').trim();
+  if (!title) return;
+  ensureReviewsState();
+  ensureWeekGoal(currentReviewKey);
+  state.weeklyGoals[currentReviewKey].goals.push({ id: uid(), title, done: false, createdAt: Date.now() });
+  inp.value = '';
+  save();
+  renderReviews();
+};
+
+window.toggleWeeklyGoalText = function(weekKey, goalId) {
+  const entry = state.weeklyGoals?.[weekKey];
+  if (!entry) return;
+  const goal = (entry.goals || []).find(g => g.id === goalId);
+  if (!goal) return;
+  goal.done = !goal.done;
+  save();
+  renderReviews();
+};
+
+window.removeTaskFromWeeklyGoal = function(weekKey, taskId) {
+  const entry = state.weeklyGoals?.[weekKey];
+  if (!entry) return;
+  entry.taskIds = (entry.taskIds || []).filter(id => id !== taskId);
+  save();
+  renderCurrentDetail();
+  renderReviews();
+};
+
+window.removeWeeklyGoalText = function(weekKey, goalId) {
+  const entry = state.weeklyGoals?.[weekKey];
+  if (!entry) return;
+  entry.goals = (entry.goals || []).filter(g => g.id !== goalId);
+  save();
+  renderReviews();
+};
 
 // ISO 8601 week number — Monday-based, week 1 contains Jan 4th.
 function isoWeek(d) {
@@ -4304,6 +4406,110 @@ function renderReviews() {
     if (delBtn) delBtn.style.display = 'none';
   }
   if (savedLbl) savedLbl.textContent = '';
+
+  // ── Goals section (weekly only) ──────────────────────────
+  const goalsEl = document.getElementById('rev-goals-section');
+  const completedEl = document.getElementById('rev-completed-section');
+  const notesLabelEl = document.getElementById('rev-notes-label');
+  const isWeekPeriod = reviewPeriod === 'week' && currentReviewKey;
+
+  if (goalsEl) {
+    if (isWeekPeriod) {
+      const weekData = state.weeklyGoals?.[currentReviewKey] || {};
+      const taskIds = weekData.taskIds || [];
+      const textGoals = weekData.goals || [];
+
+      // Resolve task IDs to actual task objects
+      const taskGoals = [];
+      for (const r of (state.robots || [])) {
+        for (const task of (r.tasks || [])) {
+          if (taskIds.includes(task.id)) taskGoals.push({ task, robotName: r.name });
+        }
+      }
+
+      const ICO_TARGET = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
+      const ICO_CLOSE_SM = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+      const ICO_CHECK_SM = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+      let html = `<div class="rev-section-header">${ICO_TARGET} ${escapeHtml(t('reviews.goals') || 'Haftalık Hedefler')}</div>`;
+      html += '<div class="rev-goals-list">';
+
+      for (const { task, robotName } of taskGoals) {
+        const isDone = task.status === 'done';
+        html += `<div class="rev-goal-item${isDone ? ' done' : ''}">
+          <span class="rev-goal-status">${isDone ? ICO_CHECK_SM : ''}</span>
+          <span class="rev-goal-body">
+            <span class="rev-goal-project">${escapeHtml(robotName)}</span>
+            <span class="rev-goal-title">${escapeHtml(task.title)}</span>
+          </span>
+          <button class="rev-goal-remove" onclick="removeTaskFromWeeklyGoal('${escapeAttr(currentReviewKey)}','${task.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
+        </div>`;
+      }
+
+      for (const g of textGoals) {
+        html += `<div class="rev-goal-item${g.done ? ' done' : ''}">
+          <button class="rev-goal-check${g.done ? ' checked' : ''}" onclick="toggleWeeklyGoalText('${escapeAttr(currentReviewKey)}','${g.id}')">${g.done ? ICO_CHECK_SM : ''}</button>
+          <span class="rev-goal-body">
+            <span class="rev-goal-title">${escapeHtml(g.title)}</span>
+          </span>
+          <button class="rev-goal-remove" onclick="removeWeeklyGoalText('${escapeAttr(currentReviewKey)}','${g.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
+        </div>`;
+      }
+
+      if (!taskGoals.length && !textGoals.length) {
+        html += `<div class="rev-goal-empty">${escapeHtml(t('reviews.no_goals') || 'Henüz hedef eklenmedi.')}</div>`;
+      }
+
+      html += '</div>';
+      html += `<div class="rev-goal-add">
+        <input class="rev-goal-input" id="rev-goal-input" type="text"
+          placeholder="${escapeAttr(t('reviews.goals_ph') || 'Hedef ekle…')}"
+          onkeydown="if(event.key==='Enter')addWeeklyGoalText()">
+        <button class="btn-sm" onclick="addWeeklyGoalText()">${escapeHtml(t('reviews.goals_add') || 'Ekle')}</button>
+      </div>`;
+
+      goalsEl.innerHTML = html;
+      goalsEl.style.display = '';
+    } else {
+      goalsEl.innerHTML = '';
+      goalsEl.style.display = 'none';
+    }
+  }
+
+  // ── Completed tasks section (weekly only) ─────────────────
+  if (completedEl) {
+    if (isWeekPeriod) {
+      const completed = getCompletedTasksForWeek(currentReviewKey);
+      const ICO_CHECK_OK = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+      let html = `<div class="rev-section-header">${ICO_CHECK_OK} ${escapeHtml(t('reviews.completed') || 'Bu hafta tamamlananlar')}</div>`;
+      if (completed.length) {
+        html += '<div class="rev-completed-list">';
+        for (const { task, robotName } of completed) {
+          html += `<div class="rev-completed-item">
+            <span class="rev-completed-project">${escapeHtml(robotName)}</span>
+            <span class="rev-completed-title">${escapeHtml(task.title)}</span>
+          </div>`;
+        }
+        html += '</div>';
+      } else {
+        html += `<div class="rev-goal-empty">${escapeHtml(t('reviews.no_completed') || 'Bu hafta tamamlanan task yok.')}</div>`;
+      }
+      completedEl.innerHTML = html;
+      completedEl.style.display = '';
+    } else {
+      completedEl.innerHTML = '';
+      completedEl.style.display = 'none';
+    }
+  }
+
+  if (notesLabelEl) {
+    if (isWeekPeriod) {
+      notesLabelEl.textContent = t('reviews.notes') || 'Notlar';
+      notesLabelEl.style.display = '';
+    } else {
+      notesLabelEl.style.display = 'none';
+    }
+  }
 }
 
 let _revSaveTimer = null;

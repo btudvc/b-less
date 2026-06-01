@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.10.1';
+var APP_VERSION = '7.10.2';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4404,16 +4404,12 @@ function _pushSpaceGoals(spaceId) {
         const updated = findSpace(spaceId);
         if (updated) updated.collaborators = saved;
       }
-      // Log what we're about to push
-      const goalsToSend = state.spaceGoals?.[spaceId];
-      console.log('[_pushSpaceGoals] pushing spaceGoals for space', spaceId, ':', JSON.stringify(goalsToSend));
       const r = await DriveAPI.pushSpaceFile(sp.driveFileId, findSpace(spaceId), null);
       const fresh = findSpace(spaceId);
       if (fresh) { fresh.lastSyncedRevision = r.revisionId; fresh.lastSyncedAt = Date.now(); }
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
-      console.log('[_pushSpaceGoals] push successful, revisionId:', r.revisionId);
       renderReviews();
-    } catch(e) { console.error('[_pushSpaceGoals] error:', e); }
+    } catch(e) { /* transient error — next push will retry */ }
   })();
 }
 
@@ -4458,12 +4454,19 @@ window.toggleSpaceGoal = function(spaceId, weekKey, goalId) {
 window.removeSpaceGoal = function(spaceId, weekKey, goalId) {
   const goals = state.spaceGoals?.[spaceId]?.[weekKey];
   if (!goals) return;
-  // Soft-delete: mark deleted + bump updatedAt so the merge propagates the
-  // deletion to other members. Hard-removing causes resurrection on next pull
-  // (remote still has it, merge re-adds it since local is missing).
   const goal = goals.find(g => g.id === goalId);
   if (!goal) return;
-  goal.deleted = true;
+  const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo) ? DriveAPI.getUserInfo() : null;
+  // If multiple contributors exist, only remove the current user's contribution.
+  // Soft-delete the whole entry only when the last contributor leaves.
+  if (me && goal.contributors && goal.contributors.length > 1) {
+    goal.contributors = goal.contributors.filter(
+      c => (c.email || '').toLowerCase() !== (me.email || '').toLowerCase()
+    );
+  } else {
+    // Single (or unknown) contributor — soft-delete so Drive merge doesn't resurrect it.
+    goal.deleted = true;
+  }
   goal.updatedAt = Date.now();
   save();
   renderReviews();
@@ -4566,21 +4569,27 @@ window.toggleTaskWeeklyGoal = function(taskId) {
           });
         }
       } else {
-        // Removing — remove self from contributors; soft-delete only if no contributors remain
-        spaceGoals.forEach(g => {
-          if (g.taskId === taskId && !g.deleted) {
-            if (me && g.contributors && g.contributors.length > 0) {
-              g.contributors = g.contributors.filter(
-                c => (c.email || '').toLowerCase() !== (me.email || '').toLowerCase()
-              );
-              if (g.contributors.length === 0) g.deleted = true;
-            } else {
-              // Legacy entry with no contributors array — just soft-delete
-              g.deleted = true;
+        // Removing — only touch space goals if we can identify the current user.
+        // If me is null (Drive not signed in) we can't safely remove just our contribution
+        // without risking deletion of another user's goal entry.
+        if (me) {
+          spaceGoals.forEach(g => {
+            if (g.taskId === taskId && !g.deleted) {
+              if (g.contributors && g.contributors.length > 0) {
+                g.contributors = g.contributors.filter(
+                  c => (c.email || '').toLowerCase() !== (me.email || '').toLowerCase()
+                );
+                if (g.contributors.length === 0) g.deleted = true;
+              } else {
+                // Legacy entry — only remove if we added it (or creator unknown)
+                if (!g.addedBy || g.addedBy.toLowerCase() === me.email.toLowerCase()) {
+                  g.deleted = true;
+                }
+              }
+              g.updatedAt = Date.now();
             }
-            g.updatedAt = Date.now();
-          }
-        });
+          });
+        }
       }
       // Push updated space goals to Drive
       if (typeof _pushSpaceGoals === 'function') _pushSpaceGoals(sp.id);
@@ -4907,11 +4916,17 @@ function renderReviews() {
             if (g.addedBy)     return escapeHtml(g.addedBy.split('@')[0]);
             return '';
           })();
+          // Live-lookup the current task title so renames are reflected immediately.
+          // Fall back to the stored snapshot if the task no longer exists.
+          const liveTask = g.taskId
+            ? (state.robots || []).flatMap(r => r.tasks || []).find(t => t.id === g.taskId)
+            : null;
+          const goalTitle = (liveTask && liveTask.title) || g.title;
           html += `<div class="rev-goal-item rev-space-goal-item${g.done ? ' done' : ''}">
             <button class="rev-goal-check${g.done ? ' checked' : ''}" onclick="toggleSpaceGoal('${escapeAttr(_reviewSpaceId)}','${escapeAttr(currentReviewKey)}','${g.id}')">${g.done ? ICO_CHECK_SM : ''}</button>
             <span class="rev-goal-body">
               ${g.listName ? `<span class="rev-goal-project">${escapeHtml(g.listName)}</span>` : ''}
-              <span class="rev-goal-title">${escapeHtml(g.title)}</span>
+              <span class="rev-goal-title">${escapeHtml(goalTitle)}</span>
               ${byLabel ? `<span class="rev-space-goal-by">${byLabel}</span>` : ''}
             </span>
             <button class="rev-goal-remove" onclick="removeSpaceGoal('${escapeAttr(_reviewSpaceId)}','${escapeAttr(currentReviewKey)}','${g.id}')" title="Kaldır">${ICO_CLOSE_SM}</button>
@@ -7434,7 +7449,7 @@ function schedulePush(spaceId) {
   if (!DriveAPI || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) return;
   const existing = _pendingPushes.get(spaceId);
   if (existing) clearTimeout(existing);
-  const t = setTimeout(() => { doAutoPush(spaceId, 0); }, PUSH_DEBOUNCE_MS);
+  const t = setTimeout(() => { doAutoPush(spaceId); }, PUSH_DEBOUNCE_MS);
   _pendingPushes.set(spaceId, t);
 }
 

@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.9.3';
+var APP_VERSION = '7.9.4';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -4317,22 +4317,35 @@ window.syncSpaceGoals = function() {
   const btn = document.getElementById('rev-space-sync-btn');
   if (btn) { btn.disabled = true; btn.textContent = '…'; }
   const spaceId = _reviewSpaceId;
-  if (!spaceId) return;
+  if (!spaceId) { showAppToast('syncSpaceGoals: no spaceId (_reviewSpaceId is null)', 'error'); if (btn) { btn.disabled=false; btn.textContent='↺'; } return; }
   const sp = findSpace(spaceId);
-  if (!sp || !sp.driveFileId) return;
-  if (typeof DriveAPI === 'undefined' || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) return;
+  if (!sp || !sp.driveFileId) { showAppToast('syncSpaceGoals: space not found or no driveFileId', 'error'); if (btn) { btn.disabled=false; btn.textContent='↺'; } return; }
+  if (typeof DriveAPI === 'undefined' || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) { showAppToast('syncSpaceGoals: Drive not signed in', 'error'); if (btn) { btn.disabled=false; btn.textContent='↺'; } return; }
   (async () => {
     try {
       const r = await DriveAPI.pullSpaceFile(sp.driveFileId);
+      console.log('[syncSpaceGoals] pulled payload keys:', r && r.payload ? Object.keys(r.payload) : 'no payload');
+      console.log('[syncSpaceGoals] spaceGoals in Drive:', JSON.stringify(r?.payload?.spaceGoals));
+      console.log('[syncSpaceGoals] currentReviewKey:', currentReviewKey, '  _reviewSpaceId:', spaceId);
+      console.log('[syncSpaceGoals] local state.spaceGoals:', JSON.stringify(state.spaceGoals));
       if (r && r.payload && r.payload.space) {
         const savedCollabs = sp.collaborators || [];
         mergeImportedSpacePayload(r);
         const updated = findSpace(spaceId);
         if (updated) updated.collaborators = savedCollabs;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+        // Surface what we found so the user can confirm
+        const driveGoals = r.payload.spaceGoals?.[spaceId]?.[currentReviewKey] || [];
+        const localGoals = state.spaceGoals?.[spaceId]?.[currentReviewKey] || [];
+        showAppToast(`Sync: Drive had ${driveGoals.length} goal(s) | local now ${localGoals.length} | week: ${currentReviewKey || 'none'}`);
         renderReviews();
+      } else {
+        showAppToast('syncSpaceGoals: pull returned no valid space payload', 'error');
       }
-    } catch {}
+    } catch(e) {
+      showAppToast('syncSpaceGoals error: ' + (e && e.message || String(e)), 'error');
+      console.error('[syncSpaceGoals] error:', e);
+    }
     if (btn) { btn.disabled = false; btn.textContent = '↺'; }
   })();
 };
@@ -4355,19 +4368,24 @@ function _pushSpaceGoals(spaceId) {
         const updated = findSpace(spaceId);
         if (updated) updated.collaborators = saved;
       }
+      // Log what we're about to push
+      const goalsToSend = state.spaceGoals?.[spaceId];
+      console.log('[_pushSpaceGoals] pushing spaceGoals for space', spaceId, ':', JSON.stringify(goalsToSend));
       const r = await DriveAPI.pushSpaceFile(sp.driveFileId, findSpace(spaceId), null);
       const fresh = findSpace(spaceId);
       if (fresh) { fresh.lastSyncedRevision = r.revisionId; fresh.lastSyncedAt = Date.now(); }
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+      console.log('[_pushSpaceGoals] push successful, revisionId:', r.revisionId);
       renderReviews();
-    } catch {}
+    } catch(e) { console.error('[_pushSpaceGoals] error:', e); }
   })();
 }
 
 window.addSpaceGoal = function() {
-  if (!currentReviewKey || reviewPeriod !== 'week') return;
+  console.log('[addSpaceGoal] currentReviewKey:', currentReviewKey, 'reviewPeriod:', reviewPeriod, '_reviewSpaceId:', _reviewSpaceId);
+  if (!currentReviewKey || reviewPeriod !== 'week') { console.warn('[addSpaceGoal] aborted: no currentReviewKey or not week period'); return; }
   const spaceId = _reviewSpaceId || (getSharedSpaces()[0] && getSharedSpaces()[0].id);
-  if (!spaceId) return;
+  if (!spaceId) { console.warn('[addSpaceGoal] aborted: no spaceId'); return; }
   const inp = document.getElementById('rev-space-goal-input');
   const title = (inp?.value || '').trim();
   if (!title) return;

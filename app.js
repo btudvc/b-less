@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.8';
+var APP_VERSION = '7.12.9';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -3585,22 +3585,10 @@ const BackupManager = (() => {
     return diff < 1 ? t('bp.just_now') : t('bp.min_ago', { n: diff });
   }
 
-  // Inline settings block rendered inside the popover (theme toggle +
-  // export ICS). Stamped under both signed-in and signed-out states so
-  // the user reaches them without an extra click.
+  // Inline metadata rendered inside the popover.
   function settingsBlockHtml() {
-    const current = normalizeTheme(document.documentElement.getAttribute('data-theme'));
-    const themeBtn = (id, label, svg) => `
-      <button class="theme-toggle-btn ${current === id ? 'active' : ''}" data-theme-set="${id}" type="button">
-        ${svg}<span>${label}</span>
-      </button>`;
     return `
       <div class="bp-settings-block">
-        <div class="bp-section-label">${escapeHtml(t('more.section.settings') || 'Settings')}</div>
-        <div class="theme-toggle bp-theme-toggle" role="radiogroup" aria-label="Theme">
-          ${themeBtn('light', 'Light', '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>')}
-          ${themeBtn('dim',   'Dim',   '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" stroke-dasharray="2 2"/></svg>')}
-        </div>
         <div class="bp-version">v${escapeHtml(typeof APP_VERSION !== 'undefined' ? APP_VERSION : '?')}</div>
       </div>
     `;
@@ -3688,17 +3676,6 @@ const BackupManager = (() => {
         headerLabel.textContent = '';
       }
     }
-
-    // Theme buttons inside the popover — bind clicks each render since
-    // innerHTML was just replaced. setTheme/applyTheme will toggle the
-    // .active class on every .theme-toggle-btn in the page (including
-    // the ones inside the popover) so visual state stays in sync.
-    pop.querySelectorAll('.theme-toggle-btn[data-theme-set]').forEach(b => {
-      b.addEventListener('click', e => {
-        e.stopPropagation();
-        if (typeof setTheme === 'function') setTheme(b.dataset.themeSet);
-      });
-    });
 
     pop.querySelectorAll('[data-act]').forEach(el => {
       el.addEventListener('click', async e => {
@@ -4527,13 +4504,12 @@ function closeJournalDetail() {
   document.getElementById('journal')?.removeAttribute('data-detail-open');
 }
 
-// ── THEME TOGGLE (light / dim) ────────────────
+// ── THEME (dim only) ────────────────
 const THEME_KEY = 'b-less-theme';
 const DEFAULT_THEME = 'dim';
-const THEME_COLORS = { light: '#ffffff', dim: '#1c1f25' };
+const THEME_COLORS = { dim: '#1c1f25' };
 function normalizeTheme(name) {
-  if (name === 'dark') return 'dim';
-  return THEME_COLORS[name] ? name : DEFAULT_THEME;
+  return DEFAULT_THEME;
 }
 function applyTheme(name) {
   const t = normalizeTheme(name);
@@ -8185,32 +8161,18 @@ function renderHome() {
   const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
   const myEmail = (me && me.email) ? me.email.toLowerCase() : null;
 
-  // This Week — tasks (due) + meetings + visits in the next 7 days
-  // (today inclusive). Mixed list, sorted by date.
+  // This Week — assigned upcoming tasks + scheduled meetings/visits.
   const weekItems = [];
   (state.robots || []).forEach(p => {
     (p.tasks || []).forEach(task => {
       if (task.status === 'done') return;
       const assignedToMe = taskAssignedToEmail(task, myEmail);
-      if (task.dueDate) {
-        const d = new Date(task.dueDate + 'T00:00:00');
-        if (d >= today && d < weekEnd) {
-          weekItems.push({
-            kind: 'task',
-            date: task.dueDate,
-            title: task.title || 'Task',
-            sub: p.name || '',
-            id: task.id,
-            projectId: p.id,
-            assignedToMe,
-            assignees: getTaskAssignees(task),
-          });
-        }
-      } else if (assignedToMe) {
+      if (!assignedToMe || !task.dueDate) return;
+      const d = new Date(task.dueDate + 'T00:00:00');
+      if (d >= today && d < weekEnd) {
         weekItems.push({
           kind: 'task',
-          date: '',
-          assignedOnly: true,
+          date: task.dueDate,
           title: task.title || 'Task',
           sub: p.name || '',
           id: task.id,
@@ -8224,14 +8186,18 @@ function renderHome() {
   (state.meetings || []).forEach(m => {
     if (!m.date) return;
     const d = new Date(m.date + 'T00:00:00');
-    if (d >= today && d < weekEnd) weekItems.push({ kind: 'meeting', date: m.date, title: m.title || 'Meeting', sub: m.location || '', id: m.id });
+    if (d >= today && d < weekEnd) {
+      weekItems.push({ kind: 'meeting', date: m.date, title: m.title || 'Meeting', sub: m.location || '', id: m.id });
+    }
   });
   (state.fieldVisits || []).forEach(v => {
     if (!v.date) return;
     const d = new Date(v.date + 'T00:00:00');
-    if (d >= today && d < weekEnd) weekItems.push({ kind: 'visit', date: v.date, title: v.location || 'Visit', sub: v.robot || '', id: v.id });
+    if (d >= today && d < weekEnd) {
+      weekItems.push({ kind: 'visit', date: v.date, title: v.location || 'Visit', sub: v.robot || '', id: v.id });
+    }
   });
-  weekItems.sort((a, b) => (a.date || '9999-12-31').localeCompare(b.date || '9999-12-31'));
+  weekItems.sort((a, b) => a.date.localeCompare(b.date));
 
   const weekListEl = document.getElementById('home-week-list');
   const weekCountEl = document.getElementById('home-week-count');
@@ -8244,39 +8210,27 @@ function renderHome() {
             <path d="M12 2l1.8 4.5L18 8.4l-4.2 1.9L12 14.8l-1.8-4.5L6 8.4l4.2-1.9L12 2z"/>
             <path d="M19 14l.9 2.2L22 17l-2.1.8L19 20l-.9-2.2L16 17l2.1-.8L19 14z"/>
           </svg>
-          <span>This week is clear</span>
+          <span>No assigned tasks coming up</span>
         </div>
       `;
     } else {
-      // Item-type icons. Tasks reuse the project's brand colour (set
-      // per-row); meetings and visits use a fixed accent so they read
-      // as a different "kind" at a glance.
       const ICO_T = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>';
       const ICO_M = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
       const ICO_V = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>';
       const ICONS = { task: ICO_T, meeting: ICO_M, visit: ICO_V };
       const KIND_COLORS = { meeting: '#f97316', visit: '#10b981' };
-      const assignedOnlyItems = weekItems.filter(it => it.assignedOnly);
-      const datedWeekItems = weekItems.filter(it => it.date);
       const renderWeekRow = (it) => {
-        // Task rows inherit the parent project's stable colour so the
-        // user can spot "all Oildiver tasks" at a glance. Meetings /
-        // visits keep their kind colour.
         const c = it.kind === 'task' && it.projectId
           ? pickListColor(it.projectId)
           : (KIND_COLORS[it.kind] || 'var(--accent)');
-        const assignees = it.kind === 'task' && it.assignees?.length
+        const assignees = it.assignees?.length
           ? `<span class="home-list-assignees">${it.assignees.map(a => renderAssigneeChip(a)).join('')}</span>`
           : '';
-        const assignedPill = it.assignedToMe
-          ? '<span class="home-list-pill home-list-pill-me">Assigned to me</span>'
-          : '';
-        const noDuePill = it.assignedOnly
-          ? '<span class="home-list-pill">No due date</span>'
-          : '';
-        const meta = [assignees, assignedPill, noDuePill].filter(Boolean).join('');
+        const duePill = `<span class="home-list-pill">${escapeHtml(formatDueShort(it.date))}</span>`;
+        const assignedPill = it.kind === 'task' ? '<span class="home-list-pill home-list-pill-me">Assigned to me</span>' : '';
+        const meta = [assignees, assignedPill, duePill].filter(Boolean).join('');
         return `
-          <button class="home-list-item home-list-item-tinted${it.assignedToMe ? ' home-list-item-assigned' : ''}" data-week-kind="${it.kind}" data-week-id="${escapeAttr(it.id)}" data-week-pid="${escapeAttr(it.projectId || '')}" style="--row-c: ${c};" type="button">
+          <button class="home-list-item home-list-item-tinted${it.kind === 'task' ? ' home-list-item-assigned' : ''}" data-week-kind="${it.kind}" data-week-id="${escapeAttr(it.id)}" data-week-pid="${escapeAttr(it.projectId || '')}" style="--row-c: ${c};" type="button">
             <span class="home-list-item-icon" style="--c: ${c};">${ICONS[it.kind]}</span>
             <span class="home-list-item-body">
               <span class="home-list-item-title">${escapeHtml(it.title)}</span>
@@ -8287,48 +8241,15 @@ function renderHome() {
         `;
       };
 
-      // Group by ISO date so headings mirror the strip above.
-      const byDay = {};
-      datedWeekItems.forEach(it => { (byDay[it.date] = byDay[it.date] || []).push(it); });
-      const dayKeys = Object.keys(byDay).sort();
-      // Localised day labels — match the mini strip.
-      const TR_DAYS = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
-      const EN_DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-      const langA = (typeof currentLang === 'string' && currentLang) ||
-                    (typeof state === 'object' && state && state.lang) || 'en';
-      const dayNames = langA.toLowerCase().startsWith('tr') ? TR_DAYS : EN_DAYS;
-      const todayKey = ymd(today);
-      const tomorrowKey = (() => { const d = new Date(today); d.setDate(d.getDate() + 1); return ymd(d); })();
-      function headingFor(iso) {
-        if (iso === todayKey)    return langA.toLowerCase().startsWith('tr') ? 'Bugün' : 'Today';
-        if (iso === tomorrowKey) return langA.toLowerCase().startsWith('tr') ? 'Yarın' : 'Tomorrow';
-        const d = new Date(iso + 'T00:00:00');
-        return `${dayNames[d.getDay()]} ${d.getDate()}`;
-      }
-
-      const assignedOnlyHtml = assignedOnlyItems.length ? `
+      weekListEl.innerHTML = `
         <div class="home-day-group home-assigned-group" data-assigned-to-me="true">
           <div class="home-day-head">
-            <span class="home-day-name">Assigned to me</span>
-            <span class="home-day-count">${assignedOnlyItems.length}</span>
+            <span class="home-day-name">Upcoming</span>
+            <span class="home-day-count">${weekItems.length}</span>
           </div>
-          ${assignedOnlyItems.map(renderWeekRow).join('')}
+          ${weekItems.map(renderWeekRow).join('')}
         </div>
-      ` : '';
-
-      weekListEl.innerHTML = assignedOnlyHtml + dayKeys.map(iso => {
-        const items = byDay[iso];
-        const rows = items.map(renderWeekRow).join('');
-        return `
-          <div class="home-day-group" data-day="${iso}">
-            <div class="home-day-head">
-              <span class="home-day-name">${escapeHtml(headingFor(iso))}</span>
-              <span class="home-day-count">${items.length}</span>
-            </div>
-            ${rows}
-          </div>
-        `;
-      }).join('');
+      `;
 
       weekListEl.querySelectorAll('[data-week-kind]').forEach(el => {
         el.addEventListener('click', () => {
@@ -9098,10 +9019,6 @@ document.querySelectorAll('[data-drawer-go]').forEach(b => {
       x.classList.toggle('active', x === b);
     });
   });
-});
-
-document.querySelectorAll('.theme-toggle-btn').forEach(b => {
-  b.addEventListener('click', () => setTheme(b.dataset.themeSet));
 });
 
 // Version is rendered straight into index.html so it shows even if app.js

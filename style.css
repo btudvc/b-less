@@ -1232,48 +1232,6 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
   text-overflow: ellipsis;
 }
 
-/* Floating budgie sprite — bottom-right on desktop, bumped up on
-   mobile so it clears the bottom-nav bar (and roughly sits over the
-   "More" button area). image-rendering keeps the 64px sprite crisp
-   when scaled up. */
-.topbar-budgie {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  width: 56px; height: 56px;
-  display: block;
-  z-index: 70;
-  cursor: pointer;
-  image-rendering: pixelated;
-  -ms-interpolation-mode: nearest-neighbor;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .25));
-  transition: transform .12s var(--ease);
-}
-.topbar-budgie:hover { transform: scale(1.06); }
-.topbar-budgie:active { transform: scale(.94); }
-.topbar-budgie.jumping {
-  animation: budgieJump .65s cubic-bezier(.4, 0, .2, 1);
-}
-@keyframes budgieJump {
-  0%   { transform: translateY(0)    rotate(0); }
-  25%  { transform: translateY(-22px) rotate(-8deg); }
-  45%  { transform: translateY(-28px) rotate(0); }
-  65%  { transform: translateY(-10px) rotate(8deg); }
-  85%  { transform: translateY(0)    rotate(0) scale(1.06, .94); }
-  100% { transform: translateY(0)    rotate(0) scale(1, 1); }
-}
-.topbar-budgie:not([src]) { display: none; }
-
-/* Mobile: lift the budgie above the bottom-nav bar. The bar is 64px
-   tall + safe-area, plus 6px of breathing room. */
-@media (max-width: 999px) {
-  .topbar-budgie {
-    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
-    right: 12px;
-    width: 48px; height: 48px;
-  }
-}
-
 /* Avatar button — picture when signed in, fallback user icon when not.
    No `overflow: hidden` on the button so the presence dot can sit
    outside the round edge; the <img> clips itself via its own
@@ -1474,6 +1432,75 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
   border-radius: 50%;
   background: var(--accent);
   opacity: .65;
+}
+.home-goals-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .025)),
+    rgba(19, 24, 32, .62);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 14px 34px rgba(0, 0, 0, .16);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  transition: transform .16s var(--ease), border-color .16s var(--ease), background .16s var(--ease), box-shadow .16s var(--ease);
+}
+.home-goals-shortcut:hover {
+  transform: translateY(-1px);
+  border-color: rgba(96, 165, 250, .46);
+  background:
+    linear-gradient(135deg, rgba(96, 165, 250, .16), rgba(255, 255, 255, .04)),
+    rgba(22, 28, 38, .72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 18px 40px rgba(0, 0, 0, .2);
+}
+.home-goals-shortcut-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  color: var(--accent);
+  background: rgba(96, 165, 250, .13);
+  border: 1px solid rgba(96, 165, 250, .22);
+}
+.home-goals-shortcut-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.home-goals-shortcut-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home-goals-shortcut-sub {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home-goals-shortcut-arrow {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 16px;
+  line-height: 1;
 }
 .home-goals-more {
   display: block;
@@ -1728,6 +1755,14 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   gap: 10px;
 }
 .home-day-group + .home-day-group { margin-top: 20px; }
+.home-assigned-group {
+  padding: 10px;
+  border: 1px solid rgba(96, 165, 250, .18);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(96, 165, 250, .07), rgba(255, 255, 255, .02)),
+    rgba(15, 23, 42, .18);
+}
 .home-day-head {
   display: inline-flex;     /* hugs content, no solid rectangle */
   align-items: center;
@@ -1799,6 +1834,14 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   transition: background .12s var(--ease);
 }
 .home-list-item:hover { background: var(--surface-2); }
+.home-list-item-assigned {
+  border: 1px solid rgba(96, 165, 250, .24);
+  background: linear-gradient(135deg, rgba(96, 165, 250, .08), rgba(255, 255, 255, .025));
+}
+.home-list-item-assigned:hover {
+  border-color: rgba(96, 165, 250, .42);
+  background: linear-gradient(135deg, rgba(96, 165, 250, .13), rgba(255, 255, 255, .04));
+}
 .home-list-item-icon {
   width: 32px; height: 32px;
   border-radius: 9px;
@@ -1818,6 +1861,45 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 }
 .home-list-item-sub {
   font-size: 12px; color: var(--muted);
+}
+.home-list-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  margin-top: 5px;
+  flex-wrap: wrap;
+}
+.home-list-assignees {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+.home-list-assignees .task-assignee-chip {
+  width: 20px;
+  height: 20px;
+  margin-right: -4px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.home-list-assignees .task-assignee-chip:last-child { margin-right: 0; }
+.home-list-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, .24);
+  background: rgba(148, 163, 184, .11);
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+.home-list-pill-me {
+  border-color: rgba(96, 165, 250, .3);
+  background: rgba(96, 165, 250, .14);
+  color: var(--accent);
 }
 .home-list-empty {
   padding: 14px 12px;
@@ -2750,6 +2832,87 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 .nb-entry-text em     { font-style: italic; }
 .nb-entry-text .md-list { margin: 6px 0; padding-left: 20px; }
 .nb-entry-text .md-list li { margin: 2px 0; }
+.nb-entry-text .md-check {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-left: -18px;
+}
+.nb-entry-text .md-check-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-top: 3px;
+  border-radius: 4px;
+  border: 1px solid var(--border-2);
+  color: var(--accent);
+  font-size: 10px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+.nb-entry-text .md-check.checked .md-check-box {
+  border-color: rgba(96, 165, 250, .45);
+  background: rgba(96, 165, 250, .14);
+}
+.md-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.md-table {
+  width: 100%;
+  min-width: 360px;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.md-table th,
+.md-table td {
+  padding: 8px 10px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+.md-table th:last-child,
+.md-table td:last-child { border-right: none; }
+.md-table tbody tr:last-child td { border-bottom: none; }
+.md-table th {
+  color: var(--text);
+  background: rgba(148, 163, 184, .10);
+  font-weight: 700;
+}
+.md-table td { color: var(--muted); }
+
+.note-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 0 0 8px;
+}
+.note-tool-btn {
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, .24);
+  background: rgba(255, 255, 255, .06);
+  color: var(--muted);
+  font: 600 11.5px/1 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+  transition: background .14s var(--ease), border-color .14s var(--ease), color .14s var(--ease), transform .14s var(--ease);
+}
+.note-tool-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(96, 165, 250, .12);
+  border-color: rgba(96, 165, 250, .30);
+  color: var(--accent);
+}
 
 .nb-input-row {
   display: flex;
@@ -2759,8 +2922,13 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   background: var(--surface);
   align-items: flex-end;
 }
-.nb-input {
+.nb-compose {
   flex: 1;
+  min-width: 0;
+}
+.nb-compose .note-tools { margin-bottom: 7px; }
+.nb-input {
+  width: 100%;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -2931,31 +3099,6 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 }
 
 /* ─── BUDGIE SPEAKER ────────────────────────────────────
-   The white budgie perches at the modal's top-left corner
-   so each opened dialog reads like the bird's speech bubble.
-   The modal uses overflow: visible so the bird isn't clipped. */
-.modal-overlay.open .modal::before {
-  content: '';
-  position: absolute;
-  top: -52px;
-  left: 4px;
-  width: 60px;
-  height: 60px;
-  background: url('assets/budgies/64_b04.gif') no-repeat center / contain;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  pointer-events: none;
-  z-index: 2;
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .35));
-}
-@media (max-width: 480px) {
-  .modal-overlay.open .modal::before {
-    top: -46px;
-    left: 2px;
-    width: 52px;
-    height: 52px;
-  }
-}
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .modal { background: var(--surface); border-color: var(--border-2); }
 }
@@ -3542,7 +3685,6 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   .btn-group { margin-left: 0; }
 
   /* Modals stay centered at every viewport size; their height is left
-     uncapped on purpose so overflow visible can show the budgie at top.
      When the form is taller than the viewport the overlay itself
      scrolls (overflow-y: auto + margin:auto on the child). */
 
@@ -7517,37 +7659,37 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
    ========================================================================== */
 :root {
   --bg: #f3f7fb;
-  --surface: rgba(255, 255, 255, .58);
-  --surface-2: rgba(255, 255, 255, .42);
-  --surface-3: rgba(255, 255, 255, .72);
+  --surface: rgba(255, 255, 255, .50);
+  --surface-2: rgba(255, 255, 255, .34);
+  --surface-3: rgba(255, 255, 255, .66);
   --border: rgba(35, 46, 66, .10);
   --border-2: rgba(35, 46, 66, .18);
-  --glass-bg: rgba(255, 255, 255, .58);
-  --glass-bg-2: rgba(255, 255, 255, .42);
-  --glass-bg-card: rgba(255, 255, 255, .64);
-  --glass-border: rgba(255, 255, 255, .62);
-  --glass-highlight: rgba(255, 255, 255, .86);
-  --glass-blur: blur(24px) saturate(1.55);
+  --glass-bg: rgba(255, 255, 255, .50);
+  --glass-bg-2: rgba(255, 255, 255, .34);
+  --glass-bg-card: rgba(255, 255, 255, .56);
+  --glass-border: rgba(255, 255, 255, .72);
+  --glass-highlight: rgba(255, 255, 255, .96);
+  --glass-blur: blur(28px) saturate(1.7);
   --shadow-sm: 0 3px 10px rgba(24, 36, 58, .06);
-  --shadow: 0 14px 34px rgba(24, 36, 58, .10);
-  --shadow-lg: 0 24px 60px rgba(24, 36, 58, .16);
-  --card-shadow: 0 12px 34px rgba(24, 36, 58, .10), inset 0 1px 0 rgba(255, 255, 255, .62);
+  --shadow: 0 18px 44px rgba(24, 36, 58, .12);
+  --shadow-lg: 0 30px 74px rgba(24, 36, 58, .20);
+  --card-shadow: 0 16px 40px rgba(24, 36, 58, .12), inset 0 1px 0 rgba(255, 255, 255, .78);
 }
 
 :root[data-theme="dim"] {
   --bg: #171b22;
-  --surface: rgba(40, 45, 56, .58);
-  --surface-2: rgba(255, 255, 255, .08);
-  --surface-3: rgba(255, 255, 255, .13);
+  --surface: rgba(40, 45, 56, .48);
+  --surface-2: rgba(255, 255, 255, .07);
+  --surface-3: rgba(255, 255, 255, .115);
   --border: rgba(255, 255, 255, .11);
   --border-2: rgba(255, 255, 255, .18);
-  --glass-bg: rgba(34, 39, 50, .58);
-  --glass-bg-2: rgba(255, 255, 255, .08);
-  --glass-bg-card: rgba(255, 255, 255, .12);
-  --glass-border: rgba(255, 255, 255, .16);
-  --glass-highlight: rgba(255, 255, 255, .18);
-  --glass-blur: blur(26px) saturate(1.35);
-  --card-shadow: 0 16px 42px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(255, 255, 255, .10);
+  --glass-bg: rgba(34, 39, 50, .48);
+  --glass-bg-2: rgba(255, 255, 255, .075);
+  --glass-bg-card: rgba(255, 255, 255, .105);
+  --glass-border: rgba(255, 255, 255, .22);
+  --glass-highlight: rgba(255, 255, 255, .28);
+  --glass-blur: blur(30px) saturate(1.65);
+  --card-shadow: 0 18px 48px rgba(0, 0, 0, .30), inset 0 1px 0 rgba(255, 255, 255, .16);
 }
 
 :root[data-theme="dark"] {
@@ -7878,22 +8020,24 @@ input:not([type]), textarea, select,
 
 /* Theme consistency pass: align controls, pills, tabs and dark shadows */
 :root {
-  --glass-control: rgba(255, 255, 255, .24);
-  --glass-control-hover: rgba(255, 255, 255, .34);
-  --glass-chip: rgba(255, 255, 255, .18);
-  --glass-chip-border: rgba(35, 46, 66, .10);
-  --glass-active: linear-gradient(180deg, rgba(59, 130, 246, .20), rgba(59, 130, 246, .10));
-  --glass-active-border: rgba(59, 130, 246, .34);
+  --glass-control: rgba(255, 255, 255, .20);
+  --glass-control-hover: rgba(255, 255, 255, .30);
+  --glass-chip: rgba(255, 255, 255, .16);
+  --glass-chip-border: rgba(255, 255, 255, .34);
+  --glass-active: linear-gradient(180deg, rgba(59, 130, 246, .26), rgba(59, 130, 246, .12));
+  --glass-active-border: rgba(59, 130, 246, .44);
 }
 
 :root[data-theme="dim"] {
   --shadow-sm: 0 4px 14px rgba(0, 0, 0, .16);
   --shadow: 0 16px 40px rgba(0, 0, 0, .24);
   --shadow-lg: 0 28px 70px rgba(0, 0, 0, .34);
-  --glass-control: rgba(255, 255, 255, .07);
-  --glass-control-hover: rgba(255, 255, 255, .12);
-  --glass-chip: rgba(255, 255, 255, .08);
-  --glass-chip-border: rgba(255, 255, 255, .12);
+  --glass-control: rgba(255, 255, 255, .065);
+  --glass-control-hover: rgba(255, 255, 255, .115);
+  --glass-chip: rgba(255, 255, 255, .075);
+  --glass-chip-border: rgba(255, 255, 255, .18);
+  --glass-active: linear-gradient(180deg, rgba(96, 165, 250, .24), rgba(96, 165, 250, .10));
+  --glass-active-border: rgba(96, 165, 250, .42);
 }
 
 :root[data-theme="dark"] {
@@ -8001,6 +8145,46 @@ input:not([type]), textarea, select,
   color: #4ade80 !important;
   background: rgba(34, 197, 94, .12) !important;
   border-color: rgba(34, 197, 94, .18) !important;
+}
+
+.bottom-nav .bnav-btn,
+.bottom-nav .tab.bnav-btn {
+  overflow: hidden;
+}
+
+.bottom-nav .bnav-btn.active,
+.bottom-nav .tab.bnav-btn.active {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--accent) !important;
+}
+
+.bottom-nav .bnav-btn::before {
+  top: 5px !important;
+  left: 50% !important;
+  width: min(58px, calc(100% - 10px)) !important;
+  height: calc(100% - 10px) !important;
+  border-radius: 14px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  opacity: 0;
+  box-shadow: none !important;
+  transform: translateX(-50%) !important;
+  transition: opacity .16s var(--ease), background .16s var(--ease), border-color .16s var(--ease);
+}
+
+.bottom-nav .bnav-btn.active::before {
+  background: rgba(96, 165, 250, .14) !important;
+  border-color: rgba(96, 165, 250, .30) !important;
+  opacity: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 8px 18px rgba(37, 99, 235, .10) !important;
+}
+
+.bottom-nav .bnav-btn svg,
+.bottom-nav .bnav-btn > span {
+  position: relative;
+  z-index: 1;
 }
 
 .task-due.overdue,

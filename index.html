@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dim">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#fafafa">
+  <meta name="theme-color" content="#1c1f25">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="B-Less">
@@ -319,6 +319,11 @@
             <input type="date" id="jrn-date" />
             <span class="jrn-status" id="jrn-status"></span>
           </div>
+          <div class="note-tools" data-note-tools-for="jrn-area">
+            <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','bullet')">• Liste</button>
+            <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','check')">☑ Checklist</button>
+            <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','table')">Tablo</button>
+          </div>
           <textarea class="jrn-area" id="jrn-area" data-i18n-ph="jrn.placeholder" placeholder="Bugün hakkında yaz..."></textarea>
         </div>
       </div>
@@ -418,6 +423,11 @@
             <div id="rev-space-goals-section" class="rev-space-goals-section" style="display:none"></div>
             <div id="rev-completed-section" class="rev-completed-section" style="display:none"></div>
             <div id="rev-notes-label" class="rev-section-header rev-notes-header" style="display:none"></div>
+            <div class="note-tools" data-note-tools-for="rev-textarea">
+              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','bullet')">• Liste</button>
+              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','check')">☑ Checklist</button>
+              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','table')">Tablo</button>
+            </div>
             <textarea class="reviews-textarea" id="rev-textarea" placeholder=""></textarea>
             <div class="reviews-editor-foot">
               <span class="reviews-saved" id="rev-saved-label"></span>
@@ -428,11 +438,6 @@
     </section>
 
   </main>
-
-  <!-- Floating budgie removed — the bird now appears on modal headers
-       via .modal-overlay::before so each opened dialog looks like the
-       bird's speech bubble. -->
-
 
   <!-- LEFT DRAWER: Spaces tree (toggled by the hamburger on Home).
        Placed outside <main> so its position: fixed isn't disturbed by
@@ -522,6 +527,11 @@
       <label data-i18n="links.f.tag">Etiket</label>
       <input type="text" id="link-tag" placeholder="e.g. iş, okuma, referans" />
       <label data-i18n="links.f.notes">Notlar</label>
+      <div class="note-tools" data-note-tools-for="link-notes">
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','bullet')">• Liste</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','check')">☑ Checklist</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','table')">Tablo</button>
+      </div>
       <textarea id="link-notes" rows="3" placeholder=""></textarea>
       <div class="modal-actions">
         <button class="btn-ghost" id="link-delete-btn" style="display:none" data-i18n="btn.delete">Sil</button>
@@ -730,6 +740,11 @@
       <label data-i18n="label.reference">Referans</label>
       <input type="text" id="visit-robot" data-i18n-ph="ph.reference" />
       <label data-i18n="label.notes">Notlar</label>
+      <div class="note-tools" data-note-tools-for="visit-notes">
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','bullet')">• Liste</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','check')">☑ Checklist</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','table')">Tablo</button>
+      </div>
       <textarea id="visit-notes" data-i18n-ph="ph.visit_notes"></textarea>
       <div class="modal-actions">
         <button class="btn-ghost" data-close="modal-visit" data-i18n="btn.cancel">İptal</button>
@@ -876,6 +891,11 @@
       <label>Time</label>
       <input type="text" id="cal-event-time" placeholder="e.g. 14:30 or All day" />
       <label>Notes</label>
+      <div class="note-tools" data-note-tools-for="cal-event-notes">
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','bullet')">• Liste</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','check')">☑ Checklist</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','table')">Tablo</button>
+      </div>
       <textarea id="cal-event-notes" rows="3" placeholder="Optional details..."></textarea>
       <div class="modal-actions">
         <button class="btn-ghost" data-close="modal-cal-event">Cancel</button>
@@ -899,6 +919,28 @@
   </div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="app.js"></script>
+<script>
+  window.insertNoteSnippet = window.insertNoteSnippet || function(targetId, type) {
+    var area = document.getElementById(targetId);
+    if (!area) return;
+    var snippets = {
+      bullet: '- ',
+      check: '- [ ] ',
+      table: '| Item | Detail | Status |\n| --- | --- | --- |\n|  |  |  |\n'
+    };
+    var snippet = snippets[type] || snippets.bullet;
+    var start = area.selectionStart || area.value.length;
+    var end = area.selectionEnd || start;
+    var before = area.value.slice(0, start);
+    var after = area.value.slice(end);
+    var insert = (before && !before.endsWith('\n') ? '\n' : '') + snippet;
+    area.value = before + insert + after;
+    var pos = before.length + insert.length;
+    area.focus();
+    area.setSelectionRange(pos, pos);
+    area.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+</script>
+<script src="app.js?v=7.12.8"></script>
 </body>
 </html>

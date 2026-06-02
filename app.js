@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.4';
+var APP_VERSION = '7.12.8';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -1056,11 +1056,14 @@ function renderIssueNotebook(issue) {
     <div class="notebook" id="issue-notebook-${issue.id}">
       <div class="nb-entries">${entriesHtml}</div>
       <div class="nb-input-row">
-        <textarea class="nb-input" id="issue-nb-input-${issue.id}"
-          placeholder="${t('ph.note_input')}"
-          onkeydown="issueNbKeydown(event,'${issue.id}')"
-          rows="4"
-        ></textarea>
+        <div class="nb-compose">
+          ${noteToolbarHtml(`issue-nb-input-${issue.id}`)}
+          <textarea class="nb-input" id="issue-nb-input-${issue.id}"
+            placeholder="${t('ph.note_input')}"
+            onkeydown="issueNbKeydown(event,'${issue.id}')"
+            rows="4"
+          ></textarea>
+        </div>
         <button class="nb-add-btn" onclick="addIssueNoteEntry('${issue.id}')">${t('btn.add_short')}</button>
       </div>
     </div>
@@ -1156,6 +1159,7 @@ function renderNotebook(task) {
           <textarea class="nb-edit-input" id="nb-edit-input-${task.id}-${e.id}"
             onkeydown="editNbKeydown(event,'${task.id}','${e.id}')"
             rows="4">${escapeHtml(e.text)}</textarea>
+          ${noteToolbarHtml(`nb-edit-input-${task.id}-${e.id}`)}
         </div>
       ` : `
         <div class="nb-entry" id="nbentry-${e.id}">
@@ -1174,11 +1178,14 @@ function renderNotebook(task) {
     <div class="notebook" id="notebook-${task.id}">
       <div class="nb-entries">${entriesHtml}</div>
       <div class="nb-input-row">
-        <textarea class="nb-input" id="nb-input-${task.id}"
-          placeholder="${t('ph.note_input')}"
-          onkeydown="nbKeydown(event,'${task.id}')"
-          rows="4"
-        ></textarea>
+        <div class="nb-compose">
+          ${noteToolbarHtml(`nb-input-${task.id}`)}
+          <textarea class="nb-input" id="nb-input-${task.id}"
+            placeholder="${t('ph.note_input')}"
+            onkeydown="nbKeydown(event,'${task.id}')"
+            rows="4"
+          ></textarea>
+        </div>
         <button class="nb-add-btn" onclick="addNoteEntry('${task.id}')">${t('btn.add_short')}</button>
       </div>
     </div>
@@ -2145,6 +2152,12 @@ function getTaskAssignees(task) {
   if (Array.isArray(task.assignees) && task.assignees.length) return task.assignees;
   if (task.assignee && task.assignee.email) return [task.assignee];
   return [];
+}
+
+function taskAssignedToEmail(task, email) {
+  if (!task || !email) return false;
+  const target = String(email).toLowerCase();
+  return getTaskAssignees(task).some(a => a && a.email && a.email.toLowerCase() === target);
 }
 
 function refreshAssigneeSelect(selectedEmails) {
@@ -3576,7 +3589,7 @@ const BackupManager = (() => {
   // export ICS). Stamped under both signed-in and signed-out states so
   // the user reaches them without an extra click.
   function settingsBlockHtml() {
-    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const current = normalizeTheme(document.documentElement.getAttribute('data-theme'));
     const themeBtn = (id, label, svg) => `
       <button class="theme-toggle-btn ${current === id ? 'active' : ''}" data-theme-set="${id}" type="button">
         ${svg}<span>${label}</span>
@@ -3587,7 +3600,6 @@ const BackupManager = (() => {
         <div class="theme-toggle bp-theme-toggle" role="radiogroup" aria-label="Theme">
           ${themeBtn('light', 'Light', '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>')}
           ${themeBtn('dim',   'Dim',   '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" stroke-dasharray="2 2"/></svg>')}
-          ${themeBtn('dark',  'Dark',  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>')}
         </div>
         <div class="bp-version">v${escapeHtml(typeof APP_VERSION !== 'undefined' ? APP_VERSION : '?')}</div>
       </div>
@@ -3992,8 +4004,7 @@ function renderAllTasks() {
   projectsByMode().forEach(p => {
     (p.tasks || []).forEach(t => {
       if (onlyMe && myEmail) {
-        const ae = (t.assignee && t.assignee.email) ? t.assignee.email.toLowerCase() : null;
-        if (ae !== myEmail) return;
+        if (!taskAssignedToEmail(t, myEmail)) return;
       }
       filtered.push({ task: t, project: p });
     });
@@ -4516,11 +4527,16 @@ function closeJournalDetail() {
   document.getElementById('journal')?.removeAttribute('data-detail-open');
 }
 
-// ── THEME TOGGLE (light / dim / dark) ────────────────
+// ── THEME TOGGLE (light / dim) ────────────────
 const THEME_KEY = 'b-less-theme';
-const THEME_COLORS = { light: '#ffffff', dim: '#1c1f25', dark: '#000000' };
+const DEFAULT_THEME = 'dim';
+const THEME_COLORS = { light: '#ffffff', dim: '#1c1f25' };
+function normalizeTheme(name) {
+  if (name === 'dark') return 'dim';
+  return THEME_COLORS[name] ? name : DEFAULT_THEME;
+}
 function applyTheme(name) {
-  const t = THEME_COLORS[name] ? name : 'light';
+  const t = normalizeTheme(name);
   document.documentElement.setAttribute('data-theme', t);
   document.querySelectorAll('.theme-toggle-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.themeSet === t);
@@ -4529,13 +4545,18 @@ function applyTheme(name) {
   if (meta) meta.setAttribute('content', THEME_COLORS[t]);
 }
 function setTheme(name) {
-  try { localStorage.setItem(THEME_KEY, name); } catch {}
-  applyTheme(name);
+  const next = normalizeTheme(name);
+  try { localStorage.setItem(THEME_KEY, next); } catch {}
+  applyTheme(next);
 }
 (function initTheme() {
   let saved = null;
   try { saved = localStorage.getItem(THEME_KEY); } catch {}
-  applyTheme(saved || 'light');
+  const next = normalizeTheme(saved);
+  if (saved !== next) {
+    try { localStorage.setItem(THEME_KEY, next); } catch {}
+  }
+  applyTheme(next);
 })();
 
 // ── REVIEWS (weekly + monthly summaries) ────────────────
@@ -5354,6 +5375,26 @@ function startCurrentReviewPeriod() {
   setTimeout(() => document.getElementById('rev-textarea')?.focus(), 60);
 }
 
+function openCurrentWeekGoals() {
+  ensureReviewsState();
+  reviewPeriod = 'week';
+  const key = reviewWeekKey();
+  if (!(key in state.reviews.week)) {
+    state.reviews.week[key] = '';
+    save();
+  }
+  currentReviewKey = key;
+  ensureWeekGoal(key);
+  activateSection('reviews');
+  document.getElementById('reviews')?.setAttribute('data-detail-open', 'true');
+  renderReviews();
+  refreshAllSharedSpaces();
+  startReviewsPoll();
+  setTimeout(() => {
+    document.getElementById('rev-goals-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 60);
+}
+
 function closeReviewsDetail() {
   document.getElementById('reviews')?.removeAttribute('data-detail-open');
 }
@@ -5654,25 +5695,108 @@ function renderMarkdown(s) {
   h = h.replace(/(^|[\s(_~])\*([^*\n]+)\*(?=[\s),.!?_~]|$)/g, '$1<em>$2</em>');
   // Bare URLs
   h = h.replace(/\bhttps?:\/\/[^\s<]+/g, m => `<a href="${m}" target="_blank" rel="noopener noreferrer">${m}</a>`);
-  // Bullet list lines: "- item" or "* item" at start of a line
+  // Tables, checklists and bullet list lines. Input is already escaped;
+  // these transforms only re-introduce structural markup.
   const lines = h.split('\n');
   const buf = [];
   let inList = false;
-  for (const line of lines) {
-    const m = line.match(/^\s*[-*]\s+(.*)$/);
+  const closeList = () => {
+    if (inList) { buf.push('</ul>'); inList = false; }
+  };
+  const isTableSep = line => /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+  const tableCells = line => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.includes('|') && lines[i + 1] && isTableSep(lines[i + 1])) {
+      closeList();
+      const headers = tableCells(line);
+      const rows = [];
+      i += 2;
+      while (i < lines.length && lines[i].includes('|') && lines[i].trim()) {
+        rows.push(tableCells(lines[i]));
+        i++;
+      }
+      i--;
+      buf.push(`<div class="md-table-wrap"><table class="md-table"><thead><tr>${headers.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${headers.map((_, idx) => `<td>${row[idx] || ''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+      continue;
+    }
+    const m = line.match(/^\s*[-*]\s+(\[[ xX]\]\s+)?(.*)$/);
     if (m) {
       if (!inList) { buf.push('<ul class="md-list">'); inList = true; }
-      buf.push(`<li>${m[1]}</li>`);
+      if (m[1]) {
+        const checked = /x/i.test(m[1]);
+        buf.push(`<li class="md-check${checked ? ' checked' : ''}"><span class="md-check-box">${checked ? '✓' : ''}</span><span>${m[2]}</span></li>`);
+      } else {
+        buf.push(`<li>${m[2]}</li>`);
+      }
     } else {
-      if (inList) { buf.push('</ul>'); inList = false; }
+      closeList();
       buf.push(line);
     }
   }
-  if (inList) buf.push('</ul>');
+  closeList();
   h = buf.join('\n').replace(/\n/g, '<br>');
   // Collapse <br> immediately after </ul> to keep spacing tight
-  h = h.replace(/<\/ul><br>/g, '</ul>');
+  h = h.replace(/<\/ul><br>/g, '</ul>').replace(/<\/div><br>/g, '</div>');
   return h;
+}
+
+function noteToolbarHtml(targetId) {
+  const id = escapeAttr(targetId);
+  const labels = {
+    bullet: '• Liste',
+    check: '☑ Checklist',
+    table: 'Tablo',
+  };
+  return `<div class="note-tools" data-note-tools-for="${id}">
+    <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','bullet')">${labels.bullet}</button>
+    <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','check')">${labels.check}</button>
+    <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','table')">${labels.table}</button>
+  </div>`;
+}
+
+window.insertNoteSnippet = function(targetId, type) {
+  const area = document.getElementById(targetId);
+  if (!area) return;
+  const snippets = {
+    bullet: '- ',
+    check: '- [ ] ',
+    table: '| Item | Detail | Status |\n| --- | --- | --- |\n|  |  |  |\n',
+  };
+  const snippet = snippets[type] || snippets.bullet;
+  const start = area.selectionStart ?? area.value.length;
+  const end = area.selectionEnd ?? start;
+  const before = area.value.slice(0, start);
+  const after = area.value.slice(end);
+  const needsBreak = before && !before.endsWith('\n') ? '\n' : '';
+  const insert = needsBreak + snippet;
+  area.value = before + insert + after;
+  const pos = before.length + insert.length;
+  area.focus();
+  area.setSelectionRange(pos, pos);
+  area.dispatchEvent(new Event('input', { bubbles: true }));
+};
+
+function enhanceNoteTextareas(root = document) {
+  const selector = [
+    '.reviews-textarea',
+    '.jrn-area',
+    '.cal-notes',
+    '.brainstorm-area',
+    '#link-notes',
+    '#visit-notes',
+    '#cal-event-notes',
+    '#vault-f-notes',
+  ].join(',');
+  root.querySelectorAll(selector).forEach(area => {
+    if (!area.id || area.dataset.noteTools === '1') return;
+    if ([...document.querySelectorAll('[data-note-tools-for]')].some(el => el.dataset.noteToolsFor === area.id)) {
+      area.dataset.noteTools = '1';
+      return;
+    }
+    area.dataset.noteTools = '1';
+    area.insertAdjacentHTML('beforebegin', noteToolbarHtml(area.id));
+  });
 }
 
 function escapeJsArg(s) {
@@ -6894,8 +7018,6 @@ const TOPBAR_TITLES = {
   settings: 'Settings',
 };
 function updateTopbarTitle(id) {
-  // The title element now wraps an icon + a span — write into the span
-  // so the budgie GIF (set once on boot) stays put.
   const el = document.getElementById('topbar-title-text');
   if (el) {
     el.textContent = TOPBAR_TITLES[id] || 'My Work';
@@ -6905,10 +7027,6 @@ function updateTopbarTitle(id) {
   const flat = document.getElementById('topbar-title');
   if (flat) flat.textContent = TOPBAR_TITLES[id] || 'My Work';
 }
-
-// The floating "Jump Budgie" was retired — the bird now appears on
-// modal headers via a CSS pseudo-element so it looks like the modal
-// is the bird's speech bubble. See .modal-overlay::before in style.css.
 
 // ── Add Item picker — spaces only carry lists now, so skip the picker
 // and open the new-list flow directly. Meetings / visits / journal /
@@ -7993,6 +8111,14 @@ renderAll = function() {
 
 renderAll();
 initJournal();
+enhanceNoteTextareas();
+new MutationObserver(mutations => {
+  for (const m of mutations) {
+    m.addedNodes.forEach(node => {
+      if (node && node.nodeType === 1) enhanceNoteTextareas(node);
+    });
+  }
+}).observe(document.body, { childList: true, subtree: true });
 BackupManager.initUI();
 BackupManager.init();
 document.getElementById('export-ics-btn')?.addEventListener('click', downloadIcs);
@@ -8056,16 +8182,42 @@ function renderHome() {
   const today = new Date(); today.setHours(0,0,0,0);
   const todayIso = ymd(today);
   const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7);
+  const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
+  const myEmail = (me && me.email) ? me.email.toLowerCase() : null;
 
   // This Week — tasks (due) + meetings + visits in the next 7 days
   // (today inclusive). Mixed list, sorted by date.
   const weekItems = [];
   (state.robots || []).forEach(p => {
     (p.tasks || []).forEach(task => {
-      if (task.status === 'done' || !task.dueDate) return;
-      const d = new Date(task.dueDate + 'T00:00:00');
-      if (d >= today && d < weekEnd) {
-        weekItems.push({ kind: 'task', date: task.dueDate, title: task.title || 'Task', sub: p.name || '', id: task.id, projectId: p.id });
+      if (task.status === 'done') return;
+      const assignedToMe = taskAssignedToEmail(task, myEmail);
+      if (task.dueDate) {
+        const d = new Date(task.dueDate + 'T00:00:00');
+        if (d >= today && d < weekEnd) {
+          weekItems.push({
+            kind: 'task',
+            date: task.dueDate,
+            title: task.title || 'Task',
+            sub: p.name || '',
+            id: task.id,
+            projectId: p.id,
+            assignedToMe,
+            assignees: getTaskAssignees(task),
+          });
+        }
+      } else if (assignedToMe) {
+        weekItems.push({
+          kind: 'task',
+          date: '',
+          assignedOnly: true,
+          title: task.title || 'Task',
+          sub: p.name || '',
+          id: task.id,
+          projectId: p.id,
+          assignedToMe: true,
+          assignees: getTaskAssignees(task),
+        });
       }
     });
   });
@@ -8079,7 +8231,7 @@ function renderHome() {
     const d = new Date(v.date + 'T00:00:00');
     if (d >= today && d < weekEnd) weekItems.push({ kind: 'visit', date: v.date, title: v.location || 'Visit', sub: v.robot || '', id: v.id });
   });
-  weekItems.sort((a, b) => a.date.localeCompare(b.date));
+  weekItems.sort((a, b) => (a.date || '9999-12-31').localeCompare(b.date || '9999-12-31'));
 
   const weekListEl = document.getElementById('home-week-list');
   const weekCountEl = document.getElementById('home-week-count');
@@ -8104,10 +8256,40 @@ function renderHome() {
       const ICO_V = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>';
       const ICONS = { task: ICO_T, meeting: ICO_M, visit: ICO_V };
       const KIND_COLORS = { meeting: '#f97316', visit: '#10b981' };
+      const assignedOnlyItems = weekItems.filter(it => it.assignedOnly);
+      const datedWeekItems = weekItems.filter(it => it.date);
+      const renderWeekRow = (it) => {
+        // Task rows inherit the parent project's stable colour so the
+        // user can spot "all Oildiver tasks" at a glance. Meetings /
+        // visits keep their kind colour.
+        const c = it.kind === 'task' && it.projectId
+          ? pickListColor(it.projectId)
+          : (KIND_COLORS[it.kind] || 'var(--accent)');
+        const assignees = it.kind === 'task' && it.assignees?.length
+          ? `<span class="home-list-assignees">${it.assignees.map(a => renderAssigneeChip(a)).join('')}</span>`
+          : '';
+        const assignedPill = it.assignedToMe
+          ? '<span class="home-list-pill home-list-pill-me">Assigned to me</span>'
+          : '';
+        const noDuePill = it.assignedOnly
+          ? '<span class="home-list-pill">No due date</span>'
+          : '';
+        const meta = [assignees, assignedPill, noDuePill].filter(Boolean).join('');
+        return `
+          <button class="home-list-item home-list-item-tinted${it.assignedToMe ? ' home-list-item-assigned' : ''}" data-week-kind="${it.kind}" data-week-id="${escapeAttr(it.id)}" data-week-pid="${escapeAttr(it.projectId || '')}" style="--row-c: ${c};" type="button">
+            <span class="home-list-item-icon" style="--c: ${c};">${ICONS[it.kind]}</span>
+            <span class="home-list-item-body">
+              <span class="home-list-item-title">${escapeHtml(it.title)}</span>
+              <span class="home-list-item-sub">${escapeHtml(it.sub || '')}</span>
+              ${meta ? `<span class="home-list-item-meta">${meta}</span>` : ''}
+            </span>
+          </button>
+        `;
+      };
 
       // Group by ISO date so headings mirror the strip above.
       const byDay = {};
-      weekItems.forEach(it => { (byDay[it.date] = byDay[it.date] || []).push(it); });
+      datedWeekItems.forEach(it => { (byDay[it.date] = byDay[it.date] || []).push(it); });
       const dayKeys = Object.keys(byDay).sort();
       // Localised day labels — match the mini strip.
       const TR_DAYS = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
@@ -8124,25 +8306,19 @@ function renderHome() {
         return `${dayNames[d.getDay()]} ${d.getDate()}`;
       }
 
-      weekListEl.innerHTML = dayKeys.map(iso => {
+      const assignedOnlyHtml = assignedOnlyItems.length ? `
+        <div class="home-day-group home-assigned-group" data-assigned-to-me="true">
+          <div class="home-day-head">
+            <span class="home-day-name">Assigned to me</span>
+            <span class="home-day-count">${assignedOnlyItems.length}</span>
+          </div>
+          ${assignedOnlyItems.map(renderWeekRow).join('')}
+        </div>
+      ` : '';
+
+      weekListEl.innerHTML = assignedOnlyHtml + dayKeys.map(iso => {
         const items = byDay[iso];
-        const rows = items.map(it => {
-          // Task rows inherit the parent project's stable colour so the
-          // user can spot "all Oildiver tasks" at a glance. Meetings /
-          // visits keep their kind colour.
-          const c = it.kind === 'task' && it.projectId
-            ? pickListColor(it.projectId)
-            : (KIND_COLORS[it.kind] || 'var(--accent)');
-          return `
-            <button class="home-list-item home-list-item-tinted" data-week-kind="${it.kind}" data-week-id="${escapeAttr(it.id)}" data-week-pid="${escapeAttr(it.projectId || '')}" style="--row-c: ${c};" type="button">
-              <span class="home-list-item-icon" style="--c: ${c};">${ICONS[it.kind]}</span>
-              <span class="home-list-item-body">
-                <span class="home-list-item-title">${escapeHtml(it.title)}</span>
-                <span class="home-list-item-sub">${escapeHtml(it.sub || '')}</span>
-              </span>
-            </button>
-          `;
-        }).join('');
+        const rows = items.map(renderWeekRow).join('');
         return `
           <div class="home-day-group" data-day="${iso}">
             <div class="home-day-head">
@@ -8176,7 +8352,7 @@ function renderHome() {
                  (typeof state === 'object' && state && state.lang) || 'en';
     const labels = lang.toLowerCase().startsWith('tr') ? DAY_LABELS_TR : DAY_LABELS_EN;
     const byDay = {};
-    weekItems.forEach(it => {
+    weekItems.filter(it => it.date).forEach(it => {
       if (!byDay[it.date]) byDay[it.date] = { task: 0, meeting: 0, visit: 0, total: 0 };
       byDay[it.date][it.kind] = (byDay[it.date][it.kind] || 0) + 1;
       byDay[it.date].total++;
@@ -8239,94 +8415,59 @@ function renderHome() {
     const taskIds  = weekData.taskIds || [];
     const txtGoals = weekData.goals   || [];
 
-    // ── Personal task-linked goals ──
     let doneCount = 0;
-    const taskGoalRows = taskIds.map(taskId => {
-      let foundTask = null, foundRobot = null;
+    let taskGoalCount = 0;
+    for (const taskId of taskIds) {
       for (const r of (state.robots || [])) {
         const t = (r.tasks || []).find(t => t.id === taskId);
-        if (t) { foundTask = t; foundRobot = r; break; }
+        if (!t) continue;
+        taskGoalCount++;
+        if (t.status === 'done') doneCount++;
+        break;
       }
-      if (!foundTask) return null;
-      if (foundTask.status === 'done') doneCount++;
-      return { kind: 'ptask', task: foundTask, robot: foundRobot };
-    }).filter(Boolean);
+    }
 
-    // ── Personal text goals ──
     doneCount += txtGoals.filter(g => g.done).length;
 
-    // ── Space goals ──
-    const spaceGoalRows = [];
+    let spaceGoalCount = 0;
     for (const sp of getSharedSpaces()) {
       const spGoals = (state.spaceGoals?.[sp.id]?.[wk] || []).filter(g => !g.deleted);
       for (const g of spGoals) {
+        spaceGoalCount++;
         if (g.done) doneCount++;
-        // resolve live task if task-linked
-        let liveTask = null, liveRobot = null;
         if (g.taskId) {
           for (const r of (state.robots || [])) {
             const t = (r.tasks || []).find(t => t.id === g.taskId);
-            if (t) { liveTask = t; liveRobot = r; break; }
+            if (t) {
+              if (t.status === 'done' && !g.done) doneCount++;
+              break;
+            }
           }
         }
-        spaceGoalRows.push({ kind: 'sgoal', goal: g, space: sp, liveTask, liveRobot });
       }
     }
 
-    const total = taskGoalRows.length + txtGoals.length + spaceGoalRows.length;
+    const total = taskGoalCount + txtGoals.length + spaceGoalCount;
     if (goalsCntEl) goalsCntEl.textContent = total ? `${doneCount}/${total}` : '';
 
-    if (!total) {
-      goalsEl.innerHTML = '<div class="home-list-empty">No goals set for this week.</div>';
-    } else {
-      const ARR = '<svg class="home-goal-arr" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
-      const rows = [
-        // Personal task-linked
-        ...taskGoalRows.map(({ task, robot }) => {
-          const isDone = task.status === 'done';
-          return `<button class="home-goal-item${isDone ? ' done' : ''}" data-goal-kind="ptask"
-                    data-goal-tid="${escapeAttr(task.id)}" data-goal-rid="${escapeAttr(robot?.id || '')}" type="button">
-            <span class="home-goal-body">
-              <span class="home-goal-title">${escapeHtml(task.title)}</span>
-              ${robot ? `<span class="home-goal-sub">${escapeHtml(robot.name)}</span>` : ''}
-            </span>${ARR}</button>`;
-        }),
-        // Personal text
-        ...txtGoals.map(g => `
-          <button class="home-goal-item${g.done ? ' done' : ''}" data-goal-kind="text" type="button">
-            <span class="home-goal-body">
-              <span class="home-goal-title">${escapeHtml(g.title)}</span>
-            </span>${ARR}</button>`),
-        // Space goals
-        ...spaceGoalRows.map(({ goal, space, liveTask, liveRobot }) => {
-          const isDone = liveTask ? liveTask.status === 'done' : goal.done;
-          const title  = liveTask ? liveTask.title : (goal.title || '');
-          const sub    = space.name || '';
-          const hasNav = !!(liveTask && liveRobot);
-          return `<button class="home-goal-item${isDone ? ' done' : ''}" data-goal-kind="${hasNav ? 'stask' : 'sgoal'}"
-                    data-goal-tid="${escapeAttr(liveTask?.id || '')}" data-goal-rid="${escapeAttr(liveRobot?.id || '')}"
-                    type="button">
-            <span class="home-goal-badge-space" title="${escapeAttr(sub)}"></span>
-            <span class="home-goal-body">
-              <span class="home-goal-title">${escapeHtml(title)}</span>
-              <span class="home-goal-sub">${escapeHtml(sub)}</span>
-            </span>${ARR}</button>`;
-        }),
-      ];
-      goalsEl.innerHTML = rows.join('');
-
-      // Navigate: task-linked personal & space goals → go to task
-      goalsEl.querySelectorAll('[data-goal-kind="ptask"],[data-goal-kind="stask"]').forEach(el => {
-        el.addEventListener('click', () => {
-          if (typeof goToTask === 'function') goToTask(el.dataset.goalRid, el.dataset.goalTid);
-        });
-      });
-      // Text / space-text goals → open Reviews
-      goalsEl.querySelectorAll('[data-goal-kind="text"],[data-goal-kind="sgoal"]').forEach(el => {
-        el.addEventListener('click', () => homeNavigate('reviews'));
-      });
+    const title = total ? 'Open this week\'s goals' : 'Set this week\'s goals';
+    const sub = total ? `${doneCount}/${total} complete this week` : 'No goals set for this week';
+    goalsEl.innerHTML = `
+      <button class="home-goals-shortcut" type="button" aria-label="${escapeAttr(title)}">
+        <span class="home-goals-shortcut-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>
+        </span>
+        <span class="home-goals-shortcut-body">
+          <span class="home-goals-shortcut-title">${escapeHtml(title)}</span>
+          <span class="home-goals-shortcut-sub">${escapeHtml(sub)}</span>
+        </span>
+        <span class="home-goals-shortcut-arrow" aria-hidden="true">→</span>
+      </button>`;
+    goalsEl.querySelector('.home-goals-shortcut')?.addEventListener('click', openCurrentWeekGoals);
+    if (goalsMoreEl) {
+      goalsMoreEl.hidden = true;
+      goalsMoreEl.onclick = openCurrentWeekGoals;
     }
-    if (goalsMoreEl) goalsMoreEl.onclick = () => homeNavigate('reviews');
   }
 
   // Today's Journal — preview if exists, otherwise prompt
@@ -8757,8 +8898,7 @@ function renderInbox() {
       // haven't acknowledged it yet (acknowledged = clicked once from
       // the inbox). Stored locally so it doesn't sync.
       if (myEmail
-          && task.assignee && task.assignee.email
-          && task.assignee.email.toLowerCase() === myEmail
+          && taskAssignedToEmail(task, myEmail)
           && task.assignedBy && task.assignedBy.toLowerCase() !== myEmail
           && !seen[task.id]) {
         assigned.push({ task, project: r });
@@ -8858,8 +8998,7 @@ function refreshInboxBadge() {
     if (task.status === 'done') return;
     let assigned = false;
     if (myEmail
-        && task.assignee && task.assignee.email
-        && task.assignee.email.toLowerCase() === myEmail
+        && taskAssignedToEmail(task, myEmail)
         && task.assignedBy && task.assignedBy.toLowerCase() !== myEmail
         && !seen[task.id]) {
       count++;

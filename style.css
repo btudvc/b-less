@@ -7789,6 +7789,30 @@ body {
   border-right: 1px solid var(--glass-border) !important;
 }
 
+/* Spaces drawer should read like a light glass layer, not a solid wall. */
+:root[data-theme="dim"] .spaces-drawer,
+:root[data-theme="dark"] .spaces-drawer {
+  background: rgba(18, 21, 29, .30) !important;
+  border-right-color: rgba(255, 255, 255, .075) !important;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, .035) !important;
+}
+
+:root[data-theme="dim"] .spaces-drawer-head,
+:root[data-theme="dark"] .spaces-drawer-head,
+:root[data-theme="dim"] .home-spaces,
+:root[data-theme="dark"] .home-spaces {
+  background: transparent !important;
+}
+
+:root[data-theme="dim"] .home-space-head:hover,
+:root[data-theme="dark"] .home-space-head:hover,
+:root[data-theme="dim"] .home-space-item:hover,
+:root[data-theme="dark"] .home-space-item:hover,
+:root[data-theme="dim"] .home-space-item-add:hover,
+:root[data-theme="dark"] .home-space-item-add:hover {
+  background: rgba(255, 255, 255, .055) !important;
+}
+
 .drawer-nav {
   border-bottom-color: var(--border) !important;
 }

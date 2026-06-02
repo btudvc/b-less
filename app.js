@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.20';
+var APP_VERSION = '7.12.21';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -7428,10 +7428,10 @@ function renderShareSpaceBody(extra) {
     <div class="share-collab-row" data-perm-id="${escapeAttr(c.permissionId)}">
       <div class="share-collab-email">${escapeHtml(c.email)}</div>
       <div class="share-collab-controls">
-        <select class="share-role-select" ${isOwner ? '' : 'disabled'} data-perm-id="${escapeAttr(c.permissionId)}">
-          <option value="writer" ${c.role === 'writer' ? 'selected' : ''}>Editor</option>
-          <option value="reader" ${c.role === 'reader' ? 'selected' : ''}>Viewer</option>
-        </select>
+        <div class="share-role-toggle" data-perm-id="${escapeAttr(c.permissionId)}" aria-label="Role">
+          <button class="share-role-option${c.role === 'writer' ? ' active' : ''}" data-role="writer" ${isOwner ? '' : 'disabled'} type="button">Editor</button>
+          <button class="share-role-option${c.role === 'reader' ? ' active' : ''}" data-role="reader" ${isOwner ? '' : 'disabled'} type="button">Viewer</button>
+        </div>
         ${isOwner ? `<button class="btn-ghost share-collab-remove" data-perm-id="${escapeAttr(c.permissionId)}" type="button">Remove</button>` : ''}
       </div>
     </div>
@@ -7458,10 +7458,10 @@ function renderShareSpaceBody(extra) {
     ${isOwner ? `
     <div class="share-add">
       <input type="email" id="share-add-email" placeholder="someone@gmail.com" autocomplete="off" />
-      <select id="share-add-role">
-        <option value="writer">Editor</option>
-        <option value="reader">Viewer</option>
-      </select>
+      <div class="share-role-toggle share-add-role-toggle" id="share-add-role" aria-label="Invite role">
+        <button class="share-role-option active" data-role="writer" type="button">Editor</button>
+        <button class="share-role-option" data-role="reader" type="button">Viewer</button>
+      </div>
       <button class="btn-primary" id="share-add-btn" type="button">Invite</button>
     </div>
     ` : ''}
@@ -7508,8 +7508,15 @@ function renderShareSpaceBody(extra) {
   body.querySelectorAll('.share-collab-remove').forEach(b => {
     b.addEventListener('click', () => removeCollaboratorFromCurrentSpace(b.dataset.permId));
   });
-  body.querySelectorAll('.share-role-select').forEach(s => {
-    s.addEventListener('change', () => updateCollaboratorRoleForCurrentSpace(s.dataset.permId, s.value));
+  body.querySelectorAll('.share-role-toggle').forEach(group => {
+    group.querySelectorAll('.share-role-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.disabled || btn.classList.contains('active')) return;
+        group.querySelectorAll('.share-role-option').forEach(b => b.classList.toggle('active', b === btn));
+        if (group.id === 'share-add-role') return;
+        updateCollaboratorRoleForCurrentSpace(group.dataset.permId, btn.dataset.role);
+      });
+    });
   });
 }
 
@@ -7548,9 +7555,9 @@ async function addCollaboratorToCurrentSpace() {
   const sp = findSpace(_shareTargetSpaceId);
   if (!sp || !sp.driveFileId) return;
   const emailEl = document.getElementById('share-add-email');
-  const roleEl  = document.getElementById('share-add-role');
+  const roleEl  = document.querySelector('#share-add-role .share-role-option.active');
   const email = (emailEl && emailEl.value || '').trim();
-  const role  = (roleEl && roleEl.value) || 'writer';
+  const role  = (roleEl && roleEl.dataset.role) || 'writer';
   if (!email) { emailEl?.focus(); return; }
   const btn = document.getElementById('share-add-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Inviting…'; }

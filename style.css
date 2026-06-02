@@ -5894,11 +5894,11 @@ body { font-size: 13px; }
 
 .share-add {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 112px auto;
+  grid-template-columns: minmax(0, 1fr) 168px auto;
   gap: 8px;
   align-items: center;
 }
-.share-add input, .share-add select {
+.share-add input {
   height: 36px;
   padding: 0 10px;
   border: 1px solid var(--border);
@@ -5909,20 +5909,6 @@ body { font-size: 13px; }
   font-size: 13px;
 }
 
-.share-add select,
-.share-role-select {
-  appearance: none;
-  background-image:
-    linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position:
-    calc(100% - 15px) 50%,
-    calc(100% - 10px) 50%;
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-  padding-right: 28px;
-}
-
 .share-collab-list {
   width: 100%;
   font-size: 13px;
@@ -5931,7 +5917,7 @@ body { font-size: 13px; }
 }
 .share-collab-head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 224px;
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 12px;
   align-items: center;
   font-size: 11px;
@@ -5944,7 +5930,7 @@ body { font-size: 13px; }
 }
 .share-collab-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 224px;
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 12px;
   align-items: center;
   min-height: 58px;
@@ -5961,29 +5947,47 @@ body { font-size: 13px; }
 }
 .share-collab-controls {
   display: grid;
-  grid-template-columns: 92px 92px;
+  grid-template-columns: minmax(156px, 1fr) 96px;
   gap: 8px;
   align-items: center;
   justify-content: end;
 }
-.share-role-select {
-  width: 92px;
+.share-role-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-width: 156px;
   height: 36px;
   border-radius: 8px;
   border: 1px solid var(--border);
+  padding: 2px;
   background: var(--surface);
+}
+.share-role-option {
+  min-width: 0;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.share-role-select:disabled { opacity: .6; cursor: not-allowed; }
+.share-role-option.active {
+  background: rgba(99, 178, 255, .18);
+  color: var(--accent);
+}
+.share-role-option:disabled { opacity: .55; cursor: not-allowed; }
 .share-collab-remove {
-  width: 92px;
+  width: 96px;
   height: 36px;
   color: var(--red, #dc2626);
   font-size: 12px;
+  white-space: nowrap;
 }
 .share-collab-empty {
   text-align: center;
@@ -6013,7 +6017,7 @@ body { font-size: 13px; }
 
 @media (max-width: 600px) {
   .share-add { grid-template-columns: 1fr; }
-  .share-add input, .share-add select, .share-add button { width: 100%; }
+  .share-add input, .share-add button, .share-add-role-toggle { width: 100%; }
   .share-collab-head { display: none; }
   .share-collab-row {
     grid-template-columns: 1fr;
@@ -6023,7 +6027,7 @@ body { font-size: 13px; }
     grid-template-columns: 1fr 1fr;
     justify-content: stretch;
   }
-  .share-role-select,
+  .share-role-toggle,
   .share-collab-remove {
     width: 100%;
   }

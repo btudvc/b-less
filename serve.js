@@ -10,6 +10,11 @@ try { admin = require('firebase-admin'); } catch {}
 const PORT = process.env.PORT || 5173;
 const ROOT = __dirname;
 const TOKENS_FILE = path.join(ROOT, '.firebase-tokens.json');
+const ALLOWED_ORIGINS = new Set((process.env.CORS_ORIGINS || [
+  'http://localhost:5173',
+  'https://btudvc.github.io',
+  'https://b-less.onrender.com',
+].join(',')).split(',').map(s => s.trim()).filter(Boolean));
 
 function initFirebaseAdmin() {
   if (!admin || admin.apps.length) return !!(admin && admin.apps.length);
@@ -66,6 +71,17 @@ function sendJson(res, status, data) {
     'Cache-Control': 'no-cache',
   });
   res.end(JSON.stringify(data));
+}
+
+function applyCors(req, res) {
+  const origin = req.headers.origin;
+  if (!origin) return;
+  const allowed = ALLOWED_ORIGINS.has(origin) || /^http:\/\/localhost:\d+$/.test(origin);
+  if (!allowed) return;
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Vary', 'Origin');
 }
 
 function loadTokens() {
@@ -147,6 +163,12 @@ async function handlePushApi(req, res, urlPath) {
 http.createServer((req, res) => {
   const urlPath = req.url.split('?')[0];
   if (urlPath.startsWith('/api/push/')) {
+    applyCors(req, res);
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, { 'Cache-Control': 'no-cache' });
+      res.end();
+      return;
+    }
     handlePushApi(req, res, urlPath).catch(err => sendJson(res, 500, { error: err.message || 'Server error' }));
     return;
   }

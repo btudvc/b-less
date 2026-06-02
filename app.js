@@ -555,9 +555,10 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.13';
+var APP_VERSION = '7.12.14';
 
 const STORAGE_KEY = 'b-less';
+const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
 const LEGACY_STORAGE_KEY = 'karta';
 const OLDEST_STORAGE_KEY = 'ais-planner';
@@ -7649,6 +7650,27 @@ function mergeImportedSpacePayload(pull) {
   state.fieldVisits = state.fieldVisits || [];
 
   const stats = { localKept: 0, remoteAdded: 0, overlap: 0, localSuperseded: 0, remoteSuperseded: 0 };
+  const existingSpace = (state.spaces || []).find(s => s.id === space.id);
+  const meInfo = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
+  const myEmail = (meInfo && meInfo.email) ? meInfo.email.toLowerCase() : null;
+  const updatedBy = (p.updatedBy || '').toLowerCase();
+  const shouldRecordActivity = !!(existingSpace && existingSpace.driveFileId && updatedBy && updatedBy !== myEmail);
+
+  function recordTaskActivity(kind, robot, task, detailId) {
+    if (!shouldRecordActivity || !robot || !task) return;
+    addSharedActivity({
+      id: ['shared', space.id, robot.id, task.id, kind, detailId || task.updatedAt || task.createdAt || Date.now()].join(':'),
+      kind,
+      spaceId: space.id,
+      spaceName: space.name || (existingSpace && existingSpace.name) || 'Shared Space',
+      projectId: robot.id,
+      projectName: robot.name || 'List',
+      taskId: task.id,
+      taskTitle: task.title || 'Task',
+      actorEmail: p.updatedBy || '',
+      createdAt: Date.now(),
+    });
+  }
 
   // Tasks inside a robot — merge per-id, newer updatedAt wins.
   function mergeTasks(localRobot, remoteRobot) {
@@ -7662,10 +7684,19 @@ function mergeImportedSpacePayload(pull) {
       if (!lt) {
         out.push(rt);
         stats.remoteAdded++;
+        recordTaskActivity('task-added', remoteRobot, rt, rt.id);
       } else {
         const lUpd = lt.updatedAt || 0;
         const rUpd = rt.updatedAt || 0;
         if (rUpd > lUpd) {
+          const localNotes = new Set((lt.notebook || []).map(n => n && n.id));
+          const localSubs = new Set((lt.subtasks || []).map(s => s && s.id));
+          (rt.notebook || []).forEach(n => {
+            if (n && n.id && !localNotes.has(n.id)) recordTaskActivity('note-added', remoteRobot, rt, n.id);
+          });
+          (rt.subtasks || []).forEach(s => {
+            if (s && s.id && !localSubs.has(s.id)) recordTaskActivity('subtask-added', remoteRobot, rt, s.id);
+          });
           // Remote wins on data, but UI-only fields (expanded) belong to
           // this device — copy them from the local version so the merge
           // doesn't collapse a task the user just opened.
@@ -8796,7 +8827,34 @@ function homeNavigate(target) {
   }
 }
 
-// Inbox = today/overdue tasks list (single source of "what's on me now")
+// Inbox = assigned/overdue tasks + shared-space activity.
+function getSharedActivities() {
+  try {
+    const items = JSON.parse(localStorage.getItem(SHARED_ACTIVITY_KEY) || '[]');
+    return Array.isArray(items) ? items : [];
+  } catch { return []; }
+}
+function saveSharedActivities(items) {
+  try { localStorage.setItem(SHARED_ACTIVITY_KEY, JSON.stringify(items.slice(0, 80))); } catch {}
+}
+function addSharedActivity(activity) {
+  if (!activity || !activity.id) return;
+  const items = getSharedActivities();
+  if (items.some(it => it.id === activity.id)) return;
+  items.unshift(activity);
+  saveSharedActivities(items);
+  refreshInboxBadge();
+}
+function markSharedActivitySeen(activityId) {
+  saveSharedActivities(getSharedActivities().filter(it => it.id !== activityId));
+  refreshInboxBadge();
+}
+function sharedActivityText(kind) {
+  if (kind === 'task-added') return 'added a task';
+  if (kind === 'note-added') return 'added a note';
+  if (kind === 'subtask-added') return 'added a subtask';
+  return 'updated a task';
+}
 function getInboxSeen() {
   try { return JSON.parse(localStorage.getItem('b-less.inbox-seen') || '{}') || {}; }
   catch { return {}; }
@@ -8817,6 +8875,7 @@ function renderInbox() {
   const seen = getInboxSeen();
   const overdue  = [];
   const assigned = [];
+  const activities = getSharedActivities();
   const seenIds  = new Set();
   (state.robots || []).forEach(r => {
     (r.tasks || []).forEach(task => {
@@ -8840,18 +8899,19 @@ function renderInbox() {
     });
   });
   const items = assigned.concat(overdue);
+  const totalCount = items.length + activities.length;
   // Update pill badge + drawer-nav badge
   const badge = document.getElementById('inbox-badge');
   if (badge) {
-    if (items.length) { badge.textContent = items.length > 99 ? '99+' : String(items.length); badge.classList.add('has'); }
+    if (totalCount) { badge.textContent = totalCount > 99 ? '99+' : String(totalCount); badge.classList.add('has'); }
     else { badge.textContent = ''; badge.classList.remove('has'); }
   }
   const drawerBadge = document.getElementById('drawer-inbox-badge');
   if (drawerBadge) {
-    if (items.length) { drawerBadge.textContent = items.length > 99 ? '99+' : String(items.length); drawerBadge.hidden = false; }
+    if (totalCount) { drawerBadge.textContent = totalCount > 99 ? '99+' : String(totalCount); drawerBadge.hidden = false; }
     else { drawerBadge.hidden = true; }
   }
-  if (!items.length) {
+  if (!totalCount) {
     list.innerHTML = '<div class="home-list-empty" style="padding: 32px 16px;">Inbox zero — nothing assigned to you or past due.</div>';
     return;
   }
@@ -8883,7 +8943,26 @@ function renderInbox() {
       </div>
     `;
   };
+  const activityHtml = activities.length ? `
+    <div class="inbox-section">
+      <div class="inbox-section-head">Shared activity</div>
+      ${activities.map(it => `
+        <button class="home-list-item" data-activity-id="${escapeAttr(it.id)}" data-pid="${escapeAttr(it.projectId || '')}" data-tid="${escapeAttr(it.taskId || '')}" data-inbox-kind="activity" type="button">
+          <span class="home-list-item-icon" style="--c: #38bdf8;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+            </svg>
+          </span>
+          <span class="home-list-item-body">
+            <span class="home-list-item-title">${escapeHtml(it.taskTitle || 'Task')}</span>
+            <span class="home-list-item-sub">${escapeHtml(sharedActivityText(it.kind))}${it.actorEmail ? ` - ${escapeHtml(it.actorEmail)}` : ''} - ${escapeHtml(it.spaceName || 'Shared Space')}</span>
+          </span>
+        </button>
+      `).join('')}
+    </div>
+  ` : '';
   list.innerHTML =
+    activityHtml +
     sectionHtml('Assigned to you', assigned, 'assigned') +
     sectionHtml('Overdue',         overdue,  'overdue');
 
@@ -8893,6 +8972,7 @@ function renderInbox() {
       // Acknowledge: clicking an "assigned to you" inbox row marks it as
       // seen so it doesn't keep nagging on every visit.
       if (el.dataset.inboxKind === 'assigned' && tid) markInboxSeen(tid);
+      if (el.dataset.inboxKind === 'activity' && el.dataset.activityId) markSharedActivitySeen(el.dataset.activityId);
       if (typeof goToTask === 'function') goToTask(el.dataset.pid, tid);
     });
   });
@@ -8919,7 +8999,7 @@ function refreshInboxBadge() {
   const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
   const myEmail = (me && me.email) ? me.email.toLowerCase() : null;
   const seen = getInboxSeen();
-  let count = 0;
+  let count = getSharedActivities().length;
   const counted = new Set();
   (state.robots || []).forEach(r => (r.tasks || []).forEach(task => {
     if (task.status === 'done') return;

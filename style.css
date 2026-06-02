@@ -7714,3 +7714,308 @@ input:not([type]), textarea, select,
     background: var(--surface) !important;
   }
 }
+
+/* Task list polish: dense rows inside a single glass panel */
+#robot-content .dsection:has(#task-list) {
+  background: var(--glass-bg-card) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--card-shadow) !important;
+  backdrop-filter: blur(18px) saturate(1.25) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.25) !important;
+  overflow: hidden !important;
+  margin-bottom: 24px !important;
+}
+
+#robot-content .dsection:has(#task-list) .dsection-header {
+  margin: 0 !important;
+  padding: 8px 10px !important;
+  background: rgba(255, 255, 255, .08) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+#robot-content #task-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+}
+
+#robot-content #task-list .task-item {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  margin: 0 !important;
+  overflow: visible !important;
+}
+
+#robot-content #task-list .task-item:last-child {
+  border-bottom: 0 !important;
+}
+
+#robot-content #task-list .task-item:hover,
+#robot-content #task-list .task-item.expanded {
+  background: rgba(255, 255, 255, .07) !important;
+}
+
+:root[data-theme="dim"] #robot-content #task-list .task-item:hover,
+:root[data-theme="dark"] #robot-content #task-list .task-item:hover,
+:root[data-theme="dim"] #robot-content #task-list .task-item.expanded,
+:root[data-theme="dark"] #robot-content #task-list .task-item.expanded {
+  background: rgba(255, 255, 255, .045) !important;
+}
+
+#robot-content #task-list .task-header {
+  min-height: 44px !important;
+  padding: 9px 12px !important;
+  gap: 10px !important;
+}
+
+#robot-content #task-list .task-dot {
+  width: 9px !important;
+  height: 9px !important;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, .12) !important;
+}
+
+#robot-content #task-list .task-title-text {
+  color: var(--text) !important;
+  font-size: 13.5px !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+}
+
+#robot-content #task-list .task-tags {
+  gap: 6px !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  min-width: 0 !important;
+}
+
+#robot-content #task-list .task-label-chip,
+#robot-content #task-list .task-due,
+#robot-content #task-list .priority-tag,
+#robot-content #task-list .status-tag,
+#robot-content #task-list .nb-count {
+  height: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  border-radius: 7px !important;
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+  background: rgba(255, 255, 255, .08) !important;
+  color: var(--muted) !important;
+  padding: 0 7px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .15px !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+}
+
+#robot-content #task-list .priority-tag.high,
+#robot-content #task-list .priority-tag.critical {
+  color: #f59e0b !important;
+  background: rgba(245, 158, 11, .12) !important;
+  border-color: rgba(245, 158, 11, .14) !important;
+  text-transform: uppercase !important;
+}
+
+#robot-content #task-list .status-tag.active {
+  color: #4ade80 !important;
+  background: rgba(34, 197, 94, .12) !important;
+  border-color: rgba(34, 197, 94, .16) !important;
+  text-transform: uppercase !important;
+}
+
+#robot-content #task-list .task-due.overdue,
+#robot-content #task-list .task-due.yesterday {
+  color: #f87171 !important;
+  background: rgba(248, 113, 113, .12) !important;
+  border-color: rgba(248, 113, 113, .16) !important;
+}
+
+#robot-content #task-list .task-assignee-chip {
+  width: 21px !important;
+  height: 21px !important;
+  background: rgba(255, 255, 255, .10) !important;
+  border-color: rgba(255, 255, 255, .14) !important;
+}
+
+#robot-content #task-list .expand-chevron {
+  width: 22px !important;
+  height: 22px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 7px !important;
+  color: var(--muted-2) !important;
+}
+
+#robot-content #task-list .task-item:hover .expand-chevron {
+  background: rgba(255, 255, 255, .08) !important;
+  color: var(--text) !important;
+}
+
+#robot-content #task-list .task-body {
+  padding: 0 14px 14px 40px !important;
+  background: rgba(0, 0, 0, .035) !important;
+}
+
+#robot-content #task-list .task-body-inner {
+  border-top-color: var(--border) !important;
+}
+
+@media (max-width: 700px) {
+  #robot-content #task-list .task-header {
+    align-items: flex-start !important;
+  }
+
+  #robot-content #task-list .task-tags {
+    flex-wrap: wrap !important;
+  }
+}
+
+/* Theme consistency pass: align controls, pills, tabs and dark shadows */
+:root {
+  --glass-control: rgba(255, 255, 255, .24);
+  --glass-control-hover: rgba(255, 255, 255, .34);
+  --glass-chip: rgba(255, 255, 255, .18);
+  --glass-chip-border: rgba(35, 46, 66, .10);
+  --glass-active: linear-gradient(180deg, rgba(59, 130, 246, .20), rgba(59, 130, 246, .10));
+  --glass-active-border: rgba(59, 130, 246, .34);
+}
+
+:root[data-theme="dim"] {
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, .16);
+  --shadow: 0 16px 40px rgba(0, 0, 0, .24);
+  --shadow-lg: 0 28px 70px rgba(0, 0, 0, .34);
+  --glass-control: rgba(255, 255, 255, .07);
+  --glass-control-hover: rgba(255, 255, 255, .12);
+  --glass-chip: rgba(255, 255, 255, .08);
+  --glass-chip-border: rgba(255, 255, 255, .12);
+}
+
+:root[data-theme="dark"] {
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, .20);
+  --shadow: 0 16px 42px rgba(0, 0, 0, .30);
+  --shadow-lg: 0 30px 76px rgba(0, 0, 0, .42);
+  --glass-control: rgba(255, 255, 255, .065);
+  --glass-control-hover: rgba(255, 255, 255, .11);
+  --glass-chip: rgba(255, 255, 255, .075);
+  --glass-chip-border: rgba(255, 255, 255, .11);
+}
+
+.app-topbar,
+.spaces-drawer,
+.bottom-nav {
+  box-shadow: var(--shadow) !important;
+}
+
+.count-pill,
+.nb-count,
+.task-label-chip,
+.task-due,
+.priority-tag,
+.status-tag,
+.severity-tag,
+.issue-status-tag,
+.at-task-prio,
+.cal-day-event,
+.home-goal-badge-space {
+  border: 1px solid var(--glass-chip-border) !important;
+  background: var(--glass-chip) !important;
+  color: var(--muted) !important;
+  box-shadow: inset 0 1px 0 var(--glass-highlight) !important;
+}
+
+.inner-tabs,
+.reviews-period-toggle,
+.lang-switcher,
+.theme-toggle {
+  background: var(--glass-control) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: inset 0 1px 0 var(--glass-highlight) !important;
+  backdrop-filter: blur(16px) saturate(1.25) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.25) !important;
+}
+
+.inner-tab,
+.lang-btn,
+.theme-btn {
+  color: var(--muted) !important;
+}
+
+.inner-tab:hover,
+.lang-btn:hover,
+.theme-btn:hover,
+.drawer-nav-btn:hover,
+.btn-ghost:hover,
+.icon-btn:hover,
+.topbar-icon-btn:hover,
+.topbar-avatar-btn:hover,
+.modal-close:hover,
+.md-back-btn:hover,
+.bp-icon-btn:hover,
+.vault-icon-btn:hover,
+.home-section-icon-btn:hover,
+.cal-nav:hover,
+.cv-list-actions button:hover {
+  background: var(--glass-control-hover) !important;
+  border-color: var(--border-2) !important;
+  color: var(--text) !important;
+}
+
+.inner-tab.active,
+.lang-btn.active,
+.theme-btn.active,
+.cv-tab.active,
+.cv-tab-inline.active,
+.rev-period-btn.active,
+.drawer-nav-btn.active,
+.bnav-btn.active,
+.tab.active {
+  background: var(--glass-active) !important;
+  border-color: var(--glass-active-border) !important;
+  color: var(--accent) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18) !important;
+}
+
+.drawer-nav-btn.active svg,
+.bnav-btn.active svg,
+.tab.active svg {
+  color: var(--accent) !important;
+}
+
+.priority-tag.high,
+.priority-tag.critical,
+.at-task-prio.high,
+.at-task-prio.critical {
+  color: #f59e0b !important;
+  background: rgba(245, 158, 11, .12) !important;
+  border-color: rgba(245, 158, 11, .18) !important;
+}
+
+.status-tag.active,
+.issue-status-tag.resolved {
+  color: #4ade80 !important;
+  background: rgba(34, 197, 94, .12) !important;
+  border-color: rgba(34, 197, 94, .18) !important;
+}
+
+.task-due.overdue,
+.task-due.yesterday,
+.severity-tag.critical,
+.issue-status-tag.open {
+  color: #f87171 !important;
+  background: rgba(248, 113, 113, .12) !important;
+  border-color: rgba(248, 113, 113, .18) !important;
+}
+
+.dsection:not(:has(#task-list)) {
+  padding: 14px 16px !important;
+}
+
+.dsection:not(:has(#task-list)) .dsection-header {
+  margin: -2px 0 12px !important;
+}

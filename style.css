@@ -8358,7 +8358,20 @@ input:not([type]), textarea, select,
 
 .bottom-nav .bnav-btn,
 .bottom-nav .tab.bnav-btn {
+  --nav-color: var(--accent);
   overflow: hidden;
+  color: var(--muted) !important;
+}
+.bottom-nav .bnav-btn:nth-child(1) { --nav-color: #60a5fa; }
+.bottom-nav .bnav-btn:nth-child(2) { --nav-color: #fb7185; }
+.bottom-nav .bnav-btn:nth-child(3) { --nav-color: #a78bfa; }
+.bottom-nav .bnav-btn:nth-child(4) { --nav-color: #38bdf8; }
+
+.bottom-nav .bnav-btn svg {
+  color: var(--nav-color) !important;
+  width: 20px !important;
+  height: 20px !important;
+  stroke-width: 1.85 !important;
 }
 
 .bottom-nav .bnav-btn.active,
@@ -8366,7 +8379,7 @@ input:not([type]), textarea, select,
   background: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
-  color: var(--accent) !important;
+  color: var(--text) !important;
 }
 
 .bottom-nav .bnav-btn::before {
@@ -8384,10 +8397,15 @@ input:not([type]), textarea, select,
 }
 
 .bottom-nav .bnav-btn.active::before {
-  background: rgba(96, 165, 250, .14) !important;
-  border-color: rgba(96, 165, 250, .30) !important;
+  background: color-mix(in srgb, var(--nav-color) 18%, transparent) !important;
+  border-color: color-mix(in srgb, var(--nav-color) 34%, transparent) !important;
   opacity: 1;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 8px 18px rgba(37, 99, 235, .10) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 8px 18px color-mix(in srgb, var(--nav-color) 12%, transparent) !important;
+}
+
+.bottom-nav .bnav-btn:hover::before {
+  background: color-mix(in srgb, var(--nav-color) 10%, transparent) !important;
+  opacity: 1;
 }
 
 .bottom-nav .bnav-btn svg,

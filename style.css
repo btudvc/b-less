@@ -8445,28 +8445,30 @@ input:not([type]), textarea, select,
 /* Desktop rail polish: keep every nav item readable in the narrow column */
 @media (min-width: 1000px) {
   body {
-    grid-template-columns: 328px 1fr !important;
+    grid-template-columns: 334px 1fr !important;
   }
 
   .spaces-drawer {
-    grid-template-columns: 68px 260px !important;
-    width: 328px !important;
+    grid-template-columns: 74px 260px !important;
+    width: 334px !important;
   }
 
   .drawer-nav {
-    padding: 12px 8px !important;
-    gap: 5px !important;
+    padding: 10px 10px !important;
+    gap: 4px !important;
     background: var(--glass-bg) !important;
     border-right: 1px solid var(--glass-border) !important;
     box-shadow: inset -1px 0 0 rgba(255, 255, 255, .05) !important;
+    scrollbar-width: none !important;
   }
+  .drawer-nav::-webkit-scrollbar { display: none !important; }
 
   .drawer-nav-btn {
     --rail-color: var(--accent);
-    width: 52px !important;
-    min-height: 52px !important;
-    padding: 7px 3px 6px !important;
-    gap: 4px !important;
+    width: 54px !important;
+    min-height: 50px !important;
+    padding: 6px 3px 5px !important;
+    gap: 3px !important;
     border-radius: 11px !important;
     background: transparent !important;
     border: 1px solid transparent !important;
@@ -8494,8 +8496,8 @@ input:not([type]), textarea, select,
   }
 
   .drawer-nav-btn span {
-    width: 48px !important;
-    max-width: 48px !important;
+    width: 50px !important;
+    max-width: 50px !important;
     min-height: 11px !important;
     max-height: 20px !important;
     font-size: 9px !important;

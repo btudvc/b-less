@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.16';
+var APP_VERSION = '7.12.17';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -660,15 +660,6 @@ function showSyncToast(stats, spaceName) {
   showAppToast(`Synced "${spaceName || 'Space'}" — ${bits.join(', ')}.`, 'sync');
 }
 
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = atob(base64);
-  const output = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; i++) output[i] = rawData.charCodeAt(i);
-  return output;
-}
-
 async function apiJson(path, options = {}) {
   const res = await fetch(PUSH_ENDPOINT_BASE + path, Object.assign({
     headers: { 'Content-Type': 'application/json' },
@@ -678,8 +669,25 @@ async function apiJson(path, options = {}) {
 }
 
 async function enablePushNotifications() {
-  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-    showAppToast('This browser does not support push notifications.', 'error');
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    showAppToast('This browser does not support notifications.', 'error');
+    return false;
+  }
+  if (!window.firebase || !firebase.messaging) {
+    showAppToast('Firebase Messaging SDK is not loaded.', 'error');
+    return false;
+  }
+  if (typeof firebase.messaging.isSupported === 'function') {
+    const supported = await firebase.messaging.isSupported();
+    if (!supported) {
+      showAppToast('This browser does not support Firebase notifications.', 'error');
+      return false;
+    }
+  }
+  const cfg = window.BLESS_FIREBASE_CONFIG || {};
+  const vapidKey = window.BLESS_FIREBASE_VAPID_KEY || '';
+  if (!cfg.apiKey || !cfg.projectId || !cfg.messagingSenderId || !cfg.appId || !vapidKey) {
+    showAppToast('Firebase push config is missing.', 'error');
     return false;
   }
   const permission = await Notification.requestPermission();
@@ -688,29 +696,22 @@ async function enablePushNotifications() {
     return false;
   }
   const reg = await navigator.serviceWorker.ready;
-  let publicKey;
-  try {
-    const cfg = await apiJson('/api/push/public-key');
-    publicKey = cfg.publicKey;
-  } catch {
-    showAppToast('Notifications enabled locally. Push server is not configured.', 'sync');
-    return true;
-  }
-  if (!publicKey) {
-    showAppToast('Push server has no public key configured.', 'error');
+  if (!firebase.apps.length) firebase.initializeApp(cfg);
+  const messaging = firebase.messaging();
+  const token = await messaging.getToken({ vapidKey, serviceWorkerRegistration: reg });
+  if (!token) {
+    showAppToast('Could not get Firebase messaging token.', 'error');
     return false;
-  }
-  let sub = await reg.pushManager.getSubscription();
-  if (!sub) {
-    sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey),
-    });
   }
   const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || {};
   await apiJson('/api/push/subscribe', {
     method: 'POST',
-    body: JSON.stringify({ subscription: sub, email: me.email || null, name: me.name || null }),
+    body: JSON.stringify({ token, email: me.email || null, name: me.name || null }),
+  });
+  messaging.onMessage(payload => {
+    const notification = payload.notification || {};
+    const data = payload.data || {};
+    showLocalNotification(notification.title || data.title || 'B-Less', notification.body || data.body || 'You have a new update.', { url: data.url || './index.html#inbox' }).catch(() => {});
   });
   showAppToast('Push notifications enabled on this device.', 'success');
   return true;

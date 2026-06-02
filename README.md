@@ -17,21 +17,25 @@ npm run dev      # serves at http://localhost:5173
 
 Add `http://localhost:5173` to your Cloud Console **Authorized JavaScript origins** once (see below).
 
-## Web Push notifications
+## Firebase notifications
 
-Push notifications require the Node server (`serve.js`) plus VAPID keys.
+Phone/desktop notifications use Firebase Cloud Messaging. The web app has a
+public Firebase config, while the Node server uses Firebase Admin credentials to
+send notifications.
 
-```bash
-npm run push:keys
-set VAPID_PUBLIC_KEY=...
-set VAPID_PRIVATE_KEY=...
-set VAPID_SUBJECT=mailto:you@example.com
-npm run dev
-```
+1. Create a Firebase project and add a Web app.
+2. Copy the Web app config into `firebase-config.js`.
+3. Firebase Console -> Project settings -> Cloud Messaging -> Web Push
+   certificates: create/copy the public key into `BLESS_FIREBASE_VAPID_KEY`.
+4. Give the backend Firebase Admin access with either:
+   - `FIREBASE_SERVICE_ACCOUNT` containing the service account JSON, or
+   - `GOOGLE_APPLICATION_CREDENTIALS` pointing to the service account JSON file.
+5. Run `npm run dev`.
 
 In the app, click the bell button in the Spaces drawer to enable notifications
 on that device. Static GitHub Pages can still show in-app Inbox activity, but
-phone/desktop push notifications need a deployed Node backend with those env vars.
+phone/desktop push notifications need a deployed Node backend with Firebase
+Admin configured.
 
 ## Deploy to GitHub Pages
 

@@ -5,6 +5,7 @@ Thumbs.db
 *.bak
 *.old
 .push-subscriptions.json
+.firebase-tokens.json
 release/
 dist/
 .claude/

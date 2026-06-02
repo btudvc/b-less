@@ -1,5 +1,5 @@
 // B-Less service worker — offline-first app shell
-const VERSION = 'b-less-v7.12.16';
+const VERSION = 'b-less-v7.12.17';
 const SHELL = [
   './',
   './index.html',
@@ -13,6 +13,27 @@ const SHELL = [
   './assets/favicon-16.png',
   './assets/favicon-32.png',
 ];
+
+try {
+  importScripts('firebase-config.js?v=7.12.17');
+  importScripts('https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js');
+  const cfg = self.BLESS_FIREBASE_CONFIG || {};
+  if (self.firebase && cfg.apiKey && cfg.projectId && cfg.messagingSenderId && cfg.appId) {
+    self.firebase.initializeApp(cfg);
+    const messaging = self.firebase.messaging();
+    messaging.onBackgroundMessage(payload => {
+      const notification = payload.notification || {};
+      const data = payload.data || {};
+      self.registration.showNotification(notification.title || data.title || 'B-Less', {
+        body: notification.body || data.body || 'You have a new update.',
+        icon: notification.icon || 'assets/icon-192.png?v=6',
+        badge: 'assets/favicon-32.png',
+        data: { url: data.url || './index.html#inbox' },
+      });
+    });
+  }
+} catch {}
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -64,19 +85,6 @@ self.addEventListener('fetch', e => {
       })
     )
   );
-});
-
-self.addEventListener('push', e => {
-  let data = {};
-  try { data = e.data ? e.data.json() : {}; } catch {}
-  const title = data.title || 'B-Less';
-  const options = {
-    body: data.body || 'You have a new update.',
-    icon: 'assets/icon-192.png?v=6',
-    badge: 'assets/favicon-32.png',
-    data: data.data || { url: './index.html#inbox' },
-  };
-  e.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', e => {

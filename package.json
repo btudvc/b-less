@@ -1,13 +1,12 @@
 {
   "name": "b-less",
-  "version": "7.12.16",
+  "version": "7.12.17",
   "description": "B-Less — personal project and task planner.",
   "private": true,
   "scripts": {
-    "dev": "node serve.js",
-    "push:keys": "npx web-push generate-vapid-keys"
+    "dev": "node serve.js"
   },
   "dependencies": {
-    "web-push": "^3.6.7"
+    "firebase-admin": "^13.10.0"
   }
 }

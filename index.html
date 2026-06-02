@@ -206,18 +206,22 @@
     <section id="calendar" class="section">
       <div class="fv-container">
         <div class="cal-header">
-          <button class="cal-nav" id="cal-prev" aria-label="Previous month">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-          </button>
-          <h2 id="cal-title">Loading…</h2>
-          <button class="cal-nav" id="cal-next" aria-label="Next month">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-          <button class="btn-ghost cal-today-btn" id="cal-today" data-i18n="btn.today">Bugün</button>
-          <button class="btn-ghost cal-export-btn" id="cal-export-ics" type="button" title="Export calendar (.ics)" aria-label="Export calendar (.ics)">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
-            <span>.ics</span>
-          </button>
+          <div class="cal-title-group">
+            <button class="cal-nav" id="cal-prev" aria-label="Previous month">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <h2 id="cal-title">Loading…</h2>
+            <button class="cal-nav" id="cal-next" aria-label="Next month">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+          <div class="cal-actions">
+            <button class="btn-ghost cal-today-btn" id="cal-today" data-i18n="btn.today">Bugün</button>
+            <button class="btn-ghost cal-export-btn" id="cal-export-ics" type="button" title="Export calendar (.ics)" aria-label="Export calendar (.ics)">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+              <span>.ics</span>
+            </button>
+          </div>
         </div>
         <div class="cal-body">
           <div class="cal-grid" id="cal-grid"></div>
@@ -483,7 +487,7 @@
       </button>
       <button class="drawer-nav-btn" data-drawer-go="private" type="button">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span>Passwords</span>
+        <span>Vault</span>
       </button>
       <button class="drawer-nav-btn" data-drawer-go="cv" type="button">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><circle cx="12" cy="13" r="2"/><path d="M9 19h6v-2a3 3 0 0 0-6 0z"/></svg>

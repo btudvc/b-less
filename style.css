@@ -8019,3 +8019,322 @@ input:not([type]), textarea, select,
 .dsection:not(:has(#task-list)) .dsection-header {
   margin: -2px 0 12px !important;
 }
+
+/* Desktop rail polish: keep every nav item readable in the narrow column */
+@media (min-width: 1000px) {
+  body {
+    grid-template-columns: 340px 1fr !important;
+  }
+
+  .spaces-drawer {
+    grid-template-columns: 80px 260px !important;
+    width: 340px !important;
+  }
+
+  .drawer-nav {
+    padding: 12px 10px !important;
+    gap: 6px !important;
+    background: var(--glass-bg) !important;
+    border-right: 1px solid var(--glass-border) !important;
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, .05) !important;
+  }
+
+  .drawer-nav-btn {
+    width: 60px !important;
+    min-height: 58px !important;
+    padding: 8px 4px 7px !important;
+    gap: 5px !important;
+    border-radius: 12px !important;
+    background: var(--glass-control) !important;
+    border: 1px solid var(--glass-chip-border) !important;
+    box-shadow: inset 0 1px 0 var(--glass-highlight) !important;
+  }
+
+  .drawer-nav-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .drawer-nav-btn span {
+    width: 56px !important;
+    max-width: 56px !important;
+    min-height: 11px !important;
+    max-height: 22px !important;
+    font-size: 9.5px !important;
+    line-height: 1.08 !important;
+    letter-spacing: 0 !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .drawer-nav-btn:hover {
+    background: var(--glass-control-hover) !important;
+    transform: none !important;
+  }
+
+  .drawer-nav-btn.active {
+    background: var(--glass-active) !important;
+    border-color: var(--glass-active-border) !important;
+  }
+
+  .drawer-nav-btn:has(#drawer-inbox-badge:not([hidden]))::after {
+    top: 7px !important;
+    right: 9px !important;
+    border-color: var(--glass-bg) !important;
+  }
+}
+
+/* Project task list: match the separate-card rhythm used by All Tasks */
+#robot-content .dsection:has(#task-list) {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: visible !important;
+}
+
+#robot-content .dsection:has(#task-list) .dsection-header {
+  margin: 0 0 10px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border-bottom: 0 !important;
+}
+
+#robot-content #task-list {
+  gap: 8px !important;
+}
+
+#robot-content #task-list .task-item {
+  background: var(--glass-bg-card) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--card-shadow) !important;
+  backdrop-filter: blur(18px) saturate(1.25) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.25) !important;
+  margin: 0 0 8px !important;
+  overflow: hidden !important;
+}
+
+#robot-content #task-list .task-item:hover,
+#robot-content #task-list .task-item.expanded {
+  background: var(--surface-3) !important;
+  border-color: var(--border-2) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+#robot-content #task-list .task-header {
+  min-height: 48px !important;
+  padding: 11px 14px !important;
+}
+
+#robot-content #task-list .task-body {
+  margin: 0 8px 8px !important;
+  padding: 12px 14px 14px !important;
+  background: rgba(255, 255, 255, .08) !important;
+  border: 1px solid var(--glass-chip-border) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+:root[data-theme="dim"] #robot-content #task-list .task-body,
+:root[data-theme="dark"] #robot-content #task-list .task-body {
+  background: rgba(255, 255, 255, .055) !important;
+}
+
+#robot-content #task-list .task-body-inner {
+  border-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Button polish: align primary actions with the glass system */
+.btn-primary,
+.btn-add,
+.nb-add-btn,
+.sub-add-btn,
+.action-add-btn,
+.home-shared-import {
+  min-height: 34px !important;
+  padding: 8px 14px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(96, 165, 250, .34) !important;
+  background:
+    linear-gradient(180deg, rgba(96, 165, 250, .30), rgba(59, 130, 246, .18)) !important;
+  color: var(--text) !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  line-height: 1.15 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .24), 0 8px 20px rgba(37, 99, 235, .14) !important;
+  backdrop-filter: blur(14px) saturate(1.25) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.25) !important;
+  transition: background .14s var(--ease), border-color .14s var(--ease), box-shadow .14s var(--ease) !important;
+}
+
+.btn-primary:hover,
+.btn-add:hover,
+.nb-add-btn:hover,
+.sub-add-btn:hover,
+.action-add-btn:hover,
+.home-shared-import:hover {
+  background:
+    linear-gradient(180deg, rgba(96, 165, 250, .40), rgba(59, 130, 246, .24)) !important;
+  border-color: rgba(96, 165, 250, .48) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), 0 10px 24px rgba(37, 99, 235, .18) !important;
+}
+
+.btn-primary:active,
+.btn-add:active,
+.nb-add-btn:active,
+.sub-add-btn:active,
+.action-add-btn:active {
+  transform: translateY(1px) !important;
+}
+
+.btn-ghost,
+.btn-sm,
+.btn-mini,
+.quick-date-quick,
+.home-section-add,
+.cal-add-event-btn {
+  border-radius: 10px !important;
+  background: var(--glass-control) !important;
+  border: 1px solid var(--glass-chip-border) !important;
+  color: var(--muted) !important;
+  box-shadow: inset 0 1px 0 var(--glass-highlight) !important;
+  backdrop-filter: blur(14px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.2) !important;
+}
+
+.btn-ghost:hover,
+.btn-sm:hover,
+.btn-mini:hover,
+.quick-date-quick:hover,
+.home-section-add:hover,
+.cal-add-event-btn:hover {
+  background: var(--glass-control-hover) !important;
+  border-color: var(--border-2) !important;
+  color: var(--text) !important;
+}
+
+.btn-sm,
+.btn-mini {
+  min-height: 28px !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+}
+
+/* Reviews period switcher: one calm segmented control, not two big pills */
+.reviews-period-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  padding: 3px !important;
+  min-height: 34px !important;
+  background: var(--glass-control) !important;
+  border: 1px solid var(--glass-chip-border) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 var(--glass-highlight) !important;
+  backdrop-filter: blur(16px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.2) !important;
+}
+
+.reviews-period-toggle .rev-period-btn {
+  min-height: 28px !important;
+  padding: 6px 13px !important;
+  border: 1px solid transparent !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  box-shadow: none !important;
+  font-size: 12.5px !important;
+  font-weight: 650 !important;
+  line-height: 1.1 !important;
+}
+
+.reviews-period-toggle .rev-period-btn:hover {
+  background: var(--glass-control-hover) !important;
+  color: var(--text) !important;
+  border-color: transparent !important;
+}
+
+.reviews-period-toggle .rev-period-btn.active {
+  background: var(--glass-active) !important;
+  border-color: var(--glass-active-border) !important;
+  color: var(--accent) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18) !important;
+}
+
+/* Calendar toolbar spacing */
+.cal-container {
+  gap: 18px !important;
+}
+
+.cal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  margin: 0 0 12px !important;
+  padding: 0 2px !important;
+}
+
+.cal-title-group,
+.cal-actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+}
+
+.cal-title-group {
+  flex: 1 1 auto !important;
+}
+
+.cal-actions {
+  flex: 0 0 auto !important;
+}
+
+.cal-header h2 {
+  flex: 0 1 auto !important;
+  margin: 0 8px !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+}
+
+.cal-nav {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+}
+
+.cal-today-btn,
+.cal-export-btn {
+  min-height: 36px !important;
+  padding: 8px 14px !important;
+}
+
+.cal-body {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 700px) {
+  .cal-header {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .cal-title-group,
+  .cal-actions {
+    width: 100% !important;
+  }
+
+  .cal-actions {
+    justify-content: flex-end !important;
+  }
+}

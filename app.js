@@ -6888,7 +6888,7 @@ const TOPBAR_TITLES = {
   journal: 'Journal',
   reviews: 'Reviews',
   links: 'Links',
-  private: 'Passwords',
+  private: 'Vault',
   cv: 'CV',
   more: 'Settings',
   settings: 'Settings',

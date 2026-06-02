@@ -7116,16 +7116,26 @@ input::placeholder, textarea::placeholder { color: var(--muted) !important; opac
    7. MODAL / POPOVER consistency
    ════════════════════════════════════════════════════════════ */
 .modal {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
+  background: rgba(22, 27, 36, .72) !important;
+  border: 1px solid rgba(255, 255, 255, .16) !important;
   border-radius: 14px !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, .25) !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+  backdrop-filter: blur(26px) saturate(1.28) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(1.28) !important;
 }
 .backup-popover {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
+  background: rgba(22, 27, 36, .72) !important;
+  border: 1px solid rgba(255, 255, 255, .16) !important;
   border-radius: 14px !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, .25) !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+  backdrop-filter: blur(26px) saturate(1.28) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(1.28) !important;
+}
+:root[data-theme="light"] .modal,
+:root[data-theme="light"] .backup-popover {
+  background: rgba(255, 255, 255, .76) !important;
+  border-color: rgba(15, 23, 42, .12) !important;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, .16), inset 0 1px 0 rgba(255, 255, 255, .82) !important;
 }
 .bp-account, .bp-meta, .bp-settings-block {
   background: transparent !important;
@@ -8037,8 +8047,8 @@ input:not([type]), textarea, select,
 .modal-overlay,
 .backup-backdrop,
 .spaces-drawer-backdrop {
-  backdrop-filter: blur(10px) saturate(1.15) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(1.15) !important;
+  backdrop-filter: blur(12px) saturate(1.18) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.18) !important;
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -8761,16 +8771,16 @@ input:not([type]), textarea, select,
   z-index: 900 !important;
   min-width: 188px !important;
   padding: 6px !important;
-  background: rgba(22, 27, 36, .96) !important;
-  border: 1px solid rgba(255, 255, 255, .16) !important;
+  background: rgba(22, 27, 36, .68) !important;
+  border: 1px solid rgba(255, 255, 255, .18) !important;
   border-radius: 12px !important;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
-  backdrop-filter: blur(22px) saturate(1.25) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(1.25) !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .36), inset 0 1px 0 rgba(255, 255, 255, .10) !important;
+  backdrop-filter: blur(28px) saturate(1.32) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.32) !important;
 }
 
 :root[data-theme="light"] .space-menu {
-  background: rgba(255, 255, 255, .96) !important;
+  background: rgba(255, 255, 255, .74) !important;
   border-color: rgba(15, 23, 42, .12) !important;
   box-shadow: 0 18px 42px rgba(15, 23, 42, .16), inset 0 1px 0 rgba(255, 255, 255, .8) !important;
 }
@@ -8782,7 +8792,7 @@ input:not([type]), textarea, select,
 }
 
 .space-menu-item:hover {
-  background: rgba(255, 255, 255, .10) !important;
+  background: rgba(255, 255, 255, .13) !important;
 }
 
 :root[data-theme="light"] .space-menu-item:hover {

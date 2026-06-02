@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.12';
+var APP_VERSION = '7.12.13';
 
 const STORAGE_KEY = 'b-less';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
@@ -607,6 +607,7 @@ function migrateLegacyTopics() {
 function save() {
   if (window.__bLessLoadFailed) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (typeof refreshInboxBadge === 'function') refreshInboxBadge();
   if (typeof BackupManager !== 'undefined') BackupManager.onDataChange();
 }
 function uid() {
@@ -7935,6 +7936,7 @@ async function doAutoPush(spaceId) {
     fresh.lastSyncedAt       = Date.now();
     // Persist without re-firing save() to avoid push loop.
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+    if (typeof refreshInboxBadge === 'function') refreshInboxBadge();
     if (typeof renderHome === 'function') renderHome();
     if (typeof renderReviews === 'function') renderReviews();
   } catch {
@@ -7980,6 +7982,7 @@ async function maybeAutoPull(spaceId, force) {
       // wrapper chain — going through save() would schedule another push
       // and loop.
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+      if (typeof refreshInboxBadge === 'function') refreshInboxBadge();
       // Defensive: if focus has shifted INTO an input between the
       // freshness gate above and the response landing, skip rendering
       // so we don't trash that input either. Data is already merged;
@@ -8086,6 +8089,8 @@ renderAll = function() {
 };
 
 renderAll();
+refreshInboxBadge();
+setInterval(refreshInboxBadge, 60_000);
 initJournal();
 enhanceNoteTextareas();
 new MutationObserver(mutations => {
@@ -8800,6 +8805,7 @@ function markInboxSeen(taskId) {
   const seen = getInboxSeen();
   seen[taskId] = Date.now();
   try { localStorage.setItem('b-less.inbox-seen', JSON.stringify(seen)); } catch {}
+  refreshInboxBadge();
 }
 
 function renderInbox() {

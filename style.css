@@ -2105,6 +2105,42 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   color: var(--text);
 }
 .inbox-notification-btn svg { flex: 0 0 auto; }
+#inbox-list {
+  max-width: 960px;
+}
+#inbox-list .inbox-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#inbox-list .home-list-item {
+  min-height: 58px;
+  padding: 11px 14px;
+  gap: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  background: rgba(255, 255, 255, .045);
+}
+#inbox-list .home-list-item:hover {
+  border-color: rgba(99, 178, 255, .28);
+  background: rgba(99, 178, 255, .08);
+}
+#inbox-list .home-list-item-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--c, var(--accent)) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c, var(--accent)) 34%, transparent);
+  color: var(--c, var(--accent));
+}
+#inbox-list .home-list-item-title {
+  max-width: 100%;
+}
+#inbox-list .home-list-item-sub {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 @media (max-width: 520px) {
   .inbox-header {
     align-items: stretch;

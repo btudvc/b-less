@@ -2072,8 +2072,49 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 
 /* Inbox */
 #inbox.section.active { display: block; overflow-y: auto; padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+.inbox-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
 .inbox-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -.02em; margin: 0; }
-.inbox-sub   { font-size: 13px; color: var(--muted); margin: 4px 0 18px; }
+.inbox-sub   { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+.inbox-notification-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  max-width: 100%;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(99, 178, 255, .32);
+  background: rgba(99, 178, 255, .12);
+  color: var(--accent);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.inbox-notification-btn:hover {
+  border-color: rgba(99, 178, 255, .55);
+  background: rgba(99, 178, 255, .18);
+  color: var(--text);
+}
+.inbox-notification-btn svg { flex: 0 0 auto; }
+@media (max-width: 520px) {
+  .inbox-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .inbox-notification-btn {
+    width: 100%;
+  }
+}
 
 /* Colorful card grid (now in More tab) */
 .home-card {

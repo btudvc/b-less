@@ -555,10 +555,11 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.14';
+var APP_VERSION = '7.12.15';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
+const PUSH_ENDPOINT_BASE = '';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
 const LEGACY_STORAGE_KEY = 'karta';
 const OLDEST_STORAGE_KEY = 'ais-planner';
@@ -657,6 +658,102 @@ function showSyncToast(stats, spaceName) {
   if (stats.localKept)       bits.push(`${stats.localKept} of your changes preserved`);
   if (!bits.length) return;
   showAppToast(`Synced "${spaceName || 'Space'}" — ${bits.join(', ')}.`, 'sync');
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const output = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) output[i] = rawData.charCodeAt(i);
+  return output;
+}
+
+async function apiJson(path, options = {}) {
+  const res = await fetch(PUSH_ENDPOINT_BASE + path, Object.assign({
+    headers: { 'Content-Type': 'application/json' },
+  }, options));
+  if (!res.ok) throw new Error(await res.text() || res.statusText);
+  return res.json();
+}
+
+async function enablePushNotifications() {
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    showAppToast('This browser does not support push notifications.', 'error');
+    return false;
+  }
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    showAppToast('Notifications were not enabled.', 'error');
+    return false;
+  }
+  const reg = await navigator.serviceWorker.ready;
+  let publicKey;
+  try {
+    const cfg = await apiJson('/api/push/public-key');
+    publicKey = cfg.publicKey;
+  } catch {
+    showAppToast('Notifications enabled locally. Push server is not configured.', 'sync');
+    return true;
+  }
+  if (!publicKey) {
+    showAppToast('Push server has no public key configured.', 'error');
+    return false;
+  }
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey),
+    });
+  }
+  const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || {};
+  await apiJson('/api/push/subscribe', {
+    method: 'POST',
+    body: JSON.stringify({ subscription: sub, email: me.email || null, name: me.name || null }),
+  });
+  showAppToast('Push notifications enabled on this device.', 'success');
+  return true;
+}
+
+async function showLocalNotification(title, body, data) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const reg = await navigator.serviceWorker.ready.catch(() => null);
+  if (!reg) return;
+  reg.showNotification(title, {
+    body,
+    icon: 'assets/icon-192.png?v=6',
+    badge: 'assets/favicon-32.png',
+    data: Object.assign({ url: './index.html#inbox' }, data || {}),
+  });
+}
+
+async function sendPushNotification(payload) {
+  try {
+    await apiJson('/api/push/notify', { method: 'POST', body: JSON.stringify(payload) });
+  } catch {
+    // Backend is optional in local/static deployments. In-app inbox still records the event.
+  }
+}
+
+function notifySharedTaskEvent(kind, robot, task) {
+  if (!robot || !task || typeof findSpaceOfRobot !== 'function') return;
+  const sp = findSpaceOfRobot(robot.id);
+  if (!sp || !sp.shared || !sp.driveFileId) return;
+  const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || {};
+  const myEmail = (me.email || '').toLowerCase();
+  const recipients = collectSharedSpaceMembers(sp)
+    .map(m => m && m.email)
+    .filter(email => email && email.toLowerCase() !== myEmail);
+  if (!recipients.length) return;
+  const action = sharedActivityText(kind);
+  const actor = me.name || me.email || 'Someone';
+  sendPushNotification({
+    targetEmails: recipients,
+    title: 'B-Less',
+    body: `${actor} ${action}: ${task.title || 'Task'}`,
+    data: { url: './index.html#inbox', kind, spaceId: sp.id, projectId: robot.id, taskId: task.id },
+  });
 }
 
 // ── TABS ───────────────────────────────────────────────
@@ -1378,6 +1475,7 @@ window.addSubtask = function(taskId) {
   task.subtasks.push({ id: uid(), title, done: false, createdAt: Date.now() });
   stampTask(task);
   save();
+  notifySharedTaskEvent('subtask-added', robot, task);
   renderCurrentDetail();
 };
 
@@ -1426,6 +1524,7 @@ window.addNoteEntry = function(taskId) {
   task.notebook.push({ id: uid(), text, createdAt: Date.now() });
   stampTask(task);
   save();
+  notifySharedTaskEvent('note-added', robot, task);
   // Re-render only the notebook part for speed
   const nb = document.getElementById('notebook-' + taskId);
   if (nb) nb.outerHTML = renderNotebook(task);
@@ -2278,6 +2377,7 @@ document.getElementById('save-task').addEventListener('click', () => {
   // Capture who did the assignment
   const meInfo = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
   const myEmail = (meInfo && meInfo.email) || null;
+  let createdTaskForNotify = null;
   if (editingTaskId) {
     const task = robot.tasks.find(t => t.id === editingTaskId);
     if (task) {
@@ -2314,9 +2414,11 @@ document.getElementById('save-task').addEventListener('click', () => {
       newTask.assignedAt = Date.now();
     }
     robot.tasks.push(newTask);
+    createdTaskForNotify = newTask;
   }
   stampRobot(robot);
   save();
+  if (createdTaskForNotify) notifySharedTaskEvent('task-added', robot, createdTaskForNotify);
   renderCurrentDetail();
   if (activeSection === 'topics') renderTopicList(); else renderRobotList();
   closeModal('modal-task');
@@ -7505,6 +7607,7 @@ async function pullCurrentSharedSpace() {
   const btn = document.getElementById('share-pull-btn');
   if (btn) { btn.disabled = true; const lbl = btn.querySelector('span'); if (lbl) lbl.textContent = 'Pulling…'; }
   try {
+    setSyncHealth(sp.id, 'syncing', 'Pulling latest changes.');
     const r = await DriveAPI.pullSpaceFile(sp.driveFileId);
     if (!r.payload || !r.payload.space) {
       renderShareSpaceBody({ error: 'Remote file is missing or in an unknown format.' });
@@ -7520,8 +7623,10 @@ async function pullCurrentSharedSpace() {
     if (typeof renderSidebar === 'function') renderSidebar();
     if (typeof renderRobotList === 'function') renderRobotList();
     if (typeof renderRobotDetail === 'function') renderRobotDetail();
+    clearSyncHealth(sp.id);
     renderShareSpaceBody({ status: 'Pulled latest from Drive (' + payloadCountsFromPayload(r.payload) + ').' });
   } catch (e) {
+    setSyncHealth(sp.id, navigator.onLine === false ? 'offline' : 'pull-needed', 'Pull failed.');
     renderShareSpaceBody({ error: 'Pull failed: ' + (e && e.message || 'unknown error') });
   }
 }
@@ -7532,15 +7637,19 @@ async function pushCurrentSharedSpace() {
   const btn = document.getElementById('share-push-btn');
   if (btn) { btn.disabled = true; const lbl = btn.querySelector('span'); if (lbl) lbl.textContent = 'Pushing…'; }
   try {
+    setSyncHealth(sp.id, 'syncing', 'Pushing local changes.');
     const r = await DriveAPI.pushSpaceFile(sp.driveFileId, sp, sp.lastSyncedRevision);
     sp.lastSyncedRevision = r.revisionId;
     sp.lastSyncedAt       = Date.now();
+    clearSyncHealth(sp.id);
     save();
     renderShareSpaceBody({ status: 'Pushed current data to Drive (' + payloadCounts(sp) + ').' });
   } catch (e) {
     if (e && e.conflict) {
+      setSyncHealth(sp.id, 'conflict', 'Someone else updated this Space. Pull first.');
       renderShareSpaceBody({ error: 'Someone else has updated this Space on Drive. Pull first, then push again.' });
     } else {
+      setSyncHealth(sp.id, navigator.onLine === false ? 'offline' : 'pull-needed', 'Push failed.');
       renderShareSpaceBody({ error: 'Push failed: ' + (e && e.message || 'unknown error') });
     }
   }
@@ -7926,6 +8035,50 @@ var _pendingPushes = new Map(); // spaceId -> setTimeout handle
 var _autoPullInFlight = new Set(); // spaceId currently pulling
 var _spacePollTimer = null;
 var _polledSpaceId  = null;
+var _syncHealth = new Map(); // spaceId -> { status, message, at }
+
+function setSyncHealth(spaceId, status, message) {
+  if (!spaceId) return;
+  if (!_syncHealth) _syncHealth = new Map();
+  _syncHealth.set(spaceId, { status, message: message || '', at: Date.now() });
+  if (typeof renderHome === 'function') renderHome();
+}
+
+function clearSyncHealth(spaceId) {
+  if (!spaceId) return;
+  if (!_syncHealth) _syncHealth = new Map();
+  const cur = _syncHealth.get(spaceId);
+  if (cur && cur.status !== 'ok') _syncHealth.delete(spaceId);
+  if (typeof renderHome === 'function') renderHome();
+}
+
+function getSyncHealth(sp) {
+  if (!sp || !sp.shared) return null;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return { status: 'offline', label: 'Offline', title: 'Offline - sync will resume when you reconnect.' };
+  }
+  if (!_syncHealth) _syncHealth = new Map();
+  const cur = _syncHealth.get(sp.id);
+  if (cur && cur.status === 'syncing') return { status: 'syncing', label: 'Syncing', title: cur.message || 'Syncing with Drive.' };
+  if (cur && cur.status === 'conflict') return { status: 'conflict', label: 'Conflict', title: cur.message || 'Someone else changed this Space. Pull first.' };
+  if (cur && cur.status === 'pull-needed') return { status: 'pull-needed', label: 'Pull needed', title: cur.message || 'Remote changes are waiting. Pull latest.' };
+  if (!sp.lastSyncedAt) return { status: 'pull-needed', label: 'Not synced', title: 'This Space has not synced on this device yet.' };
+  return { status: 'ok', label: formatSyncedAgo(sp.lastSyncedAt), title: new Date(sp.lastSyncedAt).toLocaleString() };
+}
+
+function renderSyncHealthChip(sp) {
+  const h = getSyncHealth(sp);
+  if (!h) return '';
+  return `<span class="sync-health-chip sync-${escapeAttr(h.status)}" title="${escapeAttr(h.title)}">${escapeHtml(h.label)}</span>`;
+}
+
+window.addEventListener('online', () => {
+  if (typeof renderHome === 'function') renderHome();
+  if (typeof refreshAllSharedSpaces === 'function') refreshAllSharedSpaces();
+});
+window.addEventListener('offline', () => {
+  if (typeof renderHome === 'function') renderHome();
+});
 
 function _canPush(sp) {
   return sp && sp.shared && sp.driveFileId && (sp.myRole === 'owner' || sp.myRole === 'writer');
@@ -7942,6 +8095,7 @@ function schedulePush(spaceId) {
   if (!DriveAPI || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) return;
   const existing = _pendingPushes.get(spaceId);
   if (existing) clearTimeout(existing);
+  setSyncHealth(spaceId, 'syncing', 'Waiting to push local changes.');
   const t = setTimeout(() => { doAutoPush(spaceId); }, PUSH_DEBOUNCE_MS);
   _pendingPushes.set(spaceId, t);
 }
@@ -7951,6 +8105,7 @@ async function doAutoPush(spaceId) {
   const sp = findSpace(spaceId);
   if (!_canPush(sp)) return;
   try {
+    setSyncHealth(spaceId, 'syncing', 'Pushing local changes.');
     // Always pull → merge → push so no collaborator's data is overwritten.
     // The extra Drive read is cheap compared to data loss from last-write-wins.
     const pr = await DriveAPI.pullSpaceFile(sp.driveFileId);
@@ -7965,12 +8120,14 @@ async function doAutoPush(spaceId) {
     const r = await DriveAPI.pushSpaceFile(fresh.driveFileId, fresh, null);
     fresh.lastSyncedRevision = r.revisionId;
     fresh.lastSyncedAt       = Date.now();
+    clearSyncHealth(spaceId);
     // Persist without re-firing save() to avoid push loop.
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
     if (typeof refreshInboxBadge === 'function') refreshInboxBadge();
     if (typeof renderHome === 'function') renderHome();
     if (typeof renderReviews === 'function') renderReviews();
   } catch {
+    setSyncHealth(spaceId, navigator.onLine === false ? 'offline' : 'pull-needed', 'Auto-sync could not finish. Pull latest and try again.');
     // Transient error — next debounced push will retry.
   }
 }
@@ -8003,6 +8160,7 @@ async function maybeAutoPull(spaceId, force) {
   if (_userIsTyping()) return;
   _autoPullInFlight.add(spaceId);
   try {
+    setSyncHealth(spaceId, 'syncing', 'Pulling latest changes.');
     const r = await DriveAPI.pullSpaceFile(sp.driveFileId);
     if (r && r.payload && r.payload.space) {
       const savedCollabs = sp.collaborators || [];
@@ -8023,8 +8181,10 @@ async function maybeAutoPull(spaceId, force) {
       if (typeof renderRobotList === 'function') renderRobotList();
       if (typeof renderRobotDetail === 'function') renderRobotDetail();
       if (typeof renderReviews === 'function') renderReviews();
+      clearSyncHealth(spaceId);
     }
   } catch {
+    setSyncHealth(spaceId, navigator.onLine === false ? 'offline' : 'pull-needed', 'Could not pull latest changes.');
     // Silent — manual Pull button is still there if user wants visibility.
   } finally {
     _autoPullInFlight.delete(spaceId);
@@ -8554,7 +8714,7 @@ function renderHome() {
               </span>
               <span class="home-space-body">
                 <span class="home-space-name">${escapeHtml(sp.name)}${sharedBadge}</span>
-                <span class="home-space-meta">${lists.length} list${lists.length === 1 ? '' : 's'}${sp.shared && sp.lastSyncedAt ? ` · ${escapeHtml(formatSyncedAgo(sp.lastSyncedAt))}` : ''}</span>
+                <span class="home-space-meta"><span>${lists.length} list${lists.length === 1 ? '' : 's'}</span>${sp.shared ? renderSyncHealthChip(sp) : ''}</span>
               </span>
               <svg class="home-space-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
             </button>
@@ -8844,6 +9004,7 @@ function addSharedActivity(activity) {
   items.unshift(activity);
   saveSharedActivities(items);
   refreshInboxBadge();
+  showLocalNotification('B-Less', `${sharedActivityText(activity.kind)}: ${activity.taskTitle || 'Task'}`, { url: './index.html#inbox' }).catch(() => {});
 }
 function markSharedActivitySeen(activityId) {
   saveSharedActivities(getSharedActivities().filter(it => it.id !== activityId));
@@ -9085,6 +9246,11 @@ document.getElementById('topbar-avatar-btn')?.addEventListener('click', e => {
 });
 // Boot: paint avatar from cached userInfo immediately (no Drive call needed).
 updateTopbarAvatar();
+document.getElementById('notification-enable-btn')?.addEventListener('click', () => {
+  enablePushNotifications().catch(err => {
+    showAppToast('Could not enable notifications: ' + (err && err.message || 'unknown error'), 'error');
+  });
+});
 document.getElementById('spaces-drawer-backdrop')?.addEventListener('click', closeSpacesDrawer);
 document.getElementById('drawer-add-space-btn')?.addEventListener('click', () => {
   if (typeof addSpace === 'function') { addSpace(); renderHome(); }

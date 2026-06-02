@@ -17,6 +17,22 @@ npm run dev      # serves at http://localhost:5173
 
 Add `http://localhost:5173` to your Cloud Console **Authorized JavaScript origins** once (see below).
 
+## Web Push notifications
+
+Push notifications require the Node server (`serve.js`) plus VAPID keys.
+
+```bash
+npm run push:keys
+set VAPID_PUBLIC_KEY=...
+set VAPID_PRIVATE_KEY=...
+set VAPID_SUBJECT=mailto:you@example.com
+npm run dev
+```
+
+In the app, click the bell button in the Spaces drawer to enable notifications
+on that device. Static GitHub Pages can still show in-app Inbox activity, but
+phone/desktop push notifications need a deployed Node backend with those env vars.
+
 ## Deploy to GitHub Pages
 
 1. Push to a public repo.

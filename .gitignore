@@ -4,6 +4,7 @@ node_modules/
 Thumbs.db
 *.bak
 *.old
+.push-subscriptions.json
 release/
 dist/
 .claude/

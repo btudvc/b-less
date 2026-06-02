@@ -1,9 +1,13 @@
 {
   "name": "b-less",
-  "version": "7.12.14",
+  "version": "7.12.15",
   "description": "B-Less — personal project and task planner.",
   "private": true,
   "scripts": {
-    "dev": "node serve.js"
+    "dev": "node serve.js",
+    "push:keys": "npx web-push generate-vapid-keys"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
   }
 }

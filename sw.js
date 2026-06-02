@@ -1,5 +1,5 @@
 // B-Less service worker — offline-first app shell
-const VERSION = 'b-less-v7.12.14';
+const VERSION = 'b-less-v7.12.15';
 const SHELL = [
   './',
   './index.html',
@@ -64,4 +64,34 @@ self.addEventListener('fetch', e => {
       })
     )
   );
+});
+
+self.addEventListener('push', e => {
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; } catch {}
+  const title = data.title || 'B-Less';
+  const options = {
+    body: data.body || 'You have a new update.',
+    icon: 'assets/icon-192.png?v=6',
+    badge: 'assets/favicon-32.png',
+    data: data.data || { url: './index.html#inbox' },
+  };
+  e.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || './index.html#inbox';
+  e.waitUntil((async () => {
+    const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of allClients) {
+      if ('focus' in client) {
+        try {
+          await client.navigate(url);
+          return client.focus();
+        } catch {}
+      }
+    }
+    return clients.openWindow(url);
+  })());
 });

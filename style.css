@@ -8657,6 +8657,48 @@ input:not([type]), textarea, select,
   }
 }
 
+/* Space options menu: keep it legible over the translucent sidebar tree. */
+.space-menu {
+  z-index: 900 !important;
+  min-width: 188px !important;
+  padding: 6px !important;
+  background: rgba(22, 27, 36, .96) !important;
+  border: 1px solid rgba(255, 255, 255, .16) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+  backdrop-filter: blur(22px) saturate(1.25) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.25) !important;
+}
+
+:root[data-theme="light"] .space-menu {
+  background: rgba(255, 255, 255, .96) !important;
+  border-color: rgba(15, 23, 42, .12) !important;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, .16), inset 0 1px 0 rgba(255, 255, 255, .8) !important;
+}
+
+.space-menu-item {
+  color: var(--text) !important;
+  background: transparent !important;
+  text-shadow: none !important;
+}
+
+.space-menu-item:hover {
+  background: rgba(255, 255, 255, .10) !important;
+}
+
+:root[data-theme="light"] .space-menu-item:hover {
+  background: rgba(15, 23, 42, .06) !important;
+}
+
+.space-menu-item svg {
+  color: currentColor !important;
+  opacity: .72 !important;
+}
+
+.space-menu-sep {
+  background: rgba(255, 255, 255, .12) !important;
+}
+
 .bp-theme-toggle,
 .theme-toggle {
   background: var(--glass-control) !important;

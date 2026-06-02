@@ -8515,6 +8515,12 @@ input:not([type]), textarea, select,
   gap: 16px !important;
 }
 
+#bp-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
 .bp-account,
 .bp-meta,
 .bp-settings-block {
@@ -8562,6 +8568,7 @@ input:not([type]), textarea, select,
 
 .bp-actions {
   gap: 10px !important;
+  margin: 0 !important;
 }
 
 .bp-actions .btn-primary,
@@ -8569,6 +8576,7 @@ input:not([type]), textarea, select,
   min-height: 42px !important;
   padding: 11px 14px !important;
   gap: 8px !important;
+  border-radius: 10px !important;
 }
 
 @media (max-width: 720px) {

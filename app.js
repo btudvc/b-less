@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.19';
+var APP_VERSION = '7.12.20';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -7425,18 +7425,16 @@ function renderShareSpaceBody(extra) {
   // Already shared — show collaborators, owner, add form, stop-sharing.
   const isOwner = sp.myRole === 'owner' || sp.ownerEmail === (me && me.email);
   const collabRows = (sp.collaborators || []).map(c => `
-    <tr data-perm-id="${escapeAttr(c.permissionId)}">
-      <td class="share-collab-email">${escapeHtml(c.email)}</td>
-      <td>
+    <div class="share-collab-row" data-perm-id="${escapeAttr(c.permissionId)}">
+      <div class="share-collab-email">${escapeHtml(c.email)}</div>
+      <div class="share-collab-controls">
         <select class="share-role-select" ${isOwner ? '' : 'disabled'} data-perm-id="${escapeAttr(c.permissionId)}">
           <option value="writer" ${c.role === 'writer' ? 'selected' : ''}>Editor</option>
           <option value="reader" ${c.role === 'reader' ? 'selected' : ''}>Viewer</option>
         </select>
-      </td>
-      <td class="share-collab-actions">
         ${isOwner ? `<button class="btn-ghost share-collab-remove" data-perm-id="${escapeAttr(c.permissionId)}" type="button">Remove</button>` : ''}
-      </td>
-    </tr>
+      </div>
+    </div>
   `).join('');
 
   body.innerHTML = `
@@ -7468,10 +7466,10 @@ function renderShareSpaceBody(extra) {
     </div>
     ` : ''}
 
-    <table class="share-collab-table">
-      <thead><tr><th>Email</th><th>Role</th><th></th></tr></thead>
-      <tbody>${collabRows || `<tr><td colspan="3" class="share-collab-empty">No collaborators yet${isOwner ? ' — invite someone above.' : '.'}</td></tr>`}</tbody>
-    </table>
+    <div class="share-collab-list">
+      <div class="share-collab-head"><span>Email</span><span>Role</span></div>
+      ${collabRows || `<div class="share-collab-empty">No collaborators yet${isOwner ? ' - invite someone above.' : '.'}</div>`}
+    </div>
 
     <div class="share-sync">
       <div class="share-sync-label">Sync</div>

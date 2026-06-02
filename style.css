@@ -5894,7 +5894,7 @@ body { font-size: 13px; }
 
 .share-add {
   display: grid;
-  grid-template-columns: 1fr 110px auto;
+  grid-template-columns: minmax(0, 1fr) 112px auto;
   gap: 8px;
   align-items: center;
 }
@@ -5909,41 +5909,82 @@ body { font-size: 13px; }
   font-size: 13px;
 }
 
-.share-collab-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+.share-add select,
+.share-role-select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) 50%,
+    calc(100% - 10px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
 }
-.share-collab-table th {
-  text-align: left;
+
+.share-collab-list {
+  width: 100%;
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.share-collab-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  gap: 12px;
+  align-items: center;
   font-size: 11px;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: .5px;
-  padding: 6px 8px;
+  padding: 7px 8px;
   border-bottom: 1px solid var(--border);
 }
-.share-collab-table td {
-  padding: 8px;
+.share-collab-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  gap: 12px;
+  align-items: center;
+  min-height: 58px;
+  padding: 10px 8px;
   border-bottom: 1px solid var(--border);
-  vertical-align: middle;
 }
-.share-collab-table tr:last-child td { border-bottom: none; }
-.share-collab-email { word-break: break-all; }
+.share-collab-row:last-child { border-bottom: none; }
+.share-collab-email {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.share-collab-controls {
+  display: grid;
+  grid-template-columns: 92px 92px;
+  gap: 8px;
+  align-items: center;
+  justify-content: end;
+}
 .share-role-select {
-  padding: 4px 8px;
-  border-radius: 6px;
+  width: 92px;
+  height: 36px;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
   font: inherit;
   font-size: 12.5px;
+  font-weight: 700;
   cursor: pointer;
 }
 .share-role-select:disabled { opacity: .6; cursor: not-allowed; }
-.share-collab-actions { text-align: right; }
-.share-collab-remove { color: var(--red, #dc2626); font-size: 12px; }
+.share-collab-remove {
+  width: 92px;
+  height: 36px;
+  color: var(--red, #dc2626);
+  font-size: 12px;
+}
 .share-collab-empty {
   text-align: center;
   color: var(--muted);
@@ -5973,6 +6014,19 @@ body { font-size: 13px; }
 @media (max-width: 600px) {
   .share-add { grid-template-columns: 1fr; }
   .share-add input, .share-add select, .share-add button { width: 100%; }
+  .share-collab-head { display: none; }
+  .share-collab-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .share-collab-controls {
+    grid-template-columns: 1fr 1fr;
+    justify-content: stretch;
+  }
+  .share-role-select,
+  .share-collab-remove {
+    width: 100%;
+  }
 }
 
 /* ── home-space row: head + share button ────────────────── */

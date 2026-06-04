@@ -419,6 +419,15 @@ header { display: none; }
   border-top: 1px solid var(--border);
   padding-top: 9px; line-height: 1.55;
 }
+.bp-reconnect-warning {
+  padding: 9px 11px;
+  border-radius: 9px;
+  border: 1px solid rgba(245, 158, 11, .30);
+  background: rgba(245, 158, 11, .10);
+  color: #fbbf24;
+  font-size: 12px;
+  line-height: 1.45;
+}
 
 /* ── Drive popover: friendlier first-time intro ─────── */
 .bp-intro {
@@ -3894,13 +3903,21 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   margin-bottom: 6px;
 }
 .subtask {
-  display: flex; align-items: center; gap: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
   padding: 6px 8px;
   border-radius: var(--radius-sm);
   transition: background .12s var(--ease);
 }
 .subtask:hover { background: var(--surface-2); }
 .subtask.done .subtask-text { text-decoration: line-through; color: var(--muted); }
+.subtask-main {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+}
 .subtask-check {
   width: 18px; height: 18px;
   border-radius: 50%;
@@ -3919,6 +3936,28 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   border-color: var(--green);
 }
 .subtask-text { flex: 1; font-size: 13px; color: var(--text); }
+.subtask-note {
+  width: calc(100% - 27px);
+  margin-left: 27px;
+  min-height: 30px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, .035);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.35;
+  resize: vertical;
+}
+.subtask-note:placeholder-shown {
+  min-height: 28px;
+}
+.subtask-note:focus {
+  outline: none;
+  border-color: rgba(99, 178, 255, .36);
+  background: rgba(99, 178, 255, .06);
+}
 .subtask-del {
   background: transparent; border: none;
   color: var(--muted);
@@ -5232,8 +5271,10 @@ body { font-size: 13px; }
 }
 
 /* Subtasks compactness */
-.subtask        { padding: 4px 7px; gap: 8px; }
+.subtask        { padding: 5px 7px; gap: 5px; }
+.subtask-main   { gap: 8px; }
 .subtask-text   { font-size: 12.5px; }
+.subtask-note   { font-size: 12px; padding: 5px 8px; }
 .sub-section    { margin-bottom: 9px; padding-bottom: 7px; }
 .sub-add-input  { padding: 5px 9px; font-size: 12.5px; }
 .sub-list       { gap: 1px; margin-bottom: 4px; }

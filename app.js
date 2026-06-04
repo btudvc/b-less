@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.30';
+var APP_VERSION = '7.12.31';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -1441,11 +1441,14 @@ function renderSubtasks(task) {
   const subs = task.subtasks || [];
   const items = subs.map(s => `
     <div class="subtask ${s.done ? 'done' : ''}" data-sub-id="${s.id}">
-      <button class="subtask-check ${s.done ? 'checked' : ''}" onclick="toggleSubtask('${task.id}','${s.id}')" aria-label="Toggle">
-        ${s.done ? ICO.checkSm : ''}
-      </button>
-      <span class="subtask-text">${escapeHtml(s.title)}</span>
-      <button class="subtask-del" onclick="deleteSubtask('${task.id}','${s.id}')" aria-label="Delete">${ICO.close}</button>
+      <div class="subtask-main">
+        <button class="subtask-check ${s.done ? 'checked' : ''}" onclick="toggleSubtask('${task.id}','${s.id}')" aria-label="Toggle">
+          ${s.done ? ICO.checkSm : ''}
+        </button>
+        <span class="subtask-text">${escapeHtml(s.title)}</span>
+        <button class="subtask-del" onclick="deleteSubtask('${task.id}','${s.id}')" aria-label="Delete">${ICO.close}</button>
+      </div>
+      <textarea class="subtask-note" rows="1" placeholder="Add note" oninput="updateSubtaskNote('${task.id}','${s.id}',this.value)">${escapeHtml(s.note || '')}</textarea>
     </div>
   `).join('');
   return `
@@ -1473,7 +1476,7 @@ window.addSubtask = function(taskId) {
   const title = input ? input.value.trim() : '';
   if (!title) { input?.focus(); return; }
   if (!task.subtasks) task.subtasks = [];
-  task.subtasks.push({ id: uid(), title, done: false, createdAt: Date.now() });
+  task.subtasks.push({ id: uid(), title, note: '', done: false, createdAt: Date.now() });
   stampTask(task);
   save();
   notifySharedTaskEvent('subtask-added', robot, task);
@@ -1489,6 +1492,16 @@ window.toggleSubtask = function(taskId, subId) {
   stampTask(task);
   save();
   renderCurrentDetail();
+};
+
+window.updateSubtaskNote = function(taskId, subId, value) {
+  const robot = getCurrentContainer();
+  const task = robot && robot.tasks.find(t => t.id === taskId);
+  const sub = task && (task.subtasks || []).find(s => s.id === subId);
+  if (!sub) return;
+  sub.note = value || '';
+  stampTask(task);
+  save();
 };
 
 window.deleteSubtask = function(taskId, subId) {
@@ -1684,6 +1697,7 @@ function spawnNextRecurrenceFromTask(robot, doneTask) {
     subtasks: (doneTask.subtasks || []).map(s => ({
       id: uid(),
       title: s.title || '',
+      note: s.note || '',
       done: false,
       createdAt: Date.now(),
     })),
@@ -3672,6 +3686,8 @@ const BackupManager = (() => {
   let lastBackup   = (() => {
     try { const v = localStorage.getItem(SYNC_KEY); return v ? parseInt(v, 10) || null : null; } catch { return null; }
   })();
+  let reconnectNeeded = false;
+  let reconnectToastShown = false;
   function setLastBackup(ts) {
     lastBackup = ts;
     try { localStorage.setItem(SYNC_KEY, String(ts)); } catch {}
@@ -3683,6 +3699,14 @@ const BackupManager = (() => {
 
   const GDRIVE_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.71 3.5 1.15 15l3.5 6.5L11.21 10z"/><path d="m22.85 15-6.56-11.5h-7l6.57 11.5z"/><path d="M4.65 21.5h13.13l3.5-6.5H8.15z"/></svg>';
   const ARROW = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+
+  function showReconnectWarning() {
+    reconnectNeeded = true;
+    if (!reconnectToastShown && typeof showAppToast === 'function') {
+      reconnectToastShown = true;
+      showAppToast('Google Drive sign-in is required to keep syncing.', 'error');
+    }
+  }
 
   function lastSyncText() {
     if (!lastBackup) return t('bp.never');
@@ -3706,6 +3730,7 @@ const BackupManager = (() => {
     if (!pop) return;
 
     if (DriveAPI.isSignedIn()) {
+      reconnectNeeded = false;
       const u = DriveAPI.getUserInfo() || {};
       const lastTxt = lastSyncText();
       const initial = (u.name || u.email || '?').trim().charAt(0).toUpperCase();
@@ -3763,6 +3788,7 @@ const BackupManager = (() => {
           <div class="bp-intro-title">${t('bp.title')}</div>
           <div class="bp-intro-sub">${t('bp.web_subtitle')}</div>
         </div>
+        ${reconnectNeeded ? `<div class="bp-reconnect-warning">Google Drive could not sign in automatically. Sign in again to keep backups and shared Spaces syncing.</div>` : ''}
         <ul class="bp-intro-list">
           <li>Private "B-Less" folder in your Drive</li>
           <li>Auto-syncs as you make changes</li>
@@ -3777,8 +3803,9 @@ const BackupManager = (() => {
         ${settingsBlockHtml()}
       `;
       if (headerBtn && headerLabel) {
-        headerBtn.classList.remove('backup-ok', 'backup-warn');
-        headerLabel.textContent = '';
+        headerBtn.classList.remove('backup-ok');
+        headerBtn.classList.toggle('backup-warn', reconnectNeeded);
+        headerLabel.textContent = reconnectNeeded ? 'Sign in' : '';
       }
     }
 
@@ -3789,6 +3816,8 @@ const BackupManager = (() => {
         if (act === 'signin') {
           try {
             await DriveAPI.signIn();
+            reconnectNeeded = false;
+            reconnectToastShown = false;
             const restored = await tryRestore();
             if (!restored) await doBackup();
             scheduleInterval();
@@ -3799,6 +3828,8 @@ const BackupManager = (() => {
           }
         } else if (act === 'signout') {
           DriveAPI.signOut();
+          reconnectNeeded = false;
+          reconnectToastShown = false;
           lastBackup = null;
           try { localStorage.removeItem(SYNC_KEY); } catch {}
           clearInterval(intervalId);
@@ -3842,7 +3873,15 @@ const BackupManager = (() => {
   }
 
   async function doBackup() {
-    if (!DriveAPI.isSignedIn()) return;
+    if (!DriveAPI.isSignedIn()) {
+      let hasPriorAuth = false;
+      try { hasPriorAuth = !!localStorage.getItem('b-less-drive-user'); } catch {}
+      if (hasPriorAuth) {
+        showReconnectWarning();
+        render();
+      }
+      return;
+    }
     const json = JSON.stringify({
       exportedAt: new Date().toISOString(),
       data: state,
@@ -3963,6 +4002,8 @@ const BackupManager = (() => {
       if (!hasData && !lastBackup) await tryRestore();
       scheduleInterval();
       doBackup();
+    } else {
+      showReconnectWarning();
     }
     render();
   }
@@ -5521,7 +5562,7 @@ function buildTemplateFromRobot(robot, name) {
     title: t.title || '',
     priority: t.priority || 'normal',
     tags: Array.isArray(t.tags) ? [...t.tags] : [],
-    subtasks: (t.subtasks || []).map(s => ({ title: s.title || '' })),
+    subtasks: (t.subtasks || []).map(s => ({ title: s.title || '', note: s.note || '' })),
   }));
   return {
     id: 'tpl_' + uid(),
@@ -5571,6 +5612,7 @@ function createListFromTemplate(templateId, spaceId, customName) {
       subtasks: (t.subtasks || []).map(s => ({
         id: uid(),
         title: s.title,
+        note: s.note || '',
         done: false,
         createdAt: Date.now(),
       })),
@@ -6414,7 +6456,7 @@ function searchAll(rawQuery) {
       const tHit = matches(task.title);
       const tagHit = (task.tags || []).some(matches);
       const noteHit = (task.notebook || []).some(n => matches(n.text));
-      const subHit = (task.subtasks || []).some(s => matches(s.title));
+      const subHit = (task.subtasks || []).some(s => matches(s.title) || matches(s.note));
       if (tHit || tagHit || noteHit || subHit) {
         out.push({
           kind: 'task',

@@ -576,7 +576,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.39';
+var APP_VERSION = '7.12.40';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -8908,9 +8908,9 @@ document.querySelectorAll('.cross-nav-btn').forEach(b => {
   b.addEventListener('click', () => showCrossView(b.dataset.cross));
 });
 
-// ── Brainstorm: scratch notes + calculator + canvas ─────────
+// ── Brainstorm: scratch notes + calculator ─────────
 const BrainstormStore = (() => {
-  const defaults = { notes: '', calc: '', sketch: '', updatedAt: 0 };
+  const defaults = { notes: '', calc: '', updatedAt: 0 };
   function get() {
     try { return Object.assign({}, defaults, JSON.parse(localStorage.getItem(BRAINSTORM_KEY) || '{}') || {}); }
     catch { return Object.assign({}, defaults); }
@@ -8965,77 +8965,6 @@ function renderBrainCalc() {
   out.innerHTML = rows || '<div class="brain-empty">Results appear here.</div>';
 }
 
-function initBrainCanvas(data) {
-  const canvas = document.getElementById('brain-canvas');
-  if (!canvas || canvas.dataset.bound === '1') return;
-  canvas.dataset.bound = '1';
-  const ctx = canvas.getContext('2d');
-  const colorEl = document.getElementById('brain-color');
-  const sizeEl = document.getElementById('brain-size');
-  const eraserBtn = document.getElementById('brain-eraser-btn');
-  let drawing = false;
-  let erasing = false;
-  let last = null;
-
-  function fillBlank() {
-    ctx.fillStyle = 'rgba(15, 23, 42, 1)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-  fillBlank();
-  if (data && data.sketch) {
-    const img = new Image();
-    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    img.src = data.sketch;
-  }
-  function pos(e) {
-    const r = canvas.getBoundingClientRect();
-    return {
-      x: (e.clientX - r.left) * (canvas.width / r.width),
-      y: (e.clientY - r.top) * (canvas.height / r.height),
-    };
-  }
-  function saveSketch() {
-    BrainstormStore.save({ sketch: canvas.toDataURL('image/png') });
-    const s = document.getElementById('brain-save-state');
-    if (s) s.textContent = 'Saved';
-  }
-  canvas.addEventListener('pointerdown', e => {
-    drawing = true;
-    last = pos(e);
-    canvas.setPointerCapture(e.pointerId);
-  });
-  canvas.addEventListener('pointermove', e => {
-    if (!drawing || !last) return;
-    const p = pos(e);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = parseInt(sizeEl?.value || '5', 10);
-    ctx.strokeStyle = erasing ? 'rgba(15, 23, 42, 1)' : (colorEl?.value || '#63b2ff');
-    ctx.beginPath();
-    ctx.moveTo(last.x, last.y);
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
-    last = p;
-  });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => canvas.addEventListener(ev, e => {
-    if (!drawing) return;
-    drawing = false;
-    last = null;
-    try { canvas.releasePointerCapture(e.pointerId); } catch {}
-    saveSketch();
-  }));
-  eraserBtn?.addEventListener('click', () => {
-    erasing = !erasing;
-    eraserBtn.classList.toggle('active-toggle', erasing);
-  });
-  document.getElementById('brain-clear-canvas-btn')?.addEventListener('click', async () => {
-    const ok = await confirmDialog({ title: 'Clear sketch', message: 'Clear the drawing canvas?', okText: 'Clear', danger: true });
-    if (!ok) return;
-    fillBlank();
-    saveSketch();
-  });
-}
-
 function renderBrainstorm() {
   const root = document.getElementById('brainstorm');
   if (!root) return;
@@ -9076,23 +9005,16 @@ function renderBrainstorm() {
   if (clearBtn && clearBtn.dataset.bound !== '1') {
     clearBtn.dataset.bound = '1';
     clearBtn.addEventListener('click', async () => {
-      const ok = await confirmDialog({ title: 'Clear Brainstorm', message: 'Clear notes, calculations, and sketch?', okText: 'Clear', danger: true });
+      const ok = await confirmDialog({ title: 'Clear Brainstorm', message: 'Clear notes and calculations?', okText: 'Clear', danger: true });
       if (!ok) return;
-      BrainstormStore.importData({ notes: '', calc: '', sketch: '', updatedAt: Date.now() });
-      BrainstormStore.save({ notes: '', calc: '', sketch: '' });
+      BrainstormStore.importData({ notes: '', calc: '', updatedAt: Date.now() });
+      BrainstormStore.save({ notes: '', calc: '' });
       if (notes) notes.value = '';
       if (calc) calc.value = '';
-      const canvas = document.getElementById('brain-canvas');
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'rgba(15, 23, 42, 1)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
       renderBrainCalc();
     });
   }
   renderBrainCalc();
-  initBrainCanvas(data);
   if (typeof autoSizeTextareas === 'function') autoSizeTextareas(root);
 }
 

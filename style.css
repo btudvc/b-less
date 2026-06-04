@@ -9352,8 +9352,9 @@ input:not([type]), textarea, select,
 }
 .brain-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr);
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, .65fr);
   gap: 14px;
+  align-items: start;
 }
 .brain-panel {
   border: 1px solid var(--border);
@@ -9377,18 +9378,25 @@ input:not([type]), textarea, select,
   font-size: 11px;
   font-weight: 700;
 }
-.brain-notes,
+.brain-notes-panel {
+  min-height: min(72vh, 780px);
+}
+.brain-notes {
+  width: 100%;
+  min-height: min(62vh, 680px);
+  max-height: min(72vh, 780px);
+}
 .brain-calc-input {
   width: 100%;
-  min-height: 220px;
-  max-height: 420px;
+  min-height: 150px;
+  max-height: 260px;
 }
 .brain-calc-results {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-top: 10px;
-  max-height: 180px;
+  max-height: 280px;
   overflow: auto;
 }
 .brain-calc-row {
@@ -9420,45 +9428,20 @@ input:not([type]), textarea, select,
   font-size: 12.5px;
   padding: 8px 2px;
 }
-.brain-sketch-panel { grid-column: 1 / -1; }
-.brain-tools {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-.brain-tools input[type="color"] {
-  width: 34px;
-  height: 34px;
-  padding: 3px !important;
-  border-radius: 10px !important;
-}
-.brain-tools input[type="range"] { width: 110px; }
-#brain-canvas {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1200 / 620;
-  max-height: min(52vh, 620px);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #0f172a;
-  cursor: crosshair;
-  touch-action: none;
-}
-
 @media (max-width: 900px) {
   .brain-page {
     width: min(100%, calc(100vw - 28px));
     padding-top: 16px;
   }
   .brain-grid { grid-template-columns: 1fr; }
-  .brain-notes,
-  .brain-calc-input { min-height: 170px; }
+  .brain-notes-panel { min-height: auto; }
+  .brain-notes {
+    min-height: 360px;
+    max-height: 62vh;
+  }
+  .brain-calc-input { min-height: 150px; }
   .brain-panel-head {
     align-items: flex-start;
     flex-direction: column;
   }
-  .brain-tools { justify-content: flex-start; }
-  #brain-canvas { max-height: 48vh; }
 }

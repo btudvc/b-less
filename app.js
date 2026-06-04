@@ -576,13 +576,14 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.36';
+var APP_VERSION = '7.12.37';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
 const NOTIFICATION_PREFS_KEY = 'b-less.notification-prefs';
 const PENDING_SYNC_KEY = 'b-less.pending-sync';
 const RESTORE_SAFETY_KEY = 'b-less.restore-safety-backup';
+const BRAINSTORM_KEY = 'b-less.brainstorm';
 const PUSH_ENDPOINT_BASE = 'https://b-less.onrender.com';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
 const LEGACY_STORAGE_KEY = 'karta';
@@ -4356,10 +4357,11 @@ const BackupManager = (() => {
   // expect it to sync across devices the same way tasks do).
   function _extras() {
     const out = {};
-    try {
-      if (typeof CVStore !== 'undefined' && CVStore.get) out.cv = CVStore.get();
-    } catch {}
-    return out;
+  try {
+    if (typeof CVStore !== 'undefined' && CVStore.get) out.cv = CVStore.get();
+    if (typeof BrainstormStore !== 'undefined' && BrainstormStore.get) out.brainstorm = BrainstormStore.get();
+  } catch {}
+  return out;
   }
 
   async function doBackup() {
@@ -4400,6 +4402,10 @@ const BackupManager = (() => {
       if (extras.cv && typeof CVStore !== 'undefined' && CVStore.importJSON) {
         CVStore.importJSON(JSON.stringify(extras.cv));
         if (typeof renderCV === 'function') renderCV();
+      }
+      if (extras.brainstorm && typeof BrainstormStore !== 'undefined' && BrainstormStore.importData) {
+        BrainstormStore.importData(extras.brainstorm);
+        if (typeof renderBrainstorm === 'function') renderBrainstorm();
       }
     } catch (e) { console.warn('Apply extras failed:', e); }
   }
@@ -7633,6 +7639,7 @@ const TOPBAR_TITLES = {
   meetings: 'Meetings',
   'field-visits': 'Visits',
   journal: 'Journal',
+  brainstorm: 'Brainstorm',
   reviews: 'Reviews',
   links: 'Links',
   private: 'Vault',
@@ -8885,6 +8892,194 @@ document.querySelectorAll('.cross-nav-btn').forEach(b => {
   b.addEventListener('click', () => showCrossView(b.dataset.cross));
 });
 
+// ── Brainstorm: scratch notes + calculator + canvas ─────────
+const BrainstormStore = (() => {
+  const defaults = { notes: '', calc: '', sketch: '', updatedAt: 0 };
+  function get() {
+    try { return Object.assign({}, defaults, JSON.parse(localStorage.getItem(BRAINSTORM_KEY) || '{}') || {}); }
+    catch { return Object.assign({}, defaults); }
+  }
+  function save(next) {
+    const data = Object.assign(get(), next || {}, { updatedAt: Date.now() });
+    try { localStorage.setItem(BRAINSTORM_KEY, JSON.stringify(data)); } catch {}
+    if (typeof BackupManager !== 'undefined' && BackupManager.onDataChange) BackupManager.onDataChange();
+    return data;
+  }
+  function importData(data) {
+    try { localStorage.setItem(BRAINSTORM_KEY, JSON.stringify(Object.assign({}, defaults, data || {}))); } catch {}
+  }
+  return { get, save, importData };
+})();
+
+function safeCalcExpression(expr) {
+  let s = String(expr || '').trim();
+  if (!s) return null;
+  s = s.replace(/\^/g, '**')
+       .replace(/\bpi\b/gi, 'Math.PI')
+       .replace(/\be\b/g, 'Math.E')
+       .replace(/\b(sqrt|abs|round|floor|ceil|min|max|sin|cos|tan|log|pow)\s*\(/gi, 'Math.$1(');
+  if (/[^0-9+\-*/%().,\sA-Za-z]/.test(s)) {
+    throw new Error('unsupported');
+  }
+  const allowed = new Set(['Math', 'PI', 'E', 'sqrt', 'abs', 'round', 'floor', 'ceil', 'min', 'max', 'sin', 'cos', 'tan', 'log', 'pow']);
+  const words = s.match(/[A-Za-z]+/g) || [];
+  if (words.some(w => !allowed.has(w))) {
+    throw new Error('unsupported');
+  }
+  const value = Function('"use strict"; return (' + s + ')')();
+  if (!Number.isFinite(value)) throw new Error('invalid');
+  return value;
+}
+
+function renderBrainCalc() {
+  const input = document.getElementById('brain-calc-input');
+  const out = document.getElementById('brain-calc-results');
+  if (!input || !out) return;
+  const rows = input.value.split('\n').map(line => {
+    const raw = line.trim();
+    if (!raw) return '';
+    try {
+      const value = safeCalcExpression(raw);
+      if (value === null) return '';
+      return `<div class="brain-calc-row"><span>${escapeHtml(raw)}</span><strong>${escapeHtml(Number(value.toFixed(8)).toLocaleString())}</strong></div>`;
+    } catch {
+      return `<div class="brain-calc-row brain-calc-error"><span>${escapeHtml(raw)}</span><strong>?</strong></div>`;
+    }
+  }).filter(Boolean).join('');
+  out.innerHTML = rows || '<div class="brain-empty">Results appear here.</div>';
+}
+
+function initBrainCanvas(data) {
+  const canvas = document.getElementById('brain-canvas');
+  if (!canvas || canvas.dataset.bound === '1') return;
+  canvas.dataset.bound = '1';
+  const ctx = canvas.getContext('2d');
+  const colorEl = document.getElementById('brain-color');
+  const sizeEl = document.getElementById('brain-size');
+  const eraserBtn = document.getElementById('brain-eraser-btn');
+  let drawing = false;
+  let erasing = false;
+  let last = null;
+
+  function fillBlank() {
+    ctx.fillStyle = 'rgba(15, 23, 42, 1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  fillBlank();
+  if (data && data.sketch) {
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    img.src = data.sketch;
+  }
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * (canvas.width / r.width),
+      y: (e.clientY - r.top) * (canvas.height / r.height),
+    };
+  }
+  function saveSketch() {
+    BrainstormStore.save({ sketch: canvas.toDataURL('image/png') });
+    const s = document.getElementById('brain-save-state');
+    if (s) s.textContent = 'Saved';
+  }
+  canvas.addEventListener('pointerdown', e => {
+    drawing = true;
+    last = pos(e);
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drawing || !last) return;
+    const p = pos(e);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = parseInt(sizeEl?.value || '5', 10);
+    ctx.strokeStyle = erasing ? 'rgba(15, 23, 42, 1)' : (colorEl?.value || '#63b2ff');
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    last = p;
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => canvas.addEventListener(ev, e => {
+    if (!drawing) return;
+    drawing = false;
+    last = null;
+    try { canvas.releasePointerCapture(e.pointerId); } catch {}
+    saveSketch();
+  }));
+  eraserBtn?.addEventListener('click', () => {
+    erasing = !erasing;
+    eraserBtn.classList.toggle('active-toggle', erasing);
+  });
+  document.getElementById('brain-clear-canvas-btn')?.addEventListener('click', async () => {
+    const ok = await confirmDialog({ title: 'Clear sketch', message: 'Clear the drawing canvas?', okText: 'Clear', danger: true });
+    if (!ok) return;
+    fillBlank();
+    saveSketch();
+  });
+}
+
+function renderBrainstorm() {
+  const root = document.getElementById('brainstorm');
+  if (!root) return;
+  const data = BrainstormStore.get();
+  const notes = document.getElementById('brain-notes');
+  const calc = document.getElementById('brain-calc-input');
+  if (notes && notes.dataset.bound !== '1') {
+    notes.dataset.bound = '1';
+    notes.value = data.notes || '';
+    notes.addEventListener('input', () => {
+      BrainstormStore.save({ notes: notes.value });
+      const s = document.getElementById('brain-save-state');
+      if (s) s.textContent = 'Saved';
+    });
+  }
+  if (calc && calc.dataset.bound !== '1') {
+    calc.dataset.bound = '1';
+    calc.value = data.calc || '';
+    calc.addEventListener('input', () => {
+      BrainstormStore.save({ calc: calc.value });
+      renderBrainCalc();
+    });
+  }
+  const exportBtn = document.getElementById('brain-export-btn');
+  if (exportBtn && exportBtn.dataset.bound !== '1') {
+    exportBtn.dataset.bound = '1';
+    exportBtn.addEventListener('click', () => {
+      const d = BrainstormStore.get();
+      const blob = new Blob([`# Brainstorm\n\n## Notes\n${d.notes || ''}\n\n## Calculations\n${d.calc || ''}\n`], { type: 'text/markdown' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'brainstorm-' + new Date().toISOString().slice(0,10) + '.md';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+  }
+  const clearBtn = document.getElementById('brain-clear-btn');
+  if (clearBtn && clearBtn.dataset.bound !== '1') {
+    clearBtn.dataset.bound = '1';
+    clearBtn.addEventListener('click', async () => {
+      const ok = await confirmDialog({ title: 'Clear Brainstorm', message: 'Clear notes, calculations, and sketch?', okText: 'Clear', danger: true });
+      if (!ok) return;
+      BrainstormStore.importData({ notes: '', calc: '', sketch: '', updatedAt: Date.now() });
+      BrainstormStore.save({ notes: '', calc: '', sketch: '' });
+      if (notes) notes.value = '';
+      if (calc) calc.value = '';
+      const canvas = document.getElementById('brain-canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(15, 23, 42, 1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      renderBrainCalc();
+    });
+  }
+  renderBrainCalc();
+  initBrainCanvas(data);
+  if (typeof autoSizeTextareas === 'function') autoSizeTextareas(root);
+}
+
 // ── Init ──
 migrateToSpaces();
 seedSampleData(); // self-gates on state.onboarded + empty data
@@ -9604,6 +9799,7 @@ function homeNavigate(target) {
     document.getElementById('journal')?.removeAttribute('data-detail-open');
     (typeof renderJournalList === 'function') && renderJournalList();
   }
+  else if (target === 'brainstorm') { activateSection('brainstorm'); renderBrainstorm(); }
   else if (target === 'links')     { activateSection('links'); (typeof renderLinks === 'function') && renderLinks(); }
   else if (target === 'private')   { activateSection('private'); (typeof renderPrivate === 'function') && renderPrivate(); }
   else if (target === 'cv')        { activateSection('cv'); (typeof renderCV === 'function') && renderCV(); }

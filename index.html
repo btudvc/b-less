@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" href="assets/icon-512.png?v=6">
   <link rel="apple-touch-icon" sizes="192x192" href="assets/icon-192.png?v=6">
   <title>B-Less</title>
-  <link rel="stylesheet" href="style.css?v=7.12.36">
+  <link rel="stylesheet" href="style.css?v=7.12.37">
 </head>
 <body>
 
@@ -277,6 +277,12 @@
             </span>
             <span class="home-card-label">Journal</span>
           </button>
+          <button class="home-card" data-home-go="brainstorm" type="button">
+            <span class="home-card-icon" style="--c: #e879f9;">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.8A6 6 0 1 1 16 14.7c-.9.7-1.4 1.6-1.6 2.3H9.6c-.2-.8-.6-1.5-1.4-2.2z"/><path d="M16.5 3.5 20 2l-1.5 3.5"/><path d="M3.5 20.5 8 16"/></svg>
+            </span>
+            <span class="home-card-label">Brainstorm</span>
+          </button>
           <button class="home-card" data-home-go="links" type="button">
             <span class="home-card-icon" style="--c: #0ea5e9;">
               <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
@@ -308,6 +314,51 @@
 
     <!-- Settings section was removed — the avatar popover now hosts theme,
          export ICS, version, and Drive backup controls in one place. -->
+
+    <!-- BRAINSTORM — scratch notes, quick calculations, and sketching -->
+    <section id="brainstorm" class="section">
+      <div class="brain-page">
+        <div class="fv-header">
+          <div>
+            <h2>Brainstorm</h2>
+            <p class="fv-subtitle">Scratch notes, quick math, and sketches</p>
+          </div>
+          <div class="finance-header-actions">
+            <button class="btn-ghost" id="brain-export-btn" type="button">Export</button>
+            <button class="btn-ghost danger" id="brain-clear-btn" type="button">Clear</button>
+          </div>
+        </div>
+        <div class="brain-grid">
+          <section class="brain-panel brain-notes-panel">
+            <div class="brain-panel-head">
+              <span>Notes</span>
+              <small id="brain-save-state">Saved</small>
+            </div>
+            <textarea id="brain-notes" class="brain-notes" placeholder="Think out loud, paste specs, list assumptions..."></textarea>
+          </section>
+          <section class="brain-panel brain-calc-panel">
+            <div class="brain-panel-head">
+              <span>Calculator</span>
+              <small>One expression per line</small>
+            </div>
+            <textarea id="brain-calc-input" class="brain-calc-input" spellcheck="false" placeholder="12*4 + 18&#10;(2500/60)*3&#10;sqrt(144) + 8"></textarea>
+            <div class="brain-calc-results" id="brain-calc-results"></div>
+          </section>
+          <section class="brain-panel brain-sketch-panel">
+            <div class="brain-panel-head">
+              <span>Sketch</span>
+              <div class="brain-tools">
+                <input type="color" id="brain-color" value="#63b2ff" aria-label="Brush color" />
+                <input type="range" id="brain-size" min="2" max="24" value="5" aria-label="Brush size" />
+                <button class="btn-ghost" id="brain-eraser-btn" type="button">Eraser</button>
+                <button class="btn-ghost" id="brain-clear-canvas-btn" type="button">Clear sketch</button>
+              </div>
+            </div>
+            <canvas id="brain-canvas" width="1200" height="620" aria-label="Sketch canvas"></canvas>
+          </section>
+        </div>
+      </div>
+    </section>
 
     <!-- JOURNAL TAB (daily-only) -->
     <section id="journal" class="section">
@@ -497,6 +548,10 @@
       <button class="drawer-nav-btn" data-drawer-go="journal" type="button">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
         <span>Journal</span>
+      </button>
+      <button class="drawer-nav-btn" data-drawer-go="brainstorm" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.8A6 6 0 1 1 16 14.7c-.9.7-1.4 1.6-1.6 2.3H9.6c-.2-.8-.6-1.5-1.4-2.2z"/><path d="M16.5 3.5 20 2l-1.5 3.5"/><path d="M3.5 20.5 8 16"/></svg>
+        <span>Brainstorm</span>
       </button>
       <button class="drawer-nav-btn" data-drawer-go="reviews" type="button">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>
@@ -937,7 +992,7 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
-<script src="firebase-config.js?v=7.12.36"></script>
+<script src="firebase-config.js?v=7.12.37"></script>
 <script>
   window.insertNoteSnippet = window.insertNoteSnippet || function(targetId, type) {
     var area = document.getElementById(targetId);
@@ -960,6 +1015,6 @@
     area.dispatchEvent(new Event('input', { bubbles: true }));
   };
 </script>
-<script src="app.js?v=7.12.36"></script>
+<script src="app.js?v=7.12.37"></script>
 </body>
 </html>

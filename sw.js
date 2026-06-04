@@ -1,5 +1,5 @@
 // B-Less service worker — offline-first app shell
-const VERSION = 'b-less-v7.12.36';
+const VERSION = 'b-less-v7.12.37';
 const SHELL = [
   './',
   './index.html',
@@ -15,7 +15,7 @@ const SHELL = [
 ];
 
 try {
-  importScripts('firebase-config.js?v=7.12.36');
+  importScripts('firebase-config.js?v=7.12.37');
   importScripts('https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js');
   importScripts('https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js');
   const cfg = self.BLESS_FIREBASE_CONFIG || {};

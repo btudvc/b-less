@@ -576,7 +576,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.38';
+var APP_VERSION = '7.12.39';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -6389,9 +6389,9 @@ function renderMarkdown(s) {
 function noteToolbarHtml(targetId) {
   const id = escapeAttr(targetId);
   const labels = {
-    bullet: '• Liste',
+    bullet: '• List',
     check: '☑ Checklist',
-    table: 'Tablo',
+    table: 'Table',
   };
   return `<div class="note-tools" data-note-tools-for="${id}">
     <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','bullet')">${labels.bullet}</button>

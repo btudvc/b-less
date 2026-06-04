@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" href="assets/icon-512.png?v=6">
   <link rel="apple-touch-icon" sizes="192x192" href="assets/icon-192.png?v=6">
   <title>B-Less</title>
-  <link rel="stylesheet" href="style.css?v=7.12.38">
+  <link rel="stylesheet" href="style.css?v=7.12.39">
 </head>
 <body>
 
@@ -387,9 +387,9 @@
             <span class="jrn-status" id="jrn-status"></span>
           </div>
           <div class="note-tools" data-note-tools-for="jrn-area">
-            <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','bullet')">• Liste</button>
+            <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','bullet')">• List</button>
             <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','check')">☑ Checklist</button>
-            <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','table')">Tablo</button>
+            <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','table')">Table</button>
           </div>
           <textarea class="jrn-area" id="jrn-area" data-i18n-ph="jrn.placeholder" placeholder="Bugün hakkında yaz..."></textarea>
         </div>
@@ -491,9 +491,9 @@
             <div id="rev-completed-section" class="rev-completed-section" style="display:none"></div>
             <div id="rev-notes-label" class="rev-section-header rev-notes-header" style="display:none"></div>
             <div class="note-tools" data-note-tools-for="rev-textarea">
-              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','bullet')">• Liste</button>
+              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','bullet')">• List</button>
               <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','check')">☑ Checklist</button>
-              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','table')">Tablo</button>
+              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','table')">Table</button>
             </div>
             <textarea class="reviews-textarea" id="rev-textarea" placeholder=""></textarea>
             <div class="reviews-editor-foot">
@@ -599,9 +599,9 @@
       <input type="text" id="link-tag" placeholder="e.g. iş, okuma, referans" />
       <label data-i18n="links.f.notes">Notlar</label>
       <div class="note-tools" data-note-tools-for="link-notes">
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','bullet')">• Liste</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','bullet')">• List</button>
         <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','check')">☑ Checklist</button>
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','table')">Tablo</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','table')">Table</button>
       </div>
       <textarea id="link-notes" rows="3" placeholder=""></textarea>
       <div class="modal-actions">
@@ -812,9 +812,9 @@
       <input type="text" id="visit-robot" data-i18n-ph="ph.reference" />
       <label data-i18n="label.notes">Notlar</label>
       <div class="note-tools" data-note-tools-for="visit-notes">
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','bullet')">• Liste</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','bullet')">• List</button>
         <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','check')">☑ Checklist</button>
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','table')">Tablo</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','table')">Table</button>
       </div>
       <textarea id="visit-notes" data-i18n-ph="ph.visit_notes"></textarea>
       <div class="modal-actions">
@@ -963,9 +963,9 @@
       <input type="text" id="cal-event-time" placeholder="e.g. 14:30 or All day" />
       <label>Notes</label>
       <div class="note-tools" data-note-tools-for="cal-event-notes">
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','bullet')">• Liste</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','bullet')">• List</button>
         <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','check')">☑ Checklist</button>
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','table')">Tablo</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','table')">Table</button>
       </div>
       <textarea id="cal-event-notes" rows="3" placeholder="Optional details..."></textarea>
       <div class="modal-actions">
@@ -992,7 +992,7 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
-<script src="firebase-config.js?v=7.12.38"></script>
+<script src="firebase-config.js?v=7.12.39"></script>
 <script>
   window.insertNoteSnippet = window.insertNoteSnippet || function(targetId, type) {
     var area = document.getElementById(targetId);
@@ -1015,6 +1015,6 @@
     area.dispatchEvent(new Event('input', { bubbles: true }));
   };
 </script>
-<script src="app.js?v=7.12.38"></script>
+<script src="app.js?v=7.12.39"></script>
 </body>
 </html>

@@ -7438,6 +7438,77 @@ textarea.auto-grow-textarea {
 .bp-theme-toggle {
   margin-bottom: 10px !important;
 }
+
+/* Light-theme polish: calmer controls and roomier note composers */
+:root[data-theme="light"] .note-tool-btn {
+  background: #ffffff !important;
+  border-color: #d8dee8 !important;
+  color: #475569 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="light"] .note-tool-btn:hover {
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  border-color: #cbd5e1 !important;
+}
+:root[data-theme="light"] .btn-primary,
+:root[data-theme="light"] .sub-add-btn,
+:root[data-theme="light"] .bnav-fab {
+  background: #dbeafe !important;
+  border: 1px solid #bfdbfe !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+:root[data-theme="light"] .btn-primary:hover,
+:root[data-theme="light"] .sub-add-btn:hover,
+:root[data-theme="light"] .bnav-fab:hover {
+  background: #bfdbfe !important;
+  border-color: #93c5fd !important;
+  box-shadow: none !important;
+}
+:root[data-theme="light"] .btn-sm.active-toggle,
+:root[data-theme="light"] .task-actions-row .btn-sm.active-toggle {
+  background: #e0f2fe !important;
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="light"] .task-actions-row .btn-sm.goal-toggle.active-toggle {
+  background: #dbeafe !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="light"] .nb-input-row,
+:root[data-theme="light"] .nb-compose {
+  background: #ffffff !important;
+}
+.nb-compose {
+  min-width: 0;
+  overflow: visible;
+}
+.nb-compose .note-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.nb-input-row {
+  align-items: end;
+}
+.nb-input {
+  min-height: 72px !important;
+  max-height: 260px !important;
+  padding-bottom: 14px !important;
+}
+@media (max-width: 700px) {
+  .nb-input-row {
+    grid-template-columns: 1fr !important;
+  }
+  .nb-input-row .btn-primary {
+    width: 100%;
+  }
+}
 .theme-toggle-btn {
   flex: 1 !important;
   background: transparent !important;

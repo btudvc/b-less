@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" href="assets/icon-512.png?v=6">
   <link rel="apple-touch-icon" sizes="192x192" href="assets/icon-192.png?v=6">
   <title>B-Less</title>
-  <link rel="stylesheet" href="style.css?v=7.12.35">
+  <link rel="stylesheet" href="style.css?v=7.12.36">
 </head>
 <body>
 
@@ -70,6 +70,13 @@
       <span class="topbar-avatar-dot" id="topbar-avatar-dot" hidden></span>
     </button>
   </header>
+  <div class="sync-safety-bar" id="sync-safety-bar" hidden>
+    <div class="sync-safety-item" id="pending-sync-indicator" hidden></div>
+    <div class="sync-safety-item sync-safety-warning" id="drive-reconnect-banner" hidden>
+      <span class="pending-sync-dot"></span>
+      <span>Google Drive sign-in needed. Changes stay local until you sign in again.</span>
+    </div>
+  </div>
 
   <main>
     <!-- PROJECTS / LISTS TAB (state.robots — same store, label changes per mode) -->
@@ -186,6 +193,7 @@
             <span>Enable notifications</span>
           </button>
         </div>
+        <div class="notification-settings" id="notification-settings"></div>
         <div id="inbox-list"></div>
       </div>
     </section>
@@ -929,7 +937,7 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
-<script src="firebase-config.js?v=7.12.35"></script>
+<script src="firebase-config.js?v=7.12.36"></script>
 <script>
   window.insertNoteSnippet = window.insertNoteSnippet || function(targetId, type) {
     var area = document.getElementById(targetId);
@@ -952,6 +960,6 @@
     area.dispatchEvent(new Event('input', { bubbles: true }));
   };
 </script>
-<script src="app.js?v=7.12.35"></script>
+<script src="app.js?v=7.12.36"></script>
 </body>
 </html>

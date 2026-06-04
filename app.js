@@ -576,10 +576,13 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.35';
+var APP_VERSION = '7.12.36';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
+const NOTIFICATION_PREFS_KEY = 'b-less.notification-prefs';
+const PENDING_SYNC_KEY = 'b-less.pending-sync';
+const RESTORE_SAFETY_KEY = 'b-less.restore-safety-backup';
 const PUSH_ENDPOINT_BASE = 'https://b-less.onrender.com';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
 const LEGACY_STORAGE_KEY = 'karta';
@@ -750,6 +753,41 @@ async function showLocalNotification(title, body, data) {
   });
 }
 
+function defaultNotificationPrefs() {
+  return {
+    assigned: true,
+    sharedActivity: true,
+    notes: true,
+    subtasks: true,
+    deadlines: true,
+  };
+}
+
+function getNotificationPrefs() {
+  try {
+    return Object.assign(defaultNotificationPrefs(), JSON.parse(localStorage.getItem(NOTIFICATION_PREFS_KEY) || '{}') || {});
+  } catch {
+    return defaultNotificationPrefs();
+  }
+}
+
+function setNotificationPref(key, value) {
+  const prefs = getNotificationPrefs();
+  prefs[key] = !!value;
+  try { localStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(prefs)); } catch {}
+  if (typeof renderNotificationSettings === 'function') renderNotificationSettings();
+}
+
+function notificationAllowedFor(kind) {
+  const prefs = getNotificationPrefs();
+  if (kind === 'task-added') return !!prefs.sharedActivity;
+  if (kind === 'note-added') return !!prefs.sharedActivity && !!prefs.notes;
+  if (kind === 'subtask-added') return !!prefs.sharedActivity && !!prefs.subtasks;
+  if (kind === 'assigned') return !!prefs.assigned;
+  if (kind === 'deadline') return !!prefs.deadlines;
+  return !!prefs.sharedActivity;
+}
+
 async function sendPushNotification(payload) {
   try {
     await apiJson('/api/push/notify', { method: 'POST', body: JSON.stringify(payload) });
@@ -759,6 +797,7 @@ async function sendPushNotification(payload) {
 }
 
 function notifySharedTaskEvent(kind, robot, task) {
+  if (!notificationAllowedFor(kind)) return;
   if (!robot || !task || typeof findSpaceOfRobot !== 'function') return;
   const sp = findSpaceOfRobot(robot.id);
   if (!sp || !sp.shared || !sp.driveFileId) return;
@@ -776,6 +815,150 @@ function notifySharedTaskEvent(kind, robot, task) {
     body: `${actor} ${action}: ${task.title || 'Task'}`,
     data: { url: './index.html#inbox', kind, spaceId: sp.id, projectId: robot.id, taskId: task.id },
   });
+}
+
+function loadPendingSync() {
+  try {
+    const list = JSON.parse(localStorage.getItem(PENDING_SYNC_KEY) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch { return []; }
+}
+
+function savePendingSync(list) {
+  try { localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify(list.slice(-120))); } catch {}
+  if (typeof renderPendingSyncIndicator === 'function') renderPendingSyncIndicator();
+}
+
+function markPendingSync(spaceId, reason) {
+  if (!spaceId) return;
+  const list = loadPendingSync();
+  const existing = list.find(item => item.spaceId === spaceId);
+  if (existing) {
+    existing.count = (existing.count || 1) + 1;
+    existing.reason = reason || existing.reason || 'Local change';
+    existing.at = Date.now();
+  } else {
+    list.push({ id: uid(), spaceId, reason: reason || 'Local change', count: 1, at: Date.now() });
+  }
+  savePendingSync(list);
+}
+
+function clearPendingSync(spaceId) {
+  if (!spaceId) return;
+  savePendingSync(loadPendingSync().filter(item => item.spaceId !== spaceId));
+}
+
+function pendingSyncCount(spaceId) {
+  const list = loadPendingSync();
+  const relevant = spaceId ? list.filter(item => item.spaceId === spaceId) : list;
+  return relevant.reduce((sum, item) => sum + (item.count || 1), 0);
+}
+
+function renderPendingSyncIndicator() {
+  const root = document.getElementById('pending-sync-indicator');
+  if (!root) return;
+  const count = pendingSyncCount();
+  if (!count) {
+    root.hidden = true;
+    root.innerHTML = '';
+    updateSyncSafetyBar();
+    return;
+  }
+  root.hidden = false;
+  root.innerHTML = `
+    <span class="pending-sync-dot"></span>
+    <span>${count} change${count === 1 ? '' : 's'} waiting to sync</span>
+  `;
+  updateSyncSafetyBar();
+}
+
+function renderNotificationSettings() {
+  const root = document.getElementById('notification-settings');
+  if (!root) return;
+  const prefs = getNotificationPrefs();
+  const rows = [
+    ['sharedActivity', 'Shared Space changes'],
+    ['assigned', 'Tasks assigned to me'],
+    ['notes', 'New notes'],
+    ['subtasks', 'New subtasks'],
+    ['deadlines', 'Today/tomorrow deadlines'],
+  ];
+  root.innerHTML = rows.map(([key, label]) => `
+    <label class="notification-toggle">
+      <input type="checkbox" data-notif-pref="${escapeAttr(key)}" ${prefs[key] ? 'checked' : ''}>
+      <span>${escapeHtml(label)}</span>
+    </label>
+  `).join('');
+  root.querySelectorAll('[data-notif-pref]').forEach(input => {
+    input.addEventListener('change', () => setNotificationPref(input.dataset.notifPref, input.checked));
+  });
+}
+
+function updateSyncSafetyBar() {
+  const bar = document.getElementById('sync-safety-bar');
+  if (!bar) return;
+  const visible = Array.from(bar.children).some(el => !el.hidden);
+  bar.hidden = !visible;
+}
+
+function saveRestoreSafetySnapshot() {
+  const payload = {
+    savedAt: new Date().toISOString(),
+    data: state,
+    extras: (typeof CVStore !== 'undefined' && CVStore.get) ? { cv: CVStore.get() } : {},
+  };
+  try { localStorage.setItem(RESTORE_SAFETY_KEY, JSON.stringify(payload)); } catch {}
+  return payload;
+}
+
+function getRestoreSafetySnapshot() {
+  try { return JSON.parse(localStorage.getItem(RESTORE_SAFETY_KEY) || 'null'); }
+  catch { return null; }
+}
+
+function collectAttachments() {
+  const out = [];
+  const add = (type, owner, attachments) => {
+    (attachments || []).forEach(a => out.push({
+      type,
+      ownerId: owner && owner.id,
+      ownerTitle: owner && (owner.title || owner.name || owner.location || owner.email || owner.id),
+      filename: a.filename,
+      originalName: a.originalName || a.filename,
+      size: a.size || 0,
+      addedAt: a.addedAt || 0,
+    }));
+  };
+  (state.robots || []).forEach(r => {
+    add('task-list', r, r.attachments);
+    (r.tasks || []).forEach(t => add('task', t, t.attachments));
+    (r.issues || []).forEach(i => add('issue', i, i.attachments));
+  });
+  (state.meetings || []).forEach(m => add('meeting', m, m.attachments));
+  (state.fieldVisits || []).forEach(v => add('visit', v, v.attachments));
+  return out.sort((a, b) => (b.size || 0) - (a.size || 0));
+}
+
+function checkDeadlineNotifications() {
+  if (!notificationAllowedFor('deadline')) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+  const todayKey = today.toISOString().slice(0, 10);
+  const sentKey = 'b-less.deadline-notified.' + todayKey;
+  try { if (localStorage.getItem(sentKey) === '1') return; } catch {}
+  const due = [];
+  (state.robots || []).forEach(r => (r.tasks || []).forEach(task => {
+    if (!task.dueDate || task.status === 'done') return;
+    const d = new Date(task.dueDate + 'T00:00:00');
+    if (d.getTime() === today.getTime() || d.getTime() === tomorrow.getTime()) {
+      due.push({ task, project: r, when: d.getTime() === today.getTime() ? 'today' : 'tomorrow' });
+    }
+  }));
+  if (!due.length) return;
+  const first = due[0];
+  const extra = due.length > 1 ? ` +${due.length - 1} more` : '';
+  showLocalNotification('B-Less deadline', `${first.task.title || 'Task'} is due ${first.when}${extra}`, { url: './index.html#inbox' }).catch(() => {});
+  try { localStorage.setItem(sentKey, '1'); } catch {}
 }
 
 // ── TABS ───────────────────────────────────────────────
@@ -2965,6 +3148,8 @@ function findEntity(type, id) {
 
 function renderAttachments(type, id, attachments) {
   const list = (attachments || []);
+  const totalSize = list.reduce((sum, a) => sum + (a.size || 0), 0);
+  const largeCount = list.filter(a => (a.size || 0) >= 10 * 1024 * 1024).length;
   const items = list.map(a => `
     <div class="att-chip" data-filename="${escapeAttr(a.filename)}">
       <span class="att-ico">${ATT_FILE}</span>
@@ -2977,12 +3162,27 @@ function renderAttachments(type, id, attachments) {
     <div class="att-section">
       <div class="att-section-head">
         <span class="att-label">${ATT_PAPERCLIP} <span>${t('att.section')}${list.length ? ` <span class="count-pill">${list.length}</span>` : ''}</span></span>
-        <button class="att-add-btn" onclick="attachFiles('${escapeJsArg(type)}','${escapeJsArg(id)}')">${t('att.add')}</button>
+        <div class="att-head-actions">
+          ${list.length ? `<span class="att-total">${formatSize(totalSize)}${largeCount ? ` · ${largeCount} large` : ''}</span>` : ''}
+          <button class="att-add-btn" onclick="attachFiles('${escapeJsArg(type)}','${escapeJsArg(id)}')">${t('att.add')}</button>
+        </div>
       </div>
+      ${list.length ? `<button class="att-manage-btn" type="button" onclick="showAttachmentCleanup('${escapeJsArg(type)}','${escapeJsArg(id)}')">Manage attachments</button>` : ''}
       ${items ? `<div class="att-list">${items}</div>` : ''}
     </div>
   `;
 }
+
+window.showAttachmentCleanup = async function(type, id) {
+  const entity = findEntity(type, id);
+  const list = ((entity && entity.attachments) || []).slice().sort((a, b) => (b.size || 0) - (a.size || 0));
+  if (!list.length) return;
+  const lines = list.slice(0, 8).map(a => `${a.originalName || a.filename} - ${formatSize(a.size || 0)}`).join('\n');
+  await alertDialog({
+    title: 'Attachment cleanup',
+    message: `Largest files here:\n\n${lines}\n\nUse the x next to an attachment to remove it from B-Less and Drive.`,
+  });
+};
 
 // Trigger file picker for an entity (PWA — Drive must be connected)
 window.attachFiles = function(type, id) {
@@ -3914,6 +4114,11 @@ const BackupManager = (() => {
 
   function showReconnectWarning() {
     reconnectNeeded = true;
+    const banner = document.getElementById('drive-reconnect-banner');
+    if (banner) {
+      banner.hidden = false;
+      updateSyncSafetyBar();
+    }
     if (!reconnectToastShown && typeof showAppToast === 'function') {
       reconnectToastShown = true;
       showAppToast('Google Drive sign-in is required to keep syncing.', 'error');
@@ -3964,8 +4169,14 @@ const BackupManager = (() => {
 
   // Inline metadata rendered inside the popover.
   function settingsBlockHtml() {
+    const safety = getRestoreSafetySnapshot();
     return `
       <div class="bp-settings-block">
+        ${safety ? `
+          <button class="bp-restore-safety" data-act="restore-safety" type="button">
+            Undo last restore (${escapeHtml(new Date(safety.savedAt).toLocaleString())})
+          </button>
+        ` : ''}
         <div class="bp-version">v${escapeHtml(typeof APP_VERSION !== 'undefined' ? APP_VERSION : '?')}</div>
       </div>
     `;
@@ -4039,6 +4250,8 @@ const BackupManager = (() => {
         headerBtn.classList.add('backup-ok');
         headerLabel.textContent = driveStorageWarning ? 'Drive full?' : lastTxt;
       }
+      const banner = document.getElementById('drive-reconnect-banner');
+      if (banner) { banner.hidden = true; updateSyncSafetyBar(); }
       refreshStorageUsage(false);
     } else {
       pop.innerHTML = `
@@ -4102,6 +4315,21 @@ const BackupManager = (() => {
         } else if (act === 'restore') {
           const ok = await tryRestore();
           if (!ok) alertDialog({ message: t('bp.no_backup_found') });
+        } else if (act === 'restore-safety') {
+          const safety = getRestoreSafetySnapshot();
+          if (!safety || !safety.data) return;
+          const ok = await confirmDialog({
+            title: 'Undo restore',
+            message: 'Restore the local data snapshot saved right before the last Drive restore?',
+            okText: 'Restore local snapshot',
+            danger: true,
+          });
+          if (!ok) return;
+          Object.assign(state, safety.data);
+          _applyExtras(safety.extras);
+          save();
+          renderAll();
+          render();
         } else if (act === 'rename') {
           const next = await (typeof promptInput === 'function'
             ? promptInput({
@@ -4219,6 +4447,7 @@ const BackupManager = (() => {
       ? await confirmDialog({ title: 'Restore from Drive', message: msg, okText: 'Restore', danger: true })
       : true;
     if (proceed) {
+      if (hasData) saveRestoreSafetySnapshot();
       Object.assign(state, backup.data);
       _applyExtras(backup.extras);
       const driveTime = new Date(backup.exportedAt).getTime();
@@ -7704,8 +7933,19 @@ function renderShareSpaceBody(extra) {
 
   const signedIn = (typeof DriveAPI !== 'undefined') && DriveAPI.isSignedIn && DriveAPI.isSignedIn();
   const me = (DriveAPI && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
+  const pending = pendingSyncCount(sp.id);
   const status = extra && extra.status ? `<div class="share-status">${escapeHtml(extra.status)}</div>` : '';
   const error  = extra && extra.error  ? `<div class="share-error">${escapeHtml(extra.error)}</div>` : '';
+  const conflict = extra && extra.conflict ? `
+    <div class="share-conflict">
+      <div class="share-conflict-title">Conflict detected</div>
+      <div class="share-conflict-copy">Drive has a newer version. Choose how to continue.</div>
+      <div class="share-conflict-actions">
+        <button class="btn-primary" id="share-conflict-pull" type="button">Use Drive version</button>
+        <button class="btn-ghost" id="share-conflict-force" type="button">Overwrite Drive</button>
+      </div>
+    </div>
+  ` : '';
 
   // Not signed in → ask them to authenticate via the avatar popover.
   if (!signedIn) {
@@ -7737,6 +7977,15 @@ function renderShareSpaceBody(extra) {
 
   // Already shared — show collaborators, owner, add form, stop-sharing.
   const isOwner = sp.myRole === 'owner' || sp.ownerEmail === (me && me.email);
+  const activityRows = getSharedActivities()
+    .filter(it => it.spaceId === sp.id)
+    .slice(0, 8)
+    .map(it => `
+      <div class="share-activity-row">
+        <span>${escapeHtml(sharedActivityText(it.kind))}: ${escapeHtml(it.taskTitle || 'Task')}</span>
+        <small>${it.actorEmail ? escapeHtml(it.actorEmail) + ' · ' : ''}${escapeHtml(new Date(it.at || Date.now()).toLocaleString())}</small>
+      </div>
+    `).join('');
   const collabRows = (sp.collaborators || []).map(c => `
     <div class="share-collab-row" data-perm-id="${escapeAttr(c.permissionId)}">
       <div class="share-collab-email">${escapeHtml(c.email)}</div>
@@ -7765,6 +8014,7 @@ function renderShareSpaceBody(extra) {
         </span>
       </div>
       <div class="share-meta-row"><span class="share-meta-label">Your role</span><span class="share-role-badge share-role-${sp.myRole || 'reader'}">${escapeHtml(roleLabel(sp.myRole || 'reader'))}</span></div>
+      ${pending ? `<div class="share-meta-row"><span class="share-meta-label">Pending</span><span>${pending} local change${pending === 1 ? '' : 's'} waiting to sync</span></div>` : ''}
       ${sp.lastSyncedAt ? `<div class="share-meta-row"><span class="share-meta-label">Last sync</span><span>${escapeHtml(new Date(sp.lastSyncedAt).toLocaleString())}</span></div>` : ''}
     </div>
 
@@ -7800,7 +8050,12 @@ function renderShareSpaceBody(extra) {
       </div>
     </div>
 
-    ${status}${error}
+    <div class="share-activity">
+      <div class="share-sync-label">Activity</div>
+      ${activityRows || `<div class="share-collab-empty">No shared activity recorded on this device yet.</div>`}
+    </div>
+
+    ${status}${error}${conflict}
 
     <div class="modal-actions">
       ${isOwner ? `<button class="btn-ghost share-stop-btn" id="share-stop-btn" type="button">Stop sharing on this device</button>` : ''}
@@ -7813,6 +8068,8 @@ function renderShareSpaceBody(extra) {
   document.getElementById('share-stop-btn')?.addEventListener('click', stopSharingCurrentSpace);
   document.getElementById('share-pull-btn')?.addEventListener('click', pullCurrentSharedSpace);
   document.getElementById('share-push-btn')?.addEventListener('click', pushCurrentSharedSpace);
+  document.getElementById('share-conflict-pull')?.addEventListener('click', pullCurrentSharedSpace);
+  document.getElementById('share-conflict-force')?.addEventListener('click', () => forcePushCurrentSharedSpace());
   // The global [data-close] listener only runs once at page load, so the
   // dynamically-rendered Done button never got wired. Bind it here.
   body.querySelectorAll('[data-close]').forEach(b => {
@@ -7948,6 +8205,7 @@ async function pullCurrentSharedSpace() {
     if (typeof renderRobotList === 'function') renderRobotList();
     if (typeof renderRobotDetail === 'function') renderRobotDetail();
     clearSyncHealth(sp.id);
+    clearPendingSync(sp.id);
     renderShareSpaceBody({ status: 'Pulled latest from Drive (' + payloadCountsFromPayload(r.payload) + ').' });
   } catch (e) {
     setSyncHealth(sp.id, navigator.onLine === false ? 'offline' : 'pull-needed', 'Pull failed.');
@@ -7966,12 +8224,13 @@ async function pushCurrentSharedSpace() {
     sp.lastSyncedRevision = r.revisionId;
     sp.lastSyncedAt       = Date.now();
     clearSyncHealth(sp.id);
+    clearPendingSync(sp.id);
     save();
     renderShareSpaceBody({ status: 'Pushed current data to Drive (' + payloadCounts(sp) + ').' });
   } catch (e) {
     if (e && e.conflict) {
       setSyncHealth(sp.id, 'conflict', 'Someone else updated this Space. Pull first.');
-      renderShareSpaceBody({ error: 'Someone else has updated this Space on Drive. Pull first, then push again.' });
+      renderShareSpaceBody({ error: 'Someone else has updated this Space on Drive.', conflict: true });
     } else {
       setSyncHealth(sp.id, navigator.onLine === false ? 'offline' : 'pull-needed', 'Push failed.');
       if (isDriveStorageQuotaError(e)) {
@@ -7981,6 +8240,31 @@ async function pushCurrentSharedSpace() {
         renderShareSpaceBody({ error: 'Push failed: ' + (e && e.message || 'unknown error') });
       }
     }
+  }
+}
+
+async function forcePushCurrentSharedSpace() {
+  const sp = findSpace(_shareTargetSpaceId);
+  if (!sp || !sp.driveFileId) return;
+  const ok = await confirmDialog({
+    title: 'Overwrite Drive?',
+    message: 'This sends your current local Space to Drive and can overwrite newer collaborator changes. Continue?',
+    okText: 'Overwrite Drive',
+    danger: true,
+  });
+  if (!ok) return;
+  try {
+    setSyncHealth(sp.id, 'syncing', 'Overwriting Drive with local changes.');
+    const r = await DriveAPI.pushSpaceFile(sp.driveFileId, sp, null);
+    sp.lastSyncedRevision = r.revisionId;
+    sp.lastSyncedAt = Date.now();
+    clearSyncHealth(sp.id);
+    clearPendingSync(sp.id);
+    save();
+    renderShareSpaceBody({ status: 'Drive overwritten with current local data.' });
+  } catch (e) {
+    setSyncHealth(sp.id, navigator.onLine === false ? 'offline' : 'pull-needed', 'Force push failed.');
+    renderShareSpaceBody({ error: 'Force push failed: ' + (e && e.message || 'unknown error') });
   }
 }
 
@@ -8424,6 +8708,7 @@ function schedulePush(spaceId) {
   if (!DriveAPI || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) return;
   const existing = _pendingPushes.get(spaceId);
   if (existing) clearTimeout(existing);
+  markPendingSync(spaceId, 'Local Space edit');
   setSyncHealth(spaceId, 'syncing', 'Waiting to push local changes.');
   const t = setTimeout(() => { doAutoPush(spaceId); }, PUSH_DEBOUNCE_MS);
   _pendingPushes.set(spaceId, t);
@@ -8450,6 +8735,7 @@ async function doAutoPush(spaceId) {
     fresh.lastSyncedRevision = r.revisionId;
     fresh.lastSyncedAt       = Date.now();
     clearSyncHealth(spaceId);
+    clearPendingSync(spaceId);
     // Persist without re-firing save() to avoid push loop.
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
     if (typeof refreshInboxBadge === 'function') refreshInboxBadge();
@@ -8615,7 +8901,11 @@ renderAll = function() {
 
 renderAll();
 refreshInboxBadge();
+renderPendingSyncIndicator();
+renderNotificationSettings();
+checkDeadlineNotifications();
 setInterval(refreshInboxBadge, 60_000);
+setInterval(checkDeadlineNotifications, 60 * 60 * 1000);
 initJournal();
 enhanceNoteTextareas();
 initAutoGrowingTextareas();
@@ -9369,6 +9659,7 @@ function markInboxSeen(taskId) {
 function renderInbox() {
   const list = document.getElementById('inbox-list');
   if (!list) return;
+  renderNotificationSettings();
   const today = new Date(); today.setHours(0,0,0,0);
   const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
   const myEmail = (me && me.email) ? me.email.toLowerCase() : null;

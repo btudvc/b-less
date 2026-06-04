@@ -576,7 +576,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.37';
+var APP_VERSION = '7.12.38';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -4173,6 +4173,11 @@ const BackupManager = (() => {
     const safety = getRestoreSafetySnapshot();
     return `
       <div class="bp-settings-block">
+        <div class="bp-theme-toggle theme-toggle" role="group" aria-label="Theme">
+          <button class="theme-toggle-btn" data-theme-set="light" type="button">Light</button>
+          <button class="theme-toggle-btn" data-theme-set="dim" type="button">Dim</button>
+          <button class="theme-toggle-btn" data-theme-set="dark" type="button">Dark</button>
+        </div>
         ${safety ? `
           <button class="bp-restore-safety" data-act="restore-safety" type="button">
             Undo last restore (${escapeHtml(new Date(safety.savedAt).toLocaleString())})
@@ -4350,6 +4355,13 @@ const BackupManager = (() => {
         }
       });
     });
+    pop.querySelectorAll('[data-theme-set]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        setTheme(el.dataset.themeSet);
+      });
+    });
+    applyTheme(normalizeTheme(document.documentElement.getAttribute('data-theme')));
   }
 
   // Snapshot any non-state stores that should travel with the backup
@@ -5156,12 +5168,13 @@ function closeJournalDetail() {
   document.getElementById('journal')?.removeAttribute('data-detail-open');
 }
 
-// ── THEME (dim only) ────────────────
+// ── THEME ────────────────
 const THEME_KEY = 'b-less-theme';
-const DEFAULT_THEME = 'dim';
-const THEME_COLORS = { dim: '#1c1f25' };
+const THEME_USER_SET_KEY = 'b-less-theme-user-set';
+const DEFAULT_THEME = 'light';
+const THEME_COLORS = { light: '#ffffff', dim: '#1c1f25', dark: '#000000' };
 function normalizeTheme(name) {
-  return DEFAULT_THEME;
+  return ['light', 'dim', 'dark'].includes(name) ? name : DEFAULT_THEME;
 }
 function applyTheme(name) {
   const t = normalizeTheme(name);
@@ -5175,12 +5188,15 @@ function applyTheme(name) {
 function setTheme(name) {
   const next = normalizeTheme(name);
   try { localStorage.setItem(THEME_KEY, next); } catch {}
+  try { localStorage.setItem(THEME_USER_SET_KEY, '1'); } catch {}
   applyTheme(next);
 }
 (function initTheme() {
   let saved = null;
+  let userSet = false;
   try { saved = localStorage.getItem(THEME_KEY); } catch {}
-  const next = normalizeTheme(saved);
+  try { userSet = localStorage.getItem(THEME_USER_SET_KEY) === '1'; } catch {}
+  const next = userSet ? normalizeTheme(saved) : DEFAULT_THEME;
   if (saved !== next) {
     try { localStorage.setItem(THEME_KEY, next); } catch {}
   }

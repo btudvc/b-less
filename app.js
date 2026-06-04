@@ -576,7 +576,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.34';
+var APP_VERSION = '7.12.35';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -1516,10 +1516,63 @@ window.toggleSubtask = function(taskId, subId) {
   renderCurrentDetail();
 };
 
+function autoTextareaMaxHeight(el) {
+  if (!el) return 220;
+  if (el.classList.contains('subtask-note')) return 132;
+  if (el.classList.contains('jrn-area') || el.classList.contains('reviews-textarea')) return 420;
+  if (el.classList.contains('brainstorm-area') || el.classList.contains('notes-area')) return 320;
+  if (el.classList.contains('nb-input') || el.classList.contains('nb-edit-input')) return 260;
+  if (el.classList.contains('cal-notes') || el.classList.contains('cal-event-notes')) return 240;
+  if (el.closest('.modal')) return 260;
+  if (el.closest('#cv')) return 190;
+  return 220;
+}
+
+window.autoSizeTextarea = function(el) {
+  if (!el || el.tagName !== 'TEXTAREA') return;
+  const max = autoTextareaMaxHeight(el);
+  el.classList.add('auto-grow-textarea');
+  el.style.maxHeight = max + 'px';
+  el.style.height = 'auto';
+  const next = Math.min(el.scrollHeight, max);
+  el.style.height = next + 'px';
+  el.style.overflowY = el.scrollHeight > max ? 'auto' : 'hidden';
+};
+
+function autoSizeTextareas(root) {
+  (root || document).querySelectorAll('textarea').forEach(el => window.autoSizeTextarea(el));
+}
+
+function initAutoGrowingTextareas() {
+  if (document.documentElement.dataset.autoTextareas === '1') {
+    autoSizeTextareas(document);
+    return;
+  }
+  document.documentElement.dataset.autoTextareas = '1';
+  autoSizeTextareas(document);
+  document.addEventListener('input', e => {
+    if (e.target && e.target.tagName === 'TEXTAREA') window.autoSizeTextarea(e.target);
+  }, true);
+  document.addEventListener('focusin', e => {
+    if (e.target && e.target.tagName === 'TEXTAREA') window.autoSizeTextarea(e.target);
+  }, true);
+  if (typeof MutationObserver !== 'undefined') {
+    const mo = new MutationObserver(records => {
+      records.forEach(record => {
+        record.addedNodes.forEach(node => {
+          if (!node || node.nodeType !== 1) return;
+          if (node.tagName === 'TEXTAREA') window.autoSizeTextarea(node);
+          else if (node.querySelectorAll) autoSizeTextareas(node);
+        });
+      });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  }
+}
+
 window.autoSizeSubtaskNote = function(el) {
   if (!el) return;
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 132) + 'px';
+  window.autoSizeTextarea(el);
 };
 
 function autoSizeSubtaskNotes() {
@@ -8565,10 +8618,15 @@ refreshInboxBadge();
 setInterval(refreshInboxBadge, 60_000);
 initJournal();
 enhanceNoteTextareas();
+initAutoGrowingTextareas();
 new MutationObserver(mutations => {
   for (const m of mutations) {
     m.addedNodes.forEach(node => {
-      if (node && node.nodeType === 1) enhanceNoteTextareas(node);
+      if (node && node.nodeType === 1) {
+        enhanceNoteTextareas(node);
+        if (node.tagName === 'TEXTAREA') window.autoSizeTextarea(node);
+        else if (node.querySelectorAll) autoSizeTextareas(node);
+      }
     });
   }
 }).observe(document.body, { childList: true, subtree: true });

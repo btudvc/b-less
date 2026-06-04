@@ -555,7 +555,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.31';
+var APP_VERSION = '7.12.32';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -1420,7 +1420,7 @@ function renderTask(task) {
             ${task.status !== 'done'    ? `<button class="btn-sm ${isToday(task.dueDate) ? 'active-toggle' : ''}" onclick="event.stopPropagation();assignToday('${task.id}')" title="${isToday(task.dueDate) ? t('btn.remove_today_title') : t('btn.start_today_title')}">${isToday(task.dueDate) ? t('btn.today_star') : t('btn.add_to_today')}</button>` : ''}
             ${task.status !== 'done'    ? `<button class="btn-sm" onclick="event.stopPropagation();snoozeTask('${task.id}',1)" title="Push to tomorrow">+1d</button>` : ''}
             ${task.status !== 'done'    ? `<button class="btn-sm" onclick="event.stopPropagation();snoozeTask('${task.id}',7)" title="Push by a week">+1w</button>` : ''}
-            <button class="btn-sm${isTaskWeeklyGoal(task.id) ? ' active-toggle' : ''}" onclick="event.stopPropagation();toggleTaskWeeklyGoal('${task.id}')" title="${t('btn.weekly_goal') || 'Haftalık hedef'}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>${t('btn.weekly_goal') || 'Hedef'}</span></button>
+            <button class="btn-sm goal-toggle${isTaskWeeklyGoal(task.id) ? ' active-toggle' : ''}" onclick="event.stopPropagation();toggleTaskWeeklyGoal('${task.id}')" title="${t('btn.weekly_goal') || 'Haftalık hedef'}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>${t('btn.weekly_goal') || 'Hedef'}</span></button>
             ${task.status === 'active'  ? `<button class="btn-sm" onclick="event.stopPropagation();setStatus('${task.id}','pending')">${ICO.pause}<span>Pending</span></button>` : ''}
             ${task.status === 'pending' ? `<button class="btn-sm" onclick="event.stopPropagation();setStatus('${task.id}','active')">${ICO.play}<span>Activate</span></button>` : ''}
             <button class="btn-sm" onclick="event.stopPropagation();editTask('${task.id}')">Edit</button>

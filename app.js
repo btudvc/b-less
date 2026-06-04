@@ -576,7 +576,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.33';
+var APP_VERSION = '7.12.34';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -1460,6 +1460,7 @@ function renderTask(task) {
 // ── SUBTASKS ────────────────────────────────────────────
 function renderSubtasks(task) {
   const subs = task.subtasks || [];
+  setTimeout(autoSizeSubtaskNotes, 0);
   const items = subs.map(s => `
     <div class="subtask ${s.done ? 'done' : ''}" data-sub-id="${s.id}">
       <div class="subtask-main">
@@ -1469,7 +1470,7 @@ function renderSubtasks(task) {
         <span class="subtask-text">${escapeHtml(s.title)}</span>
         <button class="subtask-del" onclick="deleteSubtask('${task.id}','${s.id}')" aria-label="Delete">${ICO.close}</button>
       </div>
-      <textarea class="subtask-note" rows="1" placeholder="Add note" oninput="updateSubtaskNote('${task.id}','${s.id}',this.value)">${escapeHtml(s.note || '')}</textarea>
+      <textarea class="subtask-note" rows="2" placeholder="Add note" onfocus="autoSizeSubtaskNote(this)" oninput="updateSubtaskNote('${task.id}','${s.id}',this.value);autoSizeSubtaskNote(this)">${escapeHtml(s.note || '')}</textarea>
     </div>
   `).join('');
   return `
@@ -1514,6 +1515,16 @@ window.toggleSubtask = function(taskId, subId) {
   save();
   renderCurrentDetail();
 };
+
+window.autoSizeSubtaskNote = function(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 132) + 'px';
+};
+
+function autoSizeSubtaskNotes() {
+  document.querySelectorAll('.subtask-note').forEach(el => window.autoSizeSubtaskNote(el));
+}
 
 window.updateSubtaskNote = function(taskId, subId, value) {
   const robot = getCurrentContainer();

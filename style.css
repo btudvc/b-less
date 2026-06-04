@@ -3928,14 +3928,14 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 }
 .sub-list {
   display: flex; flex-direction: column;
-  gap: 2px;
-  margin-bottom: 6px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 .subtask {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 6px 8px;
+  gap: 8px;
+  padding: 9px 10px;
   border-radius: var(--radius-sm);
   transition: background .12s var(--ease);
 }
@@ -3966,21 +3966,24 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 }
 .subtask-text { flex: 1; font-size: 13px; color: var(--text); }
 .subtask-note {
-  width: calc(100% - 27px);
-  margin-left: 27px;
-  min-height: 30px;
-  padding: 6px 8px;
-  border-radius: 7px;
+  width: calc(100% - 34px);
+  margin-left: 34px;
+  min-height: 48px;
+  max-height: 132px;
+  padding: 10px 12px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, .08);
   background: rgba(255, 255, 255, .035);
   color: var(--text);
   font: inherit;
-  font-size: 12px;
-  line-height: 1.35;
-  resize: vertical;
+  font-size: 12.5px;
+  line-height: 1.45;
+  resize: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 .subtask-note:placeholder-shown {
-  min-height: 28px;
+  min-height: 44px;
 }
 .subtask-note:focus {
   outline: none;
@@ -5300,13 +5303,13 @@ body { font-size: 13px; }
 }
 
 /* Subtasks compactness */
-.subtask        { padding: 5px 7px; gap: 5px; }
+.subtask        { padding: 8px 9px; gap: 8px; }
 .subtask-main   { gap: 8px; }
 .subtask-text   { font-size: 12.5px; }
-.subtask-note   { font-size: 12px; padding: 5px 8px; }
+.subtask-note   { font-size: 12.5px; padding: 9px 11px; min-height: 46px; max-height: 132px; }
 .sub-section    { margin-bottom: 9px; padding-bottom: 7px; }
 .sub-add-input  { padding: 5px 9px; font-size: 12.5px; }
-.sub-list       { gap: 1px; margin-bottom: 4px; }
+.sub-list       { gap: 6px; margin-bottom: 7px; }
 
 /* Cards / panels */
 .card           { padding: 14px 16px; }

@@ -128,7 +128,17 @@ const I18N = {
     'att.section': 'Attachments',
     'att.add': 'Attach file',
     'att.empty': 'No attachments',
-    'att.too_big': '"{name}" is too large (max 25 MB)',
+    'att.too_big': '"{name}" is too large ({size}). Max is {max}.',
+    'att.upload_title': 'Upload attachments',
+    'att.upload_confirm': 'Upload {count} file(s) to Google Drive?\nTotal size: {size}\n\n{files}',
+    'att.upload_ok': 'Upload',
+    'att.too_big_title': 'File too large',
+    'drive.storage_full_title': 'Drive storage may be full',
+    'drive.storage_full_msg': 'Google Drive could not save this because the account storage looks full. Free up Drive/Gmail/Photos storage or remove large B-Less attachments, then try again.',
+    'drive.bless_storage': 'B-Less storage',
+    'drive.total_storage': 'Drive storage',
+    'drive.checking': 'Checking...',
+    'drive.not_checked': 'Not checked yet',
     'att.confirm_delete': 'Delete this attachment?',
     'att.desktop_only': 'Attachments work in the desktop app only.',
     'att.signin_required': 'Sign in to Google Drive to attach files.',
@@ -420,6 +430,17 @@ Object.assign(I18N.en, {
 });
 
 Object.assign(I18N.tr, {
+  'att.too_big': '"{name}" cok buyuk ({size}). Maksimum {max}.',
+  'att.upload_title': 'Ekleri yukle',
+  'att.upload_confirm': '{count} dosya Google Drive\'a yuklensin mi?\nToplam boyut: {size}\n\n{files}',
+  'att.upload_ok': 'Yukle',
+  'att.too_big_title': 'Dosya cok buyuk',
+  'drive.storage_full_title': 'Drive alani dolu olabilir',
+  'drive.storage_full_msg': 'Google Drive bu veriyi kaydedemedi; hesap depolama alani dolu gorunuyor. Drive/Gmail/Photos alanini bosalt veya buyuk B-Less eklerini sil, sonra tekrar dene.',
+  'drive.bless_storage': 'B-Less alani',
+  'drive.total_storage': 'Drive alani',
+  'drive.checking': 'Kontrol ediliyor...',
+  'drive.not_checked': 'Henuz kontrol edilmedi',
   'links.title':         'Linkler',
   'links.subtitle':      'Kaybolmasin istedigin linkler',
   'links.add':           '+ Link Ekle',
@@ -555,7 +576,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.32';
+var APP_VERSION = '7.12.33';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -2836,7 +2857,32 @@ function formatSize(bytes) {
   if (!bytes && bytes !== 0) return '';
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+function isDriveStorageQuotaError(err) {
+  const reasonText = [
+    err && err.driveReason,
+    err && Array.isArray(err.driveReasons) ? err.driveReasons.join(' ') : '',
+    err && err.message,
+  ].filter(Boolean).join(' ');
+  return !!(err && err.isDriveStorageFull) || /storageQuotaExceeded|storage quota|quota.*exceeded/i.test(reasonText);
+}
+
+function driveStorageMessage() {
+  return t('drive.storage_full_msg') || 'Google Drive storage may be full. Free up storage and try again.';
+}
+
+async function showDriveStorageAlert(err) {
+  if (!isDriveStorageQuotaError(err)) return false;
+  if (typeof alertDialog === 'function') {
+    await alertDialog({
+      title: t('drive.storage_full_title') || 'Drive storage may be full',
+      message: driveStorageMessage(),
+    });
+  }
+  return true;
 }
 
 function findEntity(type, id) {
@@ -2903,11 +2949,29 @@ async function handleAttachUpload(e) {
   input.value = '';
   if (!files.length) return;
 
+  const validFiles = [];
   for (const file of files) {
     if (file.size > MAX_ATTACHMENT_BYTES) {
-      alertDialog({ message: t('att.too_big', { name: file.name }) });
+      await alertDialog({
+        title: t('att.too_big_title'),
+        message: t('att.too_big', { name: file.name, size: formatSize(file.size), max: formatSize(MAX_ATTACHMENT_BYTES) }),
+      });
       continue;
     }
+    validFiles.push(file);
+  }
+  if (!validFiles.length) return;
+
+  const totalSize = validFiles.reduce((sum, file) => sum + (file.size || 0), 0);
+  const fileLines = validFiles.map(file => `${file.name} (${formatSize(file.size)})`).join('\n');
+  const proceed = await confirmDialog({
+    title: t('att.upload_title'),
+    message: t('att.upload_confirm', { count: validFiles.length, size: formatSize(totalSize), files: fileLines }),
+    okText: t('att.upload_ok'),
+  });
+  if (!proceed) return;
+
+  for (const file of validFiles) {
     try {
       const result = await DriveAPI.saveAttachment(id, file.name, file);
       const entity = findEntity(type, id);
@@ -2921,10 +2985,15 @@ async function handleAttachUpload(e) {
         });
       }
     } catch (err) {
-      alertDialog({ message: t('att.failed', { msg: err.message || err }) });
+      if (!(await showDriveStorageAlert(err))) {
+        await alertDialog({ message: t('att.failed', { msg: err.message || err }) });
+      }
     }
   }
   save();
+  if (typeof BackupManager !== 'undefined' && BackupManager.refreshStorageUsage) {
+    BackupManager.refreshStorageUsage(true);
+  }
   // Re-render whichever detail view is active
   if (typeof renderCurrentDetail === 'function') renderCurrentDetail();
   if (type === 'meeting' && typeof renderMeetingDetail === 'function') renderMeetingDetail();
@@ -2948,7 +3017,7 @@ window.openAttachment = async function(type, id, filename) {
 window.deleteAttachment = async function(type, id, filename) {
   if (!(await confirmDialog({ message: t('att.confirm_delete'), danger: true, okText: t('btn.delete') || 'Delete' }))) return;
   if (DriveAPI.isSignedIn()) {
-    try { await DriveAPI.deleteAttachment(id, filename); } catch {}
+    try { await DriveAPI.deleteAttachment(id, filename); } catch (err) { await showDriveStorageAlert(err); }
   }
   const entity = findEntity(type, id);
   if (entity && entity.attachments) {
@@ -2957,6 +3026,9 @@ window.deleteAttachment = async function(type, id, filename) {
     if (typeof renderCurrentDetail === 'function') renderCurrentDetail();
     if (type === 'meeting' && typeof renderMeetingDetail === 'function') renderMeetingDetail();
     if (type === 'visit'   && typeof renderVisits === 'function') renderVisits();
+    if (typeof BackupManager !== 'undefined' && BackupManager.refreshStorageUsage) {
+      BackupManager.refreshStorageUsage(true);
+    }
   }
 };
 
@@ -3014,10 +3086,15 @@ async function handlePhotoUpload(e) {
         addedAt:  Date.now(),
       });
     } catch (err) {
-      alertDialog({ message: `Yükleme hatası: ${err.message || err}` });
+      if (!(await showDriveStorageAlert(err))) {
+        await alertDialog({ message: `Yükleme hatası: ${err.message || err}` });
+      }
     }
   }
   save();
+  if (typeof BackupManager !== 'undefined' && BackupManager.refreshStorageUsage) {
+    BackupManager.refreshStorageUsage(true);
+  }
   renderCurrentDetail();
 }
 
@@ -3032,10 +3109,13 @@ window.deleteTaskPhoto = async function(taskId, photoId) {
   const photo = (foundTask.photos || []).find(p => p.id === photoId);
   if (!photo) return;
   if (DriveAPI && DriveAPI.isSignedIn() && photo.fileId) {
-    try { await DriveAPI.deletePhoto(photo.fileId); } catch {}
+    try { await DriveAPI.deletePhoto(photo.fileId); } catch (err) { await showDriveStorageAlert(err); }
   }
   foundTask.photos = (foundTask.photos || []).filter(p => p.id !== photoId);
   save();
+  if (typeof BackupManager !== 'undefined' && BackupManager.refreshStorageUsage) {
+    BackupManager.refreshStorageUsage(true);
+  }
   renderCurrentDetail();
 };
 
@@ -3218,6 +3298,27 @@ const DriveAPI = (() => {
     return accessToken;
   }
 
+  function makeDriveError(method, status, text) {
+    let parsed = null;
+    try { parsed = text ? JSON.parse(text) : null; } catch {}
+    const apiError = parsed && parsed.error;
+    const reasons = [];
+    if (apiError && Array.isArray(apiError.errors)) {
+      apiError.errors.forEach(e => { if (e && e.reason) reasons.push(e.reason); });
+    }
+    if (apiError && Array.isArray(apiError.details)) {
+      apiError.details.forEach(d => { if (d && d.reason) reasons.push(d.reason); });
+    }
+    const message = (apiError && apiError.message) || text || 'Unknown Drive error';
+    const err = new Error(`Drive API ${method} ${status}: ${String(message).slice(0, 200)}`);
+    err.driveStatus = status;
+    err.driveReasons = reasons;
+    err.driveReason = reasons[0] || '';
+    err.isDriveStorageFull = reasons.includes('storageQuotaExceeded') || /storageQuotaExceeded|storage quota/i.test(text || message);
+    err.driveRaw = parsed || text;
+    return err;
+  }
+
   async function api(method, url, opts = {}) {
     await ensureToken();
     const init = {
@@ -3233,7 +3334,7 @@ const DriveAPI = (() => {
     }
     if (!r.ok) {
       const text = await r.text().catch(() => '');
-      throw new Error(`Drive API ${method} ${r.status}: ${text.slice(0, 200)}`);
+      throw makeDriveError(method, r.status, text);
     }
     return r;
   }
@@ -3305,6 +3406,48 @@ const DriveAPI = (() => {
 
   async function deleteFile(fileId) {
     await api('DELETE', `https://www.googleapis.com/drive/v3/files/${fileId}`);
+  }
+
+  async function listChildren(parentId) {
+    const files = [];
+    let pageToken = '';
+    do {
+      const q = `'${parentId}' in parents and trashed=false`;
+      const fields = 'nextPageToken,files(id,name,mimeType,size)';
+      const tokenPart = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
+      const r = await api('GET',
+        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(fields)}&pageSize=1000${tokenPart}`);
+      const data = await r.json();
+      files.push(...(data.files || []));
+      pageToken = data.nextPageToken || '';
+    } while (pageToken);
+    return files;
+  }
+
+  async function folderSize(folder) {
+    const children = await listChildren(folder);
+    let total = 0;
+    for (const f of children) {
+      if (f.mimeType === 'application/vnd.google-apps.folder') total += await folderSize(f.id);
+      else total += parseInt(f.size || '0', 10) || 0;
+    }
+    return total;
+  }
+
+  async function getStorageSummary() {
+    const root = await ensureFolder();
+    const [aboutR, blessBytes] = await Promise.all([
+      api('GET', 'https://www.googleapis.com/drive/v3/about?fields=storageQuota'),
+      folderSize(root),
+    ]);
+    const about = await aboutR.json();
+    const quota = (about && about.storageQuota) || {};
+    return {
+      blessBytes,
+      driveUsedBytes: parseInt(quota.usage || '0', 10) || 0,
+      driveLimitBytes: parseInt(quota.limit || '0', 10) || 0,
+      driveTrashBytes: parseInt(quota.usageInDriveTrash || '0', 10) || 0,
+    };
   }
 
   // ── Backup ──
@@ -3666,6 +3809,7 @@ const DriveAPI = (() => {
     saveBackup, readBackup,
     saveAttachment, openAttachment, deleteAttachment,
     savePhoto, deletePhoto, downloadPhoto,
+    getStorageSummary,
     // Shared spaces (Phase 1: API only)
     createSharedSpaceFile, pullSpaceFile, pushSpaceFile, renameSpaceFile,
     listAccessibleSharedSpaces,
@@ -3688,6 +3832,10 @@ const BackupManager = (() => {
   })();
   let reconnectNeeded = false;
   let reconnectToastShown = false;
+  let driveStorageWarning = false;
+  let storageSummary = null;
+  let storageSummaryAt = 0;
+  let storageSummaryLoading = false;
   function setLastBackup(ts) {
     lastBackup = ts;
     try { localStorage.setItem(SYNC_KEY, String(ts)); } catch {}
@@ -3712,6 +3860,42 @@ const BackupManager = (() => {
     if (!lastBackup) return t('bp.never');
     const diff = Math.round((Date.now() - lastBackup) / 60000);
     return diff < 1 ? t('bp.just_now') : t('bp.min_ago', { n: diff });
+  }
+
+  function storageText() {
+    if (storageSummaryLoading && !storageSummary) return t('drive.checking');
+    if (!storageSummary) return t('drive.not_checked');
+    return formatSize(storageSummary.blessBytes || 0);
+  }
+
+  function driveQuotaText() {
+    if (storageSummaryLoading && !storageSummary) return t('drive.checking');
+    if (!storageSummary) return t('drive.not_checked');
+    const used = storageSummary.driveUsedBytes || 0;
+    const limit = storageSummary.driveLimitBytes || 0;
+    return limit ? `${formatSize(used)} / ${formatSize(limit)}` : formatSize(used);
+  }
+
+  async function refreshStorageUsage(force = false) {
+    if (!DriveAPI.isSignedIn() || !DriveAPI.getStorageSummary) return null;
+    const stale = Date.now() - storageSummaryAt > 60 * 1000;
+    if (!force && !stale && storageSummary) return storageSummary;
+    if (storageSummaryLoading) return storageSummary;
+    storageSummaryLoading = true;
+    render();
+    try {
+      storageSummary = await DriveAPI.getStorageSummary();
+      storageSummaryAt = Date.now();
+      driveStorageWarning = false;
+    } catch (err) {
+      if (isDriveStorageQuotaError(err)) driveStorageWarning = true;
+      storageSummaryAt = Date.now();
+      console.warn('Drive storage summary failed:', err);
+    } finally {
+      storageSummaryLoading = false;
+      render();
+    }
+    return storageSummary;
   }
 
   // Inline metadata rendered inside the popover.
@@ -3761,7 +3945,17 @@ const BackupManager = (() => {
             <span class="bp-meta-label">${t('bp.last_sync')}</span>
             <span class="bp-meta-value bp-last-sync">${lastTxt}</span>
           </div>
+          <div class="bp-meta-row">
+            <span class="bp-meta-label">${t('drive.bless_storage')}</span>
+            <span class="bp-meta-value">${storageText()}</span>
+          </div>
+          <div class="bp-meta-row">
+            <span class="bp-meta-label">${t('drive.total_storage')}</span>
+            <span class="bp-meta-value">${driveQuotaText()}</span>
+          </div>
         </div>
+
+        ${driveStorageWarning ? `<div class="bp-storage-warning">${escapeHtml(driveStorageMessage())}</div>` : ''}
 
         <div class="bp-actions">
           <button class="btn-ghost" data-act="backup-now">
@@ -3777,10 +3971,11 @@ const BackupManager = (() => {
         ${settingsBlockHtml()}
       `;
       if (headerBtn && headerLabel) {
-        headerBtn.classList.remove('backup-warn');
+        headerBtn.classList.toggle('backup-warn', driveStorageWarning);
         headerBtn.classList.add('backup-ok');
-        headerLabel.textContent = lastTxt;
+        headerLabel.textContent = driveStorageWarning ? 'Drive full?' : lastTxt;
       }
+      refreshStorageUsage(false);
     } else {
       pop.innerHTML = `
         <div class="bp-intro">
@@ -3830,6 +4025,9 @@ const BackupManager = (() => {
           DriveAPI.signOut();
           reconnectNeeded = false;
           reconnectToastShown = false;
+          driveStorageWarning = false;
+          storageSummary = null;
+          storageSummaryAt = 0;
           lastBackup = null;
           try { localStorage.removeItem(SYNC_KEY); } catch {}
           clearInterval(intervalId);
@@ -3889,9 +4087,18 @@ const BackupManager = (() => {
     }, null, 2);
     try {
       await DriveAPI.saveBackup(json, filename);
+      driveStorageWarning = false;
       setLastBackup(Date.now());
+      refreshStorageUsage(true);
       render();
-    } catch (e) { console.warn('Backup failed:', e); }
+    } catch (e) {
+      if (isDriveStorageQuotaError(e)) {
+        driveStorageWarning = true;
+        if (typeof showAppToast === 'function') showAppToast(driveStorageMessage(), 'error');
+        render();
+      }
+      console.warn('Backup failed:', e);
+    }
   }
 
   // Apply non-state stores from a backup payload. Mirrors _extras().
@@ -4069,7 +4276,7 @@ const BackupManager = (() => {
     setInterval(render, 30000); // refresh "X min ago"
   }
 
-  return { init, onDataChange, initUI, tryRestore, refresh: render, handleHeaderClick };
+  return { init, onDataChange, initUI, tryRestore, refresh: render, refreshStorageUsage, handleHeaderClick };
 })();
 // ── RENDER ALL ─────────────────────────────────────────
 function renderAll() {
@@ -7589,7 +7796,12 @@ async function enableSharingForCurrentSpace() {
     renderSidebar();
     renderShareSpaceBody({ status: 'Shared. You can invite people now.' });
   } catch (e) {
-    renderShareSpaceBody({ error: 'Could not share: ' + (e.message || 'unknown error') });
+    if (isDriveStorageQuotaError(e)) {
+      renderShareSpaceBody({ error: driveStorageMessage() });
+      await showDriveStorageAlert(e);
+    } else {
+      renderShareSpaceBody({ error: 'Could not share: ' + (e.message || 'unknown error') });
+    }
   }
 }
 
@@ -7698,7 +7910,12 @@ async function pushCurrentSharedSpace() {
       renderShareSpaceBody({ error: 'Someone else has updated this Space on Drive. Pull first, then push again.' });
     } else {
       setSyncHealth(sp.id, navigator.onLine === false ? 'offline' : 'pull-needed', 'Push failed.');
-      renderShareSpaceBody({ error: 'Push failed: ' + (e && e.message || 'unknown error') });
+      if (isDriveStorageQuotaError(e)) {
+        renderShareSpaceBody({ error: driveStorageMessage() });
+        await showDriveStorageAlert(e);
+      } else {
+        renderShareSpaceBody({ error: 'Push failed: ' + (e && e.message || 'unknown error') });
+      }
     }
   }
 }
@@ -8174,8 +8391,13 @@ async function doAutoPush(spaceId) {
     if (typeof refreshInboxBadge === 'function') refreshInboxBadge();
     if (typeof renderHome === 'function') renderHome();
     if (typeof renderReviews === 'function') renderReviews();
-  } catch {
-    setSyncHealth(spaceId, navigator.onLine === false ? 'offline' : 'pull-needed', 'Auto-sync could not finish. Pull latest and try again.');
+  } catch (err) {
+    setSyncHealth(
+      spaceId,
+      navigator.onLine === false ? 'offline' : 'pull-needed',
+      isDriveStorageQuotaError(err) ? driveStorageMessage() : 'Auto-sync could not finish. Pull latest and try again.'
+    );
+    if (isDriveStorageQuotaError(err) && typeof showAppToast === 'function') showAppToast(driveStorageMessage(), 'error');
     // Transient error — next debounced push will retry.
   }
 }

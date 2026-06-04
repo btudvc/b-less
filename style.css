@@ -447,6 +447,17 @@ header { display: none; }
   line-height: 1.45;
 }
 
+.bp-storage-warning {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, .42);
+  background: rgba(146, 64, 14, .20);
+  color: #fde68a;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+
 /* ── Drive popover: friendlier first-time intro ─────── */
 .bp-intro {
   display: flex; flex-direction: column; align-items: center;
@@ -8863,7 +8874,7 @@ input:not([type]), textarea, select,
 }
 
 .bp-meta-label {
-  min-width: 82px !important;
+  min-width: 98px !important;
 }
 
 .bp-icon-btn {

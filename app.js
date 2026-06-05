@@ -576,7 +576,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.42';
+var APP_VERSION = '7.12.43';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -965,7 +965,7 @@ function checkDeadlineNotifications() {
 // ── TABS ───────────────────────────────────────────────
 // Sub-pages reachable from "More" — when one is active, keep "More" highlighted
 // in the bottom nav so the user has a clear way back.
-const MORE_SUBTABS = new Set(['meetings', 'journal']);
+const MORE_SUBTABS = new Set(['meetings', 'journal', 'brainstorm', 'links', 'private', 'cv', 'reviews']);
 
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -7740,6 +7740,7 @@ function activateSection(id) {
   document.querySelectorAll('[data-drawer-go]').forEach(b => {
     b.classList.toggle('active', b.dataset.drawerGo === drawerKey);
   });
+  if (MORE_SUBTABS.has(id)) setBnavActiveFor('more');
 }
 
 // ── Topbar title (centered in app-topbar, reflects active section) ──
@@ -9834,12 +9835,13 @@ function homeNavigate(target) {
     document.getElementById('journal')?.removeAttribute('data-detail-open');
     (typeof renderJournalList === 'function') && renderJournalList();
   }
-  else if (target === 'brainstorm') { activateSection('brainstorm'); renderBrainstorm(); }
-  else if (target === 'links')     { activateSection('links'); (typeof renderLinks === 'function') && renderLinks(); }
-  else if (target === 'private')   { activateSection('private'); (typeof renderPrivate === 'function') && renderPrivate(); }
-  else if (target === 'cv')        { activateSection('cv'); (typeof renderCV === 'function') && renderCV(); }
+  else if (target === 'brainstorm') { activateSection('brainstorm'); renderBrainstorm(); setBnavActiveFor('more'); }
+  else if (target === 'links')     { activateSection('links'); (typeof renderLinks === 'function') && renderLinks(); setBnavActiveFor('more'); }
+  else if (target === 'private')   { activateSection('private'); (typeof renderPrivate === 'function') && renderPrivate(); setBnavActiveFor('more'); }
+  else if (target === 'cv')        { activateSection('cv'); (typeof renderCV === 'function') && renderCV(); setBnavActiveFor('more'); }
   else if (target === 'reviews')   {
     activateSection('reviews');
+    setBnavActiveFor('more');
     document.getElementById('reviews')?.removeAttribute('data-detail-open');
     (typeof renderReviews === 'function') && renderReviews();
     refreshAllSharedSpaces(); // pull latest space goals before rendering

@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.btudvc.bless",
+      "sha256_cert_fingerprints": [
+        "74:7B:C8:8E:01:12:6A:B1:C9:22:56:5F:84:4E:E4:95:8D:7E:37:B2:80:82:F3:9B:7A:C8:B9:6C:E1:11:FF:38"
+      ]
+    }
+  }
+]

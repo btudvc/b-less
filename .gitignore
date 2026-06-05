@@ -11,3 +11,11 @@ dist/
 .claude/
 .vscode/
 .idea/
+android/keystore/
+android/signing.properties
+android/.gradle/
+android/build/
+android/app/build/
+android/app-release*.apk
+android/app-release*.aab
+android/decompressed/

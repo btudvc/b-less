@@ -576,7 +576,7 @@ let linksFilter = '';        // free-text search
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.41';
+var APP_VERSION = '7.12.42';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -5759,12 +5759,25 @@ function renderReviews() {
   taEl.placeholder = t('reviews.placeholder') || '';
   if (currentReviewKey) {
     if (labelEl) labelEl.textContent = formatReviewLabel(reviewPeriod, currentReviewKey);
-    taEl.value = map[currentReviewKey] || '';
+    const nextReviewText = map[currentReviewKey] || '';
+    const keepActiveDraft =
+      document.activeElement === taEl &&
+      taEl.dataset.revPeriod === reviewPeriod &&
+      taEl.dataset.revKey === currentReviewKey;
+    if (keepActiveDraft) {
+      state.reviews[reviewPeriod][currentReviewKey] = taEl.value;
+    } else if (taEl.value !== nextReviewText) {
+      taEl.value = nextReviewText;
+    }
+    taEl.dataset.revPeriod = reviewPeriod;
+    taEl.dataset.revKey = currentReviewKey;
     taEl.disabled = false;
     if (delBtn) delBtn.style.display = '';
   } else {
     if (labelEl) labelEl.textContent = t('reviews.no_entry') || 'Kayıt yok';
     taEl.value = '';
+    delete taEl.dataset.revPeriod;
+    delete taEl.dataset.revKey;
     taEl.disabled = true;
     if (delBtn) delBtn.style.display = 'none';
   }
@@ -6005,6 +6018,45 @@ function scheduleReviewSave() {
     if (li) li.textContent = (taEl.value || '').replace(/\s+/g, ' ').slice(0, 60);
   }, 350);
 }
+
+scheduleReviewSave = function() {
+  if (!currentReviewKey) return;
+  clearTimeout(_revSaveTimer);
+  const taEl = document.getElementById('rev-textarea');
+  const savedLbl = document.getElementById('rev-saved-label');
+  const period = reviewPeriod;
+  const key = currentReviewKey;
+  const value = taEl ? taEl.value : '';
+  ensureReviewsState();
+  if (!state.reviews[period]) state.reviews[period] = {};
+  state.reviews[period][key] = value;
+  if (taEl) {
+    taEl.dataset.revPeriod = period;
+    taEl.dataset.revKey = key;
+  }
+  if (savedLbl) savedLbl.textContent = '...';
+  _revSaveTimer = setTimeout(() => {
+    ensureReviewsState();
+    if (!state.reviews[period]) state.reviews[period] = {};
+    if (taEl && taEl.dataset.revPeriod === period && taEl.dataset.revKey === key) {
+      state.reviews[period][key] = taEl.value;
+    }
+    save();
+    if (savedLbl) {
+      savedLbl.textContent = t('reviews.saved') || 'Saved';
+      setTimeout(() => {
+        if (savedLbl.textContent === (t('reviews.saved') || 'Saved')) savedLbl.textContent = '';
+      }, 1500);
+    }
+    const li = document.querySelector('#reviews-list .rev-row.active .rev-row-preview');
+    if (li) {
+      const latest = (taEl && taEl.dataset.revPeriod === period && taEl.dataset.revKey === key)
+        ? taEl.value
+        : (state.reviews[period][key] || '');
+      li.textContent = latest.replace(/\s+/g, ' ').slice(0, 60);
+    }
+  }, 350);
+};
 
 function startCurrentReviewPeriod() {
   ensureReviewsState();
@@ -6412,7 +6464,21 @@ window.insertNoteSnippet = function(targetId, type) {
   const start = area.selectionStart ?? area.value.length;
   const end = area.selectionEnd ?? start;
   const before = area.value.slice(0, start);
+  const selected = area.value.slice(start, end);
   const after = area.value.slice(end);
+  if ((type === 'bullet' || type === 'check') && selected.trim()) {
+    const marker = type === 'check' ? '- [ ] ' : '- ';
+    const transformed = selected
+      .split('\n')
+      .map(line => line.trim() ? line.replace(/^\s*(?:[-*]\s+(?:\[[ xX]\]\s+)?)?/, marker) : line)
+      .join('\n');
+    area.value = before + transformed + after;
+    const pos = before.length + transformed.length;
+    area.focus();
+    area.setSelectionRange(pos, pos);
+    area.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
   const needsBreak = before && !before.endsWith('\n') ? '\n' : '';
   const insert = needsBreak + snippet;
   area.value = before + insert + after;
@@ -6421,6 +6487,37 @@ window.insertNoteSnippet = function(targetId, type) {
   area.setSelectionRange(pos, pos);
   area.dispatchEvent(new Event('input', { bubbles: true }));
 };
+
+function handleNoteListKeydown(e) {
+  const area = e.target;
+  if (!area || area.tagName !== 'TEXTAREA' || e.key !== 'Enter' || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (area.selectionStart !== area.selectionEnd) return;
+  const value = area.value || '';
+  const start = area.selectionStart ?? value.length;
+  const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+  const line = value.slice(lineStart, start);
+  const m = line.match(/^(\s*[-*]\s+(?:\[[ xX]\]\s+)?)(.*)$/);
+  if (!m) return;
+  e.preventDefault();
+  const marker = m[1];
+  const body = m[2] || '';
+  const beforeLine = value.slice(0, lineStart);
+  const afterCursor = value.slice(start);
+  if (!body.trim()) {
+    area.value = beforeLine + afterCursor.replace(/^\n?/, '');
+    const pos = beforeLine.length;
+    area.setSelectionRange(pos, pos);
+  } else {
+    const insert = '\n' + marker;
+    area.value = value.slice(0, start) + insert + afterCursor;
+    const pos = start + insert.length;
+    area.setSelectionRange(pos, pos);
+  }
+  area.dispatchEvent(new Event('input', { bubbles: true }));
+  if (typeof autoSizeTextarea === 'function') autoSizeTextarea(area);
+}
+
+document.addEventListener('keydown', handleNoteListKeydown);
 
 function enhanceNoteTextareas(root = document) {
   const selector = [

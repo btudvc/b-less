@@ -3,6 +3,28 @@
 This folder holds the Trusted Web Activity config for packaging
 `https://btudvc.github.io/b-less/` as an Android app.
 
+## Important: Digital Asset Links on GitHub Pages
+
+Trusted Web Activity verification checks Digital Asset Links at the origin
+root:
+
+```text
+https://btudvc.github.io/.well-known/assetlinks.json
+```
+
+The current app is a GitHub Pages project site under `/b-less/`. Files from
+this repository are served under that path, so this repository alone cannot
+publish the required root-level file for `btudvc.github.io`.
+
+To remove the browser/chrome UI in the APK, use one of these:
+
+- Create a separate `btudvc.github.io` user site repository and publish
+  `.well-known/assetlinks.json` there.
+- Attach a custom domain to this repository, so this repo is served at the
+  domain root.
+- Use a root-hosted deployment such as Render and point `android/twa-manifest.json`
+  to that host.
+
 ## Build
 
 1. Install Android Studio or Android command line tools.

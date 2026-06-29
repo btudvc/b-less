@@ -543,7 +543,7 @@ let currentReviewKey = null; // e.g. '2026-W19' or '2026-05'
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.48';
+var APP_VERSION = '7.12.49';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -5249,19 +5249,19 @@ function prevWeekKey(wk) {
 }
 
 // Auto carry-over: copy unfinished goals from the previous week into the
-// current week. Runs at most once per week (guarded by .carriedOverFrom).
+// current week. Duplicate checks make this safe to rerun after sync restores
+// older weeks or after the current blank week is created automatically.
 function autoCarryOverGoals() {
   const currentKey = reviewWeekKey();
   ensureReviewsState();
   ensureWeekGoal(currentKey);
   const current = state.weeklyGoals[currentKey];
 
-  if (current.carriedOverFrom) return; // already done for this week
   const prevKey = prevWeekKey(currentKey);
-  current.carriedOverFrom = prevKey;   // mark first so re-renders are no-ops
 
   const prev = state.weeklyGoals?.[prevKey];
   let personalChanged = false;
+  let carryFlagChanged = current.carriedOverFrom !== prevKey;
 
   const newWeekEnd  = weekEndDate(currentKey);
   const prevWeekEnd = weekEndDate(prevKey);
@@ -5290,7 +5290,7 @@ function autoCarryOverGoals() {
     // ── Text goals ─────────────────────────────────────────
     for (const g of (prev.goals || [])) {
       if (!g.done) {
-        const already = (current.goals || []).some(cg => cg.title === g.title);
+        const already = (current.goals || []).some(cg => (cg.title || '').trim().toLowerCase() === (g.title || '').trim().toLowerCase());
         if (!already) {
           current.goals.push({ id: uid(), title: g.title, done: false, createdAt: Date.now(), carriedOver: true });
           personalChanged = true;
@@ -5334,12 +5334,10 @@ function autoCarryOverGoals() {
     if (spaceChanged) spacePushNeeded.push(sp.id);
   }
 
-  if (personalChanged || spacePushNeeded.length) {
+  current.carriedOverFrom = prevKey;
+  if (personalChanged || spacePushNeeded.length || carryFlagChanged) {
     save();
     spacePushNeeded.forEach(id => { if (typeof _pushSpaceGoals === 'function') _pushSpaceGoals(id); });
-  } else {
-    // Save just the carriedOverFrom flag without triggering push
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
   }
 }
 

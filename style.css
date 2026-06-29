@@ -9175,16 +9175,37 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
 /* Desktop primary nav: floating bottom island instead of the left rail. */
 @media (min-width: 1000px) {
   body {
+    display: grid !important;
     grid-template-columns: 260px minmax(0, 1fr) !important;
+    grid-template-rows: auto 1fr !important;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar main" !important;
+    overflow: hidden !important;
   }
 
   .spaces-drawer {
+    position: static !important;
+    grid-area: sidebar !important;
     display: flex !important;
     flex-direction: column !important;
     width: 260px !important;
+    height: 100dvh !important;
+    padding: 14px 8px !important;
     grid-template-columns: none !important;
     transform: none !important;
+    background: var(--surface) !important;
+    border-right: 1px solid var(--border) !important;
+    box-shadow: none !important;
     overflow: visible !important;
+  }
+
+  .app-topbar {
+    grid-area: topbar !important;
+  }
+
+  main {
+    grid-area: main !important;
   }
 
   .spaces-drawer-head,
@@ -9199,6 +9220,7 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
   }
 
   .home-spaces {
+    flex: 1 1 auto !important;
     grid-row: auto !important;
     border-left: 0 !important;
     min-height: 0 !important;

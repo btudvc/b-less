@@ -9175,7 +9175,7 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
 /* Desktop primary nav: floating bottom island instead of the left rail. */
 @media (min-width: 1000px) {
   body {
-    grid-template-columns: 260px 1fr !important;
+    grid-template-columns: 260px minmax(0, 1fr) !important;
   }
 
   .spaces-drawer {
@@ -9184,6 +9184,7 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
     width: 260px !important;
     grid-template-columns: none !important;
     transform: none !important;
+    overflow: visible !important;
   }
 
   .spaces-drawer-head,
@@ -9200,6 +9201,8 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
   .home-spaces {
     grid-row: auto !important;
     border-left: 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
   }
 
   .drawer-nav {
@@ -9208,7 +9211,7 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
     right: auto !important;
     bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
     transform: translateX(-50%) !important;
-    z-index: 1200 !important;
+    z-index: 3000 !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
@@ -9264,5 +9267,25 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
 
   .section.active {
     padding-bottom: 112px !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  body {
+    grid-template-columns: 260px minmax(0, 1fr) 320px !important;
+    grid-template-areas:
+      "sidebar topbar notes"
+      "sidebar main   notes" !important;
+  }
+
+  .quick-notes {
+    width: auto !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  body {
+    grid-template-columns: 260px minmax(0, 1fr) 360px !important;
   }
 }

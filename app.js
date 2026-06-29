@@ -76,11 +76,8 @@ const I18N = {
     'visits.subtitle': 'Planned visits and trips',
     'meetings.title': 'Meetings',
     'meetings.subtitle': 'Notes, decisions, action items',
-    'journal.title': 'Journal',
-    'journal.subtitle': 'Daily entries',
     'btn.add_short': '+ Add',
     'btn.add_meeting': '+ Add Meeting',
-    'btn.add_today': '+ Add today',
     'cross.today': 'Today', 'cross.calendar': 'Calendar', 'cross.all_tasks': 'All Tasks', 'cross.visits': 'Visits',
     'nav.spaces': 'Spaces',
     'task.tasks_label': 'Tasks',
@@ -94,13 +91,9 @@ const I18N = {
     'label.space': 'Space',
     'empty.no_issues': 'No issues recorded.',
     'empty.no_notes': 'No notes yet.',
-    'empty.no_journal': 'No entries yet. Start with today.',
     'empty.select_day': 'Select a day',
     'cal.meetings': 'Meetings', 'cal.visits': 'Visits', 'cal.notes': 'Notes',
     'cal.notes_placeholder': 'Add a note for this day...',
-    'jrn.entries': 'Entries',
-    'jrn.placeholder': 'Write about today... thoughts, what happened, plans...',
-    'jrn.saved': 'Saved',
     'bp.title': 'Cloud Backup',
     'bp.subtitle_detected': 'Drive detected — connect in one click',
     'bp.connect_button': 'Connect to Google Drive',
@@ -143,19 +136,6 @@ const I18N = {
     'att.desktop_only': 'Attachments work in the desktop app only.',
     'att.signin_required': 'Sign in to Google Drive to attach files.',
     'att.failed': 'Could not save: {msg}',
-    'links.title':         'Links',
-    'links.subtitle':      'Bookmarks you don’t want to lose',
-    'links.add':           '+ Add Link',
-    'links.modal_add':     'Add Link',
-    'links.modal_edit':    'Edit Link',
-    'links.empty':         'No links yet. Add the first one above.',
-    'links.no_match':      'No links match your search.',
-    'links.confirm_delete':'Delete this link?',
-    'links.search_ph':     'Search title, URL, tag, notes…',
-    'links.f.url':         'URL',
-    'links.f.title':       'Title',
-    'links.f.tag':         'Tag',
-    'links.f.notes':       'Notes',
     'reviews.title':         'Reviews',
     'reviews.subtitle':      'Weekly & monthly summary notes',
     'reviews.tab.week':      'Weekly',
@@ -254,13 +234,9 @@ const I18N = {
     'empty.no_tasks_add': 'Henüz görev yok. İlk görevini ekle!',
     'empty.no_issues': 'Kayıtlı sorun yok.',
     'empty.no_notes': 'Henüz not yok.',
-    'empty.no_journal': 'Henüz girdi yok. Bugünden başla.',
     'empty.select_day': 'Bir gün seç',
     'cal.meetings': 'Toplantılar', 'cal.visits': 'Ziyaretler', 'cal.notes': 'Notlar',
     'cal.notes_placeholder': 'Bu güne ait not...',
-    'jrn.entries': 'Girdiler',
-    'jrn.placeholder': 'Bu günü yaz... düşüncelerin, neler oldu, plan...',
-    'jrn.saved': 'Kaydedildi',
     'bp.title': 'Bulut Yedekleme',
     'bp.subtitle_detected': 'Drive bulundu — tek tıkla bağlan',
     'bp.connect_button': 'Google Drive\'a Bağlan',
@@ -441,19 +417,6 @@ Object.assign(I18N.tr, {
   'drive.total_storage': 'Drive alani',
   'drive.checking': 'Kontrol ediliyor...',
   'drive.not_checked': 'Henuz kontrol edilmedi',
-  'links.title':         'Linkler',
-  'links.subtitle':      'Kaybolmasin istedigin linkler',
-  'links.add':           '+ Link Ekle',
-  'links.modal_add':     'Link Ekle',
-  'links.modal_edit':    'Linki Duzenle',
-  'links.empty':         'Henuz link yok. Yukaridaki butonla ekle.',
-  'links.no_match':      'Aramana uygun link bulunamadi.',
-  'links.confirm_delete':'Bu link silinsin mi?',
-  'links.search_ph':     'Baslik, URL, etiket, not ara…',
-  'links.f.url':         'URL',
-  'links.f.title':       'Baslik',
-  'links.f.tag':         'Etiket',
-  'links.f.notes':       'Notlar',
   'reviews.title':         'Ozetler',
   'reviews.subtitle':      'Haftalik ve aylik ozet notlar',
   'reviews.tab.week':      'Haftalik',
@@ -557,7 +520,7 @@ const ICO = {
 // ── STATE ──────────────────────────────────────────────
 // state.firmware (and state.currentFwId) may still exist in old saves/backups; we leave the data
 // dormant so a restore doesn't lose it, but no UI surface reads it anymore.
-let state = { robots: [], topics: [], fieldVisits: [], firmware: [], meetings: [], reviews: { week: {}, month: {} }, links: [], templates: [], currentRobotId: null, currentTopicId: null, currentMeetingId: null };
+let state = { robots: [], topics: [], fieldVisits: [], firmware: [], meetings: [], reviews: { week: {}, month: {} }, templates: [], currentRobotId: null, currentTopicId: null, currentMeetingId: null };
 let robotTab = 'tasks'; // 'tasks' | 'issues'
 let topicTab = 'tasks';
 let activeSection    = 'robots'; // 'robots' | 'topics'
@@ -569,21 +532,18 @@ let editingIssueId     = null;
 let editingMeetingId   = null;
 let reviewPeriod = 'week';   // 'week' | 'month'
 let currentReviewKey = null; // e.g. '2026-W19' or '2026-05'
-let editingLinkId = null;
-let linksFilter = '';        // free-text search
 
 // Build version — bump alongside SW VERSION in sw.js so the popover
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.44';
+var APP_VERSION = '7.12.45';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
 const NOTIFICATION_PREFS_KEY = 'b-less.notification-prefs';
 const PENDING_SYNC_KEY = 'b-less.pending-sync';
 const RESTORE_SAFETY_KEY = 'b-less.restore-safety-backup';
-const BRAINSTORM_KEY = 'b-less.brainstorm';
 const PUSH_ENDPOINT_BASE = 'https://b-less.onrender.com';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
 const LEGACY_STORAGE_KEY = 'karta';
@@ -906,7 +866,7 @@ function saveRestoreSafetySnapshot() {
   const payload = {
     savedAt: new Date().toISOString(),
     data: state,
-    extras: (typeof CVStore !== 'undefined' && CVStore.get) ? { cv: CVStore.get() } : {},
+    extras: {},
   };
   try { localStorage.setItem(RESTORE_SAFETY_KEY, JSON.stringify(payload)); } catch {}
   return payload;
@@ -965,7 +925,7 @@ function checkDeadlineNotifications() {
 // ── TABS ───────────────────────────────────────────────
 // Sub-pages reachable from "More" — when one is active, keep "More" highlighted
 // in the bottom nav so the user has a clear way back.
-const MORE_SUBTABS = new Set(['meetings', 'journal', 'brainstorm', 'links', 'private', 'cv', 'reviews']);
+const MORE_SUBTABS = new Set(['meetings', 'reviews']);
 
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -1252,7 +1212,6 @@ function renderRobotDetail() {
 }
 
 window.switchRobotTab = function(tab) {
-  if (tab === 'brainstorm') tab = 'tasks';
   if (tab === 'issues' && getMode() === 'daily') tab = 'tasks';
   robotTab = tab;
   renderRobotDetail();
@@ -1275,21 +1234,6 @@ function renderTabTasks(ordered, activeTasks, pendingTasks) {
   `;
 }
 
-function renderTabBrainstorm(robot) {
-  return `
-    <div class="dsection">
-      <div class="dsection-header">
-        <div class="dsection-label">Brainstorm</div>
-      </div>
-      <div class="brainstorm-wrap">
-        <textarea class="brainstorm-area" id="brainstorm-area"
-          placeholder="Ideas, notes, questions, hypotheses... write freely here."
-        >${robot.brainstorm || ''}</textarea>
-        <div class="save-indicator" id="save-indicator">Saved</div>
-      </div>
-    </div>
-  `;
-}
 
 // ── ISSUES ─────────────────────────────────────────────
 function renderTabIssues(issues) {
@@ -1703,12 +1647,11 @@ window.toggleSubtask = function(taskId, subId) {
 function autoTextareaMaxHeight(el) {
   if (!el) return 220;
   if (el.classList.contains('subtask-note')) return 132;
-  if (el.classList.contains('jrn-area') || el.classList.contains('reviews-textarea')) return 420;
+  if (el.classList.contains('reviews-textarea')) return 420;
   if (el.classList.contains('brainstorm-area') || el.classList.contains('notes-area')) return 320;
   if (el.classList.contains('nb-input') || el.classList.contains('nb-edit-input')) return 260;
   if (el.classList.contains('cal-notes') || el.classList.contains('cal-event-notes')) return 240;
   if (el.closest('.modal')) return 260;
-  if (el.closest('#cv')) return 190;
   return 220;
 }
 
@@ -2032,7 +1975,6 @@ window.editTopic = function(id) {
 };
 
 window.switchTopicTab = function(tab) {
-  if (tab === 'brainstorm') tab = 'tasks';
   topicTab = tab;
   renderTopicDetail();
 };
@@ -2191,24 +2133,6 @@ window.editVisit = function(id) {
   setTimeout(() => document.getElementById('visit-location').focus(), 50);
 };
 
-// Brainstorm auto-save
-let bsTimer;
-function attachBrainstorm(entityId) {
-  const area = document.getElementById('brainstorm-area');
-  const indicator = document.getElementById('save-indicator');
-  if (!area) return;
-  area.addEventListener('input', () => {
-    clearTimeout(bsTimer);
-    bsTimer = setTimeout(() => {
-      const entity = state.robots.find(r => r.id === entityId) ||
-                     (state.topics||[]).find(t => t.id === entityId);
-      if (entity) { entity.brainstorm = area.value; save(); }
-      indicator.classList.add('show');
-      setTimeout(() => indicator.classList.remove('show'), 1500);
-    }, 600);
-  });
-}
-
 // ── MODAL HELPERS ──────────────────────────────────────
 
 // Themed in-app replacement for window.prompt(). Async — returns the
@@ -2343,7 +2267,6 @@ function closeModal(id) {
   // Reset editing state
   editingVisitId = null; editingRobotId = null; editingTaskId = null;
   editingIssueId = null; editingMeetingId = null;
-  editingLinkId = null;
   // Reset modal titles/buttons to "add" mode
   const resets = {
     'modal-robot':     ['#modal-robot h3',     t('modal.add_new_list'),
@@ -2352,7 +2275,6 @@ function closeModal(id) {
     'modal-issue':     ['#modal-issue h3',      t('modal.add_issue'),   'save-issue',    t('btn.add_issue')],
     'modal-visit':     ['#modal-visit h3',      t('modal.add_visit'),   'save-visit',    t('btn.add_visit')],
     'modal-meeting':   ['#modal-meeting h3',    t('modal.add_meeting'), 'save-meeting',  t('btn.add_meeting')],
-    'modal-link':     ['#modal-link h3',     t('links.modal_add'),     'save-link',     t('btn.save')],
   };
   const r = resets[id];
   if (r) {
@@ -4364,16 +4286,10 @@ const BackupManager = (() => {
     applyTheme(normalizeTheme(document.documentElement.getAttribute('data-theme')));
   }
 
-  // Snapshot any non-state stores that should travel with the backup
-  // (CV editor data lives in its own localStorage key, but users
-  // expect it to sync across devices the same way tasks do).
+  // No non-state stores travel with the backup anymore — kept as a hook
+  // in case device-local stores need to sync in the future.
   function _extras() {
-    const out = {};
-  try {
-    if (typeof CVStore !== 'undefined' && CVStore.get) out.cv = CVStore.get();
-    if (typeof BrainstormStore !== 'undefined' && BrainstormStore.get) out.brainstorm = BrainstormStore.get();
-  } catch {}
-  return out;
+    return {};
   }
 
   async function doBackup() {
@@ -4408,19 +4324,8 @@ const BackupManager = (() => {
   }
 
   // Apply non-state stores from a backup payload. Mirrors _extras().
-  function _applyExtras(extras) {
-    if (!extras || typeof extras !== 'object') return;
-    try {
-      if (extras.cv && typeof CVStore !== 'undefined' && CVStore.importJSON) {
-        CVStore.importJSON(JSON.stringify(extras.cv));
-        if (typeof renderCV === 'function') renderCV();
-      }
-      if (extras.brainstorm && typeof BrainstormStore !== 'undefined' && BrainstormStore.importData) {
-        BrainstormStore.importData(extras.brainstorm);
-        if (typeof renderBrainstorm === 'function') renderBrainstorm();
-      }
-    } catch (e) { console.warn('Apply extras failed:', e); }
-  }
+  // No extras are tracked currently — kept as a hook for future stores.
+  function _applyExtras(extras) { void extras; }
 
   // Quietly fetch the Drive backup and apply it if it's newer than the most
   // recent push we performed from this device. No prompt — this is the
@@ -4605,7 +4510,6 @@ function renderAll() {
   renderMeetingList();
   renderMeetingDetail();
   if (typeof renderReviews === 'function') renderReviews();
-  if (typeof renderLinks === 'function') renderLinks();
 }
 
 function renderWorkHours() {} // removed
@@ -5069,104 +4973,6 @@ function renderCalDayPanel() {
     renderCalendar();
   });
 })();
-
-// ── JOURNAL ────────────────────────────────────────────
-let jrnSelected = ymd(new Date());
-let jrnSaveTimer = null;
-
-function initJournal() {
-  const dateInput = document.getElementById('jrn-date');
-  const area      = document.getElementById('jrn-area');
-  const status    = document.getElementById('jrn-status');
-  const todayBtn  = document.getElementById('jrn-today-btn');
-  if (!dateInput || !area) return;
-
-  dateInput.value = jrnSelected;
-
-  function loadEntry() {
-    const entries = state.journal || {};
-    area.value = entries[jrnSelected] || '';
-    renderJournalList();
-  }
-
-  function saveEntry() {
-    if (!state.journal) state.journal = {};
-    const v = area.value;
-    if (v.trim()) state.journal[jrnSelected] = v;
-    else delete state.journal[jrnSelected];
-    save();
-    if (status) {
-      status.textContent = 'Saved';
-      status.classList.add('show');
-      setTimeout(() => status.classList.remove('show'), 1200);
-    }
-    renderJournalList();
-  }
-
-  dateInput.addEventListener('change', () => {
-    jrnSelected = dateInput.value;
-    loadEntry();
-  });
-
-  area.addEventListener('input', () => {
-    clearTimeout(jrnSaveTimer);
-    jrnSaveTimer = setTimeout(saveEntry, 500);
-  });
-
-  if (todayBtn) {
-    todayBtn.addEventListener('click', () => {
-      jrnSelected = ymd(new Date());
-      dateInput.value = jrnSelected;
-      loadEntry();
-      document.getElementById('journal')?.setAttribute('data-detail-open', 'true');
-      area.focus();
-    });
-  }
-
-  loadEntry();
-}
-
-function renderJournalList() {
-  const list = document.getElementById('jrn-list');
-  if (!list) return;
-  const entries = state.journal || {};
-  const dates = Object.keys(entries).sort().reverse();
-  if (dates.length === 0) {
-    list.innerHTML = `<div class="jrn-empty">${t('empty.no_journal')}</div>`;
-    return;
-  }
-  const fmt = (d) => {
-    const dt = new Date(d + 'T00:00:00');
-    return `${dt.getDate()} ${MONTH_NAMES[dt.getMonth()].slice(0,3)} ${dt.getFullYear()}`;
-  };
-  list.innerHTML = dates.map(d => {
-    const text = entries[d] || '';
-    const preview = text.replace(/\n/g, ' ').slice(0, 80);
-    const active = d === jrnSelected ? 'active' : '';
-    return `
-      <div class="jrn-entry ${active}" data-date="${d}">
-        <div class="jrn-entry-date">${fmt(d)}</div>
-        <div class="jrn-entry-preview">${preview}</div>
-      </div>`;
-  }).join('');
-
-  list.querySelectorAll('.jrn-entry').forEach(el => {
-    el.addEventListener('click', () => {
-      jrnSelected = el.dataset.date;
-      const dateInput = document.getElementById('jrn-date');
-      const area = document.getElementById('jrn-area');
-      if (dateInput) dateInput.value = jrnSelected;
-      if (area) area.value = (state.journal || {})[jrnSelected] || '';
-      list.querySelectorAll('.jrn-entry').forEach(e => e.classList.remove('active'));
-      el.classList.add('active');
-      document.getElementById('journal')?.setAttribute('data-detail-open', 'true');
-    });
-  });
-}
-
-function closeJournalDetail() {
-  document.getElementById('journal')?.removeAttribute('data-detail-open');
-}
 
 // ── THEME ────────────────
 const THEME_KEY = 'b-less-theme';
@@ -6115,218 +5921,6 @@ document.getElementById('rev-current-btn')?.addEventListener('click', startCurre
 document.getElementById('rev-delete-btn')?.addEventListener('click', deleteCurrentReview);
 document.getElementById('rev-textarea')?.addEventListener('input', scheduleReviewSave);
 
-// ── LINKS (saved URLs) ──────────────────────────────────
-// Flat collection of bookmarks. Single global list shared across
-// Spaces — the 'links' item type is a singleton view onto state.links.
-
-function ensureLinksState() {
-  if (!Array.isArray(state.links)) state.links = [];
-}
-
-// ── TEMPLATES ───────────────────────────────────────────
-// Saved structure of a list: name + tasks (only the fields that make
-// sense to template — title, priority, tags, subtask titles). No dates,
-// no status (everything spawns as 'active', no dueDate).
-function ensureTemplatesState() {
-  if (!Array.isArray(state.templates)) state.templates = [];
-}
-
-function buildTemplateFromRobot(robot, name) {
-  const tasks = (robot.tasks || []).map(t => ({
-    title: t.title || '',
-    priority: t.priority || 'normal',
-    tags: Array.isArray(t.tags) ? [...t.tags] : [],
-    subtasks: (t.subtasks || []).map(s => ({ title: s.title || '', note: s.note || '' })),
-  }));
-  return {
-    id: 'tpl_' + uid(),
-    name: name || robot.name || 'Untitled template',
-    description: robot.description || '',
-    tasks,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  };
-}
-
-async function saveListAsTemplate(robotId) {
-  ensureTemplatesState();
-  const robot = (state.robots || []).find(r => r.id === robotId);
-  if (!robot) return;
-  const name = await promptInput({
-    title: 'Save as template',
-    label: 'Template name',
-    value: robot.name + ' (template)',
-    okText: 'Save',
-  });
-  if (!name || !name.trim()) return;
-  const tpl = buildTemplateFromRobot(robot, name.trim());
-  state.templates.push(tpl);
-  save();
-  alertDialog({ title: 'Template saved', message: `"${tpl.name}" is now available when you create a new list.` });
-}
-window.saveListAsTemplate = saveListAsTemplate;
-
-function createListFromTemplate(templateId, spaceId, customName) {
-  ensureTemplatesState();
-  const tpl = state.templates.find(t => t.id === templateId);
-  if (!tpl) return null;
-  const robot = {
-    id: uid(),
-    name: customName || tpl.name.replace(/\s*\(template\)\s*$/i, ''),
-    description: tpl.description || '',
-    category: '',
-    mode: 'job',
-    tasks: (tpl.tasks || []).map(t => ({
-      id: uid(),
-      title: t.title,
-      priority: t.priority || 'normal',
-      status: 'active',
-      dueDate: null,
-      tags: Array.isArray(t.tags) ? [...t.tags] : [],
-      subtasks: (t.subtasks || []).map(s => ({
-        id: uid(),
-        title: s.title,
-        note: s.note || '',
-        done: false,
-        createdAt: Date.now(),
-      })),
-      notebook: [],
-      expanded: false,
-      createdAt: Date.now(),
-    })),
-    issues: [],
-    createdAt: Date.now(),
-  };
-  state.robots = state.robots || [];
-  state.robots.push(robot);
-  // Attach to the requested Space (default: current space)
-  const targetSpaceId = spaceId || state.currentSpaceId || (state.spaces[0] && state.spaces[0].id);
-  const sp = state.spaces.find(s => s.id === targetSpaceId);
-  if (sp) {
-    sp.items = sp.items || [];
-    sp.items.push({ id: uid(), type: 'list', refId: robot.id });
-  }
-  state.currentRobotId = robot.id;
-  save();
-  return robot;
-}
-
-function deleteTemplate(templateId) {
-  ensureTemplatesState();
-  state.templates = state.templates.filter(t => t.id !== templateId);
-  save();
-}
-
-function linkDomain(url) {
-  try {
-    const u = new URL(url);
-    return u.hostname.replace(/^www\./, '');
-  } catch { return ''; }
-}
-
-function renderLinks() {
-  ensureLinksState();
-  const listEl = document.getElementById('links-list');
-  if (!listEl) return;
-  const searchEl = document.getElementById('links-search');
-  if (searchEl && !searchEl.placeholder) searchEl.placeholder = t('links.search_ph') || '';
-
-  const q = (linksFilter || '').trim().toLowerCase();
-  const filtered = state.links.filter(l => {
-    if (!q) return true;
-    return (l.title || '').toLowerCase().includes(q)
-        || (l.url   || '').toLowerCase().includes(q)
-        || (l.tag   || '').toLowerCase().includes(q)
-        || (l.notes || '').toLowerCase().includes(q);
-  }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-  if (!filtered.length) {
-    listEl.innerHTML = `<div class="links-empty">${escapeHtml(t(state.links.length ? 'links.no_match' : 'links.empty') || 'Henüz link yok.')}</div>`;
-    return;
-  }
-
-  listEl.innerHTML = filtered.map(l => {
-    const dom = linkDomain(l.url || '');
-    const safeUrl   = escapeHtml(l.url || '#');
-    const titleText = escapeHtml(l.title || dom || l.url || '(no title)');
-    return `
-      <div class="link-row" data-link-id="${l.id}">
-        <a class="link-row-main" href="${safeUrl}" target="_blank" rel="noopener noreferrer">
-          <span class="link-row-icon">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          </span>
-          <span class="link-row-body">
-            <span class="link-row-title">${titleText}</span>
-            ${dom    ? `<span class="link-row-domain">${escapeHtml(dom)}</span>` : ''}
-            ${l.tag  ? `<span class="link-row-tag">${escapeHtml(l.tag)}</span>` : ''}
-            ${l.notes ? `<span class="link-row-notes">${escapeHtml(l.notes)}</span>` : ''}
-          </span>
-        </a>
-        <button class="btn-sm" data-link-edit="${l.id}" type="button">${escapeHtml(t('btn.edit') || 'Edit')}</button>
-      </div>`;
-  }).join('');
-
-  listEl.querySelectorAll('[data-link-edit]').forEach(b => {
-    b.addEventListener('click', () => openLinkModal(state.links.find(x => x.id === b.dataset.linkEdit)));
-  });
-}
-
-function openLinkModal(link) {
-  ensureLinksState();
-  editingLinkId = link ? link.id : null;
-  document.getElementById('link-url').value   = link ? (link.url   || '') : '';
-  document.getElementById('link-title').value = link ? (link.title || '') : '';
-  document.getElementById('link-tag').value   = link ? (link.tag   || '') : '';
-  document.getElementById('link-notes').value = link ? (link.notes || '') : '';
-  const titleEl = document.getElementById('modal-link-title');
-  if (titleEl) titleEl.textContent = link ? (t('links.modal_edit') || 'Edit Link') : (t('links.modal_add') || 'Add Link');
-  const delBtn = document.getElementById('link-delete-btn');
-  if (delBtn) delBtn.style.display = link ? '' : 'none';
-  if (typeof openModal === 'function') openModal('modal-link');
-  setTimeout(() => document.getElementById('link-url').focus(), 60);
-}
-
-document.getElementById('add-link-btn')?.addEventListener('click', () => openLinkModal(null));
-
-document.getElementById('save-link')?.addEventListener('click', () => {
-  ensureLinksState();
-  const url = (document.getElementById('link-url').value || '').trim();
-  if (!url) {
-    document.getElementById('link-url').focus();
-    return;
-  }
-  // Auto-prefix scheme if missing
-  const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
-  const payload = {
-    url:   finalUrl,
-    title: (document.getElementById('link-title').value || '').trim(),
-    tag:   (document.getElementById('link-tag').value   || '').trim(),
-    notes: (document.getElementById('link-notes').value || '').trim(),
-  };
-  if (editingLinkId) {
-    const l = state.links.find(x => x.id === editingLinkId);
-    if (l) Object.assign(l, payload);
-  } else {
-    state.links.push({ id: uid(), ...payload, createdAt: Date.now() });
-  }
-  save();
-  renderLinks();
-  closeModal('modal-link');
-});
-
-document.getElementById('link-delete-btn')?.addEventListener('click', async () => {
-  if (!editingLinkId) return;
-  if (!(await confirmDialog({ message: t('links.confirm_delete') || 'Bu link silinsin mi?', danger: true, okText: t('btn.delete') || 'Delete' }))) return;
-  state.links = state.links.filter(l => l.id !== editingLinkId);
-  save();
-  renderLinks();
-  closeModal('modal-link');
-});
-
-document.getElementById('links-search')?.addEventListener('input', e => {
-  linksFilter = e.target.value;
-  renderLinks();
-});
 
 function getMode() { return state.mode || 'job'; }
 function applyModeAttr() {
@@ -6372,7 +5966,6 @@ const ITEM_ICONS = {
   list:    '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
   meeting: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   visit:   '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>',
-  journal: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>',
 };
 
 function escapeHtml(s) {
@@ -6522,13 +6115,10 @@ document.addEventListener('keydown', handleNoteListKeydown);
 function enhanceNoteTextareas(root = document) {
   const selector = [
     '.reviews-textarea',
-    '.jrn-area',
     '.cal-notes',
     '.brainstorm-area',
-    '#link-notes',
     '#visit-notes',
     '#cal-event-notes',
-    '#vault-f-notes',
   ].join(',');
   root.querySelectorAll(selector).forEach(area => {
     if (!area.id || area.dataset.noteTools === '1') return;
@@ -7266,8 +6856,6 @@ function migrateToSpaces() {
   if (!state.reviews || typeof state.reviews !== 'object') state.reviews = { week: {}, month: {} };
   if (!state.reviews.week)  state.reviews.week  = {};
   if (!state.reviews.month) state.reviews.month = {};
-  // Ensure links collection
-  if (!Array.isArray(state.links)) state.links = [];
 
   // ── Shared-space fields (Phase 1: schema only, no UI yet) ──
   // Existing Spaces stay local-only (`shared: false` is the default).
@@ -7285,7 +6873,7 @@ function migrateToSpaces() {
   });
 
   // Build a set of all currently-referenced refIds, by type
-  const referenced = { list: new Set(), meeting: new Set(), visit: new Set(), journal: new Set() };
+  const referenced = { list: new Set(), meeting: new Set(), visit: new Set() };
   state.spaces.forEach(sp => {
     sp.items.forEach(it => { if (referenced[it.type]) referenced[it.type].add(it.refId); });
   });
@@ -7313,19 +6901,11 @@ function migrateToSpaces() {
     added = true;
   });
 
-  // Journal — single global instance; ensure at least one space has a slot
-  const hasJournal = state.spaces.some(s => s.items.some(i => i.type === 'journal'));
-  if (!hasJournal) {
-    personal.items.push({ id: uid(), type: 'journal', refId: 'default' });
-    added = true;
-  }
-
-  // Spaces only carry lists + the personal-journal pointer now. Drop
-  // any legacy meeting/visit items left over from older versions —
-  // they should never have lived in a space and shouldn't sync.
+  // Spaces only carry lists now. Drop any legacy meeting/visit/journal
+  // items left over from older versions — they should never have lived
+  // in a space and shouldn't sync.
   const liveIds = {
     list:    new Set((state.robots || []).map(r => r.id)),
-    journal: new Set(['default']),
   };
   let removed = false;
   state.spaces.forEach(sp => {
@@ -7340,12 +6920,10 @@ function migrateToSpaces() {
   // user placed first; later additions are almost always from the duplication
   // bug firing after the original placement. This preserves user intent
   // instead of letting space-order dictate the winner.
-  // Journal entries are intentionally fanned out across spaces, so skip them.
   {
     const oldest = new Map(); // "type:refId" -> oldest item.id seen
     state.spaces.forEach(sp => {
       sp.items.forEach(it => {
-        if (it.type === 'journal') return;
         const key = it.type + ':' + it.refId;
         const prev = oldest.get(key);
         if (!prev || it.id < prev) oldest.set(key, it.id);
@@ -7354,7 +6932,6 @@ function migrateToSpaces() {
     state.spaces.forEach(sp => {
       const before = sp.items.length;
       sp.items = sp.items.filter(it => {
-        if (it.type === 'journal') return true;
         const key = it.type + ':' + it.refId;
         return oldest.get(key) === it.id;
       });
@@ -7422,7 +6999,6 @@ function resolveItemData(item) {
   if (item.type === 'list')    return (state.robots      || []).find(r => r.id === item.refId);
   if (item.type === 'meeting') return (state.meetings    || []).find(m => m.id === item.refId);
   if (item.type === 'visit')   return (state.fieldVisits || []).find(v => v.id === item.refId);
-  if (item.type === 'journal') return { name: 'Journal' };
   return null;
 }
 function itemDisplayName(item) {
@@ -7469,59 +7045,17 @@ function renderSidebar() {
       </div>`;
   }
 
-  function journalSubgroup(items, spaceId) {
-    if (!items.length) return '';
-    // Each entry in state.journal becomes a sub-item under a "Journal" group.
-    // state.journalSpace[date] = spaceId pins an entry to one space; unpinned shows in all.
-    const entries = state.journal || {};
-    const pin = state.journalSpace || {};
-    const dates = Object.keys(entries)
-      .filter(d => entries[d] && entries[d].trim())
-      .filter(d => !pin[d] || pin[d] === spaceId)
-      .sort().reverse();
-    const key = spaceId + ':journal';
-    const collapsed = !!state.collapsedGroups[key];
-    const fmt = d => {
-      const dt = new Date(d + 'T00:00:00');
-      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
-    };
-    const rows = dates.map(d => {
-      const active = (state.currentJournalDate === d && document.getElementById('journal')?.classList.contains('active')) ? 'active' : '';
-      return `
-        <div class="space-item space-jrn-item ${active}" data-jrn-date="${d}" data-space-id="${spaceId}">
-          <span class="space-item-icon">${ITEM_ICONS.journal}</span>
-          <span class="space-item-name">${escapeHtml(fmt(d))}</span>
-        </div>`;
-    }).join('');
-    const headerItemId = items[0].id;
-    return `
-      <div class="space-subgroup ${collapsed ? 'collapsed' : ''}" data-subgroup-key="${key}">
-        <div class="space-subheader">
-          <span class="space-subchev">${ICO.chevron}</span>
-          <span class="space-item-icon space-subicon">${ITEM_ICONS.journal}</span>
-          <span class="space-subname">${'Journal'}</span>
-          <span class="space-subcount">${dates.length}</span>
-          <button class="space-jrn-today-btn" data-jrn-today="${spaceId}" data-jrn-item-id="${headerItemId}" title="${t('btn.today') || 'Today'}" aria-label="${t('btn.today') || 'Today'}">+</button>
-        </div>
-        <div class="space-subitems">${rows || `<div class="space-empty">${t('empty.no_journal') || 'No entries'}</div>`}</div>
-      </div>`;
-  }
-
   list.innerHTML = (state.spaces || []).map(sp => {
     const collapsed = !!state.collapsedSpaces[sp.id];
     const lists    = sp.items.filter(i => i.type === 'list');
     const meetings = sp.items.filter(i => i.type === 'meeting');
-    const visits   = sp.items.filter(i => i.type === 'visit');
-    const journals = sp.items.filter(i => i.type === 'journal');
 
-    // Lists are flat (each is its own page). Meetings/Journal group up.
+    // Lists are flat (each is its own page). Meetings group up.
     // Visits are now global — accessible from the header cross-nav (not nested in spaces).
     const listsHtml    = lists.map(it => itemRow(it, sp.id)).join('');
     const meetingsHtml = subgroup(t('sidebar.meetings') || 'Meetings', 'meeting', meetings, sp.id);
-    const journalsHtml = journalSubgroup(journals, sp.id);
 
-    const body = listsHtml + meetingsHtml + journalsHtml;
+    const body = listsHtml + meetingsHtml;
 
     return `
       <div class="space-group ${collapsed ? 'collapsed' : ''}" data-space-id="${sp.id}">
@@ -7554,24 +7088,10 @@ function renderSidebar() {
     });
     el.addEventListener('dragend', () => el.classList.remove('dragging'));
   });
-  // Journal entries: draggable to pin a date to a specific space
-  list.querySelectorAll('.space-jrn-item').forEach(el => {
-    el.draggable = true;
-    el.addEventListener('dragstart', e => {
-      e.stopPropagation();
-      e.dataTransfer.setData('text/karta-journal', JSON.stringify({
-        date: el.dataset.jrnDate,
-        sourceSpaceId: el.dataset.spaceId,
-      }));
-      e.dataTransfer.effectAllowed = 'move';
-      el.classList.add('dragging');
-    });
-    el.addEventListener('dragend', () => el.classList.remove('dragging'));
-  });
   list.querySelectorAll('.space-group').forEach(el => {
     el.addEventListener('dragover', e => {
       const types = Array.from(e.dataTransfer.types);
-      if (!types.includes('text/karta-item') && !types.includes('text/karta-journal')) return;
+      if (!types.includes('text/karta-item')) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       el.classList.add('drag-target');
@@ -7584,22 +7104,6 @@ function renderSidebar() {
       e.preventDefault();
       el.classList.remove('drag-target');
       const targetSpaceId = el.dataset.spaceId;
-      // Journal entry drop → pin date to this space
-      const jrnRaw = e.dataTransfer.getData('text/karta-journal');
-      if (jrnRaw) {
-        let j; try { j = JSON.parse(jrnRaw); } catch { return; }
-        if (!j || !j.date) return;
-        if (!state.journalSpace) state.journalSpace = {};
-        if (j.sourceSpaceId === targetSpaceId) {
-          // dropping back onto same space → unpin (show in all)
-          delete state.journalSpace[j.date];
-        } else {
-          state.journalSpace[j.date] = targetSpaceId;
-        }
-        save();
-        renderSidebar();
-        return;
-      }
       let data;
       try { data = JSON.parse(e.dataTransfer.getData('text/karta-item')); } catch { return; }
       if (!data || !data.itemId || data.sourceSpaceId === targetSpaceId) return;
@@ -7615,18 +7119,6 @@ function renderSidebar() {
       renderSidebar();
     });
   });
-  // Journal date entry click
-  list.querySelectorAll('.space-jrn-item').forEach(el => {
-    el.addEventListener('click', () => selectJournalDate(el.dataset.spaceId, el.dataset.jrnDate));
-  });
-  // Journal "+today" button
-  list.querySelectorAll('.space-jrn-today-btn').forEach(el => {
-    el.addEventListener('click', e => {
-      e.stopPropagation();
-      const today = (typeof ymd === 'function') ? ymd(new Date()) : new Date().toISOString().slice(0, 10);
-      selectJournalDate(el.dataset.jrnToday, today);
-    });
-  });
   // Space header click → toggle collapse
   list.querySelectorAll('.space-header').forEach(el => {
     el.addEventListener('click', e => {
@@ -7640,7 +7132,7 @@ function renderSidebar() {
   // Sub-group header click → toggle collapse for Meetings/Visits group
   list.querySelectorAll('.space-subheader').forEach(el => {
     el.addEventListener('click', e => {
-      if (e.target.closest('.space-sub-add-btn') || e.target.closest('.space-jrn-today-btn')) return;
+      if (e.target.closest('.space-sub-add-btn')) return;
       const key = el.parentElement.dataset.subgroupKey;
       state.collapsedGroups[key] = !state.collapsedGroups[key];
       save();
@@ -7698,31 +7190,11 @@ function selectSpaceItem(spaceId, itemId) {
   } else if (item.type === 'visit') {
     activateSection('field-visits');
     if (typeof renderVisits === 'function') renderVisits();
-  } else if (item.type === 'journal') {
-    activateSection('journal');
   }
 
   save();
   renderSidebar();
   closeSpaceDrawer();
-}
-
-function selectJournalDate(spaceId, date) {
-  state.currentSpaceId = spaceId;
-  state.currentItemId = null;
-  state.currentJournalDate = date;
-  // Update existing jrnSelected used by initJournal/renderJournalList
-  if (typeof jrnSelected !== 'undefined') jrnSelected = date;
-  activateSection('journal');
-  const dateInput = document.getElementById('jrn-date');
-  const area      = document.getElementById('jrn-area');
-  if (dateInput) dateInput.value = date;
-  if (area)      area.value      = (state.journal || {})[date] || '';
-  if (typeof renderJournalList === 'function') renderJournalList();
-  save();
-  renderSidebar();
-  closeSpaceDrawer();
-  setTimeout(() => area && area.focus(), 50);
 }
 
 function activateSection(id) {
@@ -7752,12 +7224,7 @@ const TOPBAR_TITLES = {
   calendar: 'Calendar',
   meetings: 'Meetings',
   'field-visits': 'Visits',
-  journal: 'Journal',
-  brainstorm: 'Brainstorm',
   reviews: 'Reviews',
-  links: 'Links',
-  private: 'Vault',
-  cv: 'CV',
   more: 'Settings',
   settings: 'Settings',
 };
@@ -8620,7 +8087,7 @@ function mergeImportedSpacePayload(pull) {
     if (it.type === 'list')    return liveLists.has(it.refId);
     if (it.type === 'meeting') return liveMeetings.has(it.refId);
     if (it.type === 'visit')   return liveVisits.has(it.refId);
-    return true; // journal / finance / etc. singletons keep
+    return true; // unknown/singleton item types keep
   });
 
   // space.members carries the safe (no permissionId) member list the owner
@@ -9006,116 +8473,6 @@ document.querySelectorAll('.cross-nav-btn').forEach(b => {
   b.addEventListener('click', () => showCrossView(b.dataset.cross));
 });
 
-// ── Brainstorm: scratch notes + calculator ─────────
-const BrainstormStore = (() => {
-  const defaults = { notes: '', calc: '', updatedAt: 0 };
-  function get() {
-    try { return Object.assign({}, defaults, JSON.parse(localStorage.getItem(BRAINSTORM_KEY) || '{}') || {}); }
-    catch { return Object.assign({}, defaults); }
-  }
-  function save(next) {
-    const data = Object.assign(get(), next || {}, { updatedAt: Date.now() });
-    try { localStorage.setItem(BRAINSTORM_KEY, JSON.stringify(data)); } catch {}
-    if (typeof BackupManager !== 'undefined' && BackupManager.onDataChange) BackupManager.onDataChange();
-    return data;
-  }
-  function importData(data) {
-    try { localStorage.setItem(BRAINSTORM_KEY, JSON.stringify(Object.assign({}, defaults, data || {}))); } catch {}
-  }
-  return { get, save, importData };
-})();
-
-function safeCalcExpression(expr) {
-  let s = String(expr || '').trim();
-  if (!s) return null;
-  s = s.replace(/\^/g, '**')
-       .replace(/\bpi\b/gi, 'Math.PI')
-       .replace(/\be\b/g, 'Math.E')
-       .replace(/\b(sqrt|abs|round|floor|ceil|min|max|sin|cos|tan|log|pow)\s*\(/gi, 'Math.$1(');
-  if (/[^0-9+\-*/%().,\sA-Za-z]/.test(s)) {
-    throw new Error('unsupported');
-  }
-  const allowed = new Set(['Math', 'PI', 'E', 'sqrt', 'abs', 'round', 'floor', 'ceil', 'min', 'max', 'sin', 'cos', 'tan', 'log', 'pow']);
-  const words = s.match(/[A-Za-z]+/g) || [];
-  if (words.some(w => !allowed.has(w))) {
-    throw new Error('unsupported');
-  }
-  const value = Function('"use strict"; return (' + s + ')')();
-  if (!Number.isFinite(value)) throw new Error('invalid');
-  return value;
-}
-
-function renderBrainCalc() {
-  const input = document.getElementById('brain-calc-input');
-  const out = document.getElementById('brain-calc-results');
-  if (!input || !out) return;
-  const rows = input.value.split('\n').map(line => {
-    const raw = line.trim();
-    if (!raw) return '';
-    try {
-      const value = safeCalcExpression(raw);
-      if (value === null) return '';
-      return `<div class="brain-calc-row"><span>${escapeHtml(raw)}</span><strong>${escapeHtml(Number(value.toFixed(8)).toLocaleString())}</strong></div>`;
-    } catch {
-      return `<div class="brain-calc-row brain-calc-error"><span>${escapeHtml(raw)}</span><strong>?</strong></div>`;
-    }
-  }).filter(Boolean).join('');
-  out.innerHTML = rows || '<div class="brain-empty">Results appear here.</div>';
-}
-
-function renderBrainstorm() {
-  const root = document.getElementById('brainstorm');
-  if (!root) return;
-  const data = BrainstormStore.get();
-  const notes = document.getElementById('brain-notes');
-  const calc = document.getElementById('brain-calc-input');
-  if (notes && notes.dataset.bound !== '1') {
-    notes.dataset.bound = '1';
-    notes.value = data.notes || '';
-    notes.addEventListener('input', () => {
-      BrainstormStore.save({ notes: notes.value });
-      const s = document.getElementById('brain-save-state');
-      if (s) s.textContent = 'Saved';
-    });
-  }
-  if (calc && calc.dataset.bound !== '1') {
-    calc.dataset.bound = '1';
-    calc.value = data.calc || '';
-    calc.addEventListener('input', () => {
-      BrainstormStore.save({ calc: calc.value });
-      renderBrainCalc();
-    });
-  }
-  const exportBtn = document.getElementById('brain-export-btn');
-  if (exportBtn && exportBtn.dataset.bound !== '1') {
-    exportBtn.dataset.bound = '1';
-    exportBtn.addEventListener('click', () => {
-      const d = BrainstormStore.get();
-      const blob = new Blob([`# Brainstorm\n\n## Notes\n${d.notes || ''}\n\n## Calculations\n${d.calc || ''}\n`], { type: 'text/markdown' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'brainstorm-' + new Date().toISOString().slice(0,10) + '.md';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    });
-  }
-  const clearBtn = document.getElementById('brain-clear-btn');
-  if (clearBtn && clearBtn.dataset.bound !== '1') {
-    clearBtn.dataset.bound = '1';
-    clearBtn.addEventListener('click', async () => {
-      const ok = await confirmDialog({ title: 'Clear Brainstorm', message: 'Clear notes and calculations?', okText: 'Clear', danger: true });
-      if (!ok) return;
-      BrainstormStore.importData({ notes: '', calc: '', updatedAt: Date.now() });
-      BrainstormStore.save({ notes: '', calc: '' });
-      if (notes) notes.value = '';
-      if (calc) calc.value = '';
-      renderBrainCalc();
-    });
-  }
-  renderBrainCalc();
-  if (typeof autoSizeTextareas === 'function') autoSizeTextareas(root);
-}
-
 // ── Init ──
 migrateToSpaces();
 seedSampleData(); // self-gates on state.onboarded + empty data
@@ -9137,7 +8494,6 @@ renderNotificationSettings();
 checkDeadlineNotifications();
 setInterval(refreshInboxBadge, 60_000);
 setInterval(checkDeadlineNotifications, 60 * 60 * 1000);
-initJournal();
 enhanceNoteTextareas();
 initAutoGrowingTextareas();
 new MutationObserver(mutations => {
@@ -9188,8 +8544,6 @@ const ITEM_TYPE_META = {
   list:    { color: '#a855f7', svg: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>' },
   meeting: { color: '#f97316', svg: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' },
   visit:   { color: '#10b981', svg: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>' },
-  journal: { color: '#14b8a6', svg: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>' },
-  links:   { color: '#06b6d4', svg: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>' },
   reviews: { color: '#8b5cf6', svg: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 9 9l-7 1 5 5-1 7 6-3 6 3-1-7 5-5-7-1z"/></svg>' },
 };
 
@@ -9206,7 +8560,6 @@ function spaceItemTitle(item) {
     const v = (state.fieldVisits || []).find(x => x.id === item.refId);
     return v && v.location ? v.location : 'Visit';
   }
-  if (item.type === 'journal') return 'Journal';
   return item.type;
 }
 
@@ -9447,33 +8800,6 @@ function renderHome() {
     }
   }
 
-  // Today's Journal — preview if exists, otherwise prompt
-  const jrnEl = document.getElementById('home-journal-preview');
-  if (jrnEl) {
-    const entry = (state.journal || {})[todayIso];
-    if (entry && entry.trim()) {
-      const snippet = entry.trim().slice(0, 180);
-      const more = entry.trim().length > 180 ? '…' : '';
-      jrnEl.innerHTML = `
-        <button class="home-journal-card" type="button">
-          <span class="home-journal-snippet">${escapeHtml(snippet)}${more}</span>
-          <span class="home-journal-cta">Open journal →</span>
-        </button>
-      `;
-    } else {
-      jrnEl.innerHTML = `
-        <button class="home-journal-card empty" type="button">
-          <span class="home-journal-snippet">No entry yet for today.</span>
-          <span class="home-journal-cta">Start today's entry →</span>
-        </button>
-      `;
-    }
-    jrnEl.querySelector('.home-journal-card')?.addEventListener('click', () => {
-      if (typeof homeNavigate === 'function') homeNavigate('journal');
-    });
-  }
-
-
   // Recents
   const recentsEl = document.getElementById('home-recents');
   if (recentsEl) {
@@ -9512,9 +8838,9 @@ function renderHome() {
     const spaces = state.spaces || [];
     const TYPE_LABEL = {
       list: 'Lists', meeting: 'Meetings', visit: 'Visits',
-      journal: 'Journals', links: 'Links', reviews: 'Reviews',
+      reviews: 'Reviews',
     };
-    const TYPE_ORDER = ['list', 'meeting', 'visit', 'journal', 'links', 'reviews'];
+    const TYPE_ORDER = ['list', 'meeting', 'visit', 'reviews'];
 
     // "Shared with you" — Drive files tagged as B-Less spaces that we
     // haven't imported yet. Only rendered when there are pending shares.
@@ -9830,15 +9156,6 @@ function homeNavigate(target) {
     (typeof renderMeetingList === 'function') && renderMeetingList();
     (typeof renderMeetingDetail === 'function') && renderMeetingDetail();
   }
-  else if (target === 'journal')   {
-    activateSection('journal');
-    document.getElementById('journal')?.removeAttribute('data-detail-open');
-    (typeof renderJournalList === 'function') && renderJournalList();
-  }
-  else if (target === 'brainstorm') { activateSection('brainstorm'); renderBrainstorm(); setBnavActiveFor('more'); }
-  else if (target === 'links')     { activateSection('links'); (typeof renderLinks === 'function') && renderLinks(); setBnavActiveFor('more'); }
-  else if (target === 'private')   { activateSection('private'); (typeof renderPrivate === 'function') && renderPrivate(); setBnavActiveFor('more'); }
-  else if (target === 'cv')        { activateSection('cv'); (typeof renderCV === 'function') && renderCV(); setBnavActiveFor('more'); }
   else if (target === 'reviews')   {
     activateSection('reviews');
     setBnavActiveFor('more');
@@ -10150,1316 +9467,3 @@ openHome();
 maybeShowWelcome();
 maybeShowBrief();
 
-// ════════════════════════════════════════════════════════════════════
-// PRIVATE VAULT — encrypted credential storage (device-local only)
-// ────────────────────────────────────────────────────────────────────
-// AES-GCM 256, PBKDF2-SHA256 key derivation. The master password is
-// never stored — only the salt and ciphertext are kept in localStorage.
-// The derived key lives in this module's closure while the vault is
-// unlocked, and is wiped on lock / inactivity / page unload.
-// Nothing here is ever written to Drive — the vault never touches the
-// `state` object, so the sync layer can't see it.
-// ════════════════════════════════════════════════════════════════════
-const VaultStore = (() => {
-  const STORAGE_KEY = 'b-less.vault.v1';
-  const PBKDF2_ITER = 250000;
-  const AUTO_LOCK_MS = 5 * 60 * 1000; // 5 minutes idle
-
-  let derivedKey = null; // CryptoKey while unlocked, else null
-  let cachedPlain = null; // last decrypted { entries: [...] }
-  let cachedPassword = null; // string in memory only — needed to derive
-                             // keys from remote salts during sync. Never
-                             // persisted; wiped on lock().
-  let lockTimer = null;
-  let syncing = false;
-  const DRIVE_FILE = 'b-less-vault.json';
-
-  const enc = new TextEncoder();
-  const dec = new TextDecoder();
-
-  function b64(buf) {
-    const bytes = new Uint8Array(buf);
-    let s = '';
-    for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
-    return btoa(s);
-  }
-  function unb64(s) {
-    const bin = atob(s);
-    const out = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-    return out;
-  }
-
-  async function deriveKey(password, saltBytes) {
-    const base = await crypto.subtle.importKey(
-      'raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']
-    );
-    return crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt: saltBytes, iterations: PBKDF2_ITER, hash: 'SHA-256' },
-      base,
-      { name: 'AES-GCM', length: 256 },
-      false,
-      ['encrypt', 'decrypt']
-    );
-  }
-
-  async function encryptObject(obj, key) {
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      enc.encode(JSON.stringify(obj))
-    );
-    return { iv: b64(iv), ct: b64(ct) };
-  }
-  async function decryptObject(payload, key) {
-    const pt = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: unb64(payload.iv) },
-      key,
-      unb64(payload.ct)
-    );
-    return JSON.parse(dec.decode(pt));
-  }
-
-  function readStore() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); }
-    catch { return null; }
-  }
-  function writeStore(obj) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); return true; }
-    catch { return false; }
-  }
-
-  function scheduleAutoLock() {
-    if (lockTimer) clearTimeout(lockTimer);
-    lockTimer = setTimeout(() => lock(), AUTO_LOCK_MS);
-  }
-  function touchActivity() { if (derivedKey) scheduleAutoLock(); }
-
-  function lock() {
-    derivedKey = null;
-    cachedPlain = null;
-    cachedPassword = null;
-    if (lockTimer) { clearTimeout(lockTimer); lockTimer = null; }
-    if (typeof renderPrivate === 'function') renderPrivate();
-  }
-
-  // Wipe key on page hide / unload — defensive in case the user closes
-  // the tab without locking.
-  window.addEventListener('pagehide', () => { derivedKey = null; cachedPlain = null; cachedPassword = null; });
-
-  async function hasVault() {
-    if (readStore()) return true;
-    // If we're signed into Drive, treat an existing remote vault as
-    // "yes" so the UI shows the Unlock screen (not the first-run Create
-    // screen) on a fresh device. The actual blob is fetched on unlock.
-    if (typeof DriveAPI !== 'undefined' && DriveAPI.isSignedIn && DriveAPI.isSignedIn()) {
-      const remote = await tryFetchRemote();
-      if (remote) return true;
-    }
-    return false;
-  }
-  function isUnlocked()    { return !!derivedKey; }
-
-  async function create(masterPassword) {
-    if (!masterPassword || masterPassword.length < 4) throw new Error('Password too short');
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const key = await deriveKey(masterPassword, salt);
-    const plain = { entries: [] };
-    const blob = await encryptObject(plain, key);
-    writeStore({ salt: b64(salt), iv: blob.iv, ct: blob.ct, iter: PBKDF2_ITER, v: 1 });
-    derivedKey = key;
-    cachedPlain = plain;
-    cachedPassword = masterPassword;
-    scheduleAutoLock();
-    // Bring in any pre-existing remote vault (e.g. set up on phone).
-    syncWithDrive().catch(() => {});
-  }
-
-  async function unlock(masterPassword) {
-    let store = readStore();
-    // If there's nothing locally yet but we're signed into Drive, try
-    // to fetch the remote vault first — lets a fresh device unlock
-    // the same vault with the same master password.
-    if (!store) {
-      const remote = await tryFetchRemote().catch(() => null);
-      if (remote && remote.salt && remote.iv && remote.ct) {
-        store = remote;
-        writeStore(store);
-      } else {
-        throw new Error('No vault');
-      }
-    }
-    const salt = unb64(store.salt);
-    const key = await deriveKey(masterPassword, salt);
-    // Try to decrypt — wrong password throws.
-    const plain = await decryptObject({ iv: store.iv, ct: store.ct }, key);
-    derivedKey = key;
-    cachedPlain = plain;
-    cachedPassword = masterPassword;
-    scheduleAutoLock();
-    // Pull-and-merge in the background once we're in.
-    syncWithDrive().catch(() => {});
-  }
-
-  async function persist() {
-    if (!derivedKey || !cachedPlain) throw new Error('Locked');
-    const store = readStore() || {};
-    // Stamp the plaintext with a "last touched" time so the sync
-    // layer has a tiebreaker when comparing local vs remote blobs.
-    cachedPlain.updatedAt = Date.now();
-    const blob = await encryptObject(cachedPlain, derivedKey);
-    writeStore({
-      salt: store.salt,           // keep the original salt
-      iv:   blob.iv,
-      ct:   blob.ct,
-      iter: PBKDF2_ITER,
-      v:    1,
-      updatedAt: cachedPlain.updatedAt,
-    });
-    pushToDrive().catch(() => {});
-  }
-
-  // ── Drive sync (zero-knowledge: only ciphertext leaves the device) ──
-  async function tryFetchRemote() {
-    if (typeof DriveAPI === 'undefined' || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) return null;
-    try {
-      const text = await DriveAPI.readBackup(DRIVE_FILE);
-      if (!text) return null;
-      const obj = JSON.parse(text);
-      if (obj && obj.salt && obj.iv && obj.ct) return obj;
-      return null;
-    } catch { return null; }
-  }
-
-  async function pushToDrive() {
-    if (typeof DriveAPI === 'undefined' || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) return;
-    const store = readStore();
-    if (!store) return;
-    const payload = JSON.stringify({
-      schema: 'b-less.vault.v1',
-      salt: store.salt,
-      iv: store.iv,
-      ct: store.ct,
-      iter: store.iter,
-      updatedAt: store.updatedAt || Date.now(),
-    });
-    try { await DriveAPI.saveBackup(payload, DRIVE_FILE); } catch {}
-  }
-
-  // Pull remote, merge entries per-id, push back. No-op if locked or
-  // not signed in or the remote password doesn't match.
-  async function syncWithDrive() {
-    if (syncing) return;
-    if (!derivedKey || !cachedPlain || !cachedPassword) return;
-    if (typeof DriveAPI === 'undefined' || !DriveAPI.isSignedIn || !DriveAPI.isSignedIn()) return;
-    syncing = true;
-    try {
-      const remote = await tryFetchRemote();
-      if (!remote) {
-        // First time uploading from this device → just push.
-        await pushToDrive();
-        return;
-      }
-      // Derive a key for the REMOTE salt with the same master password,
-      // then try to decrypt the remote ciphertext. Mismatched passwords
-      // throw — we silently keep local and refuse to overwrite.
-      let remotePlain = null;
-      try {
-        const remoteKey = await deriveKey(cachedPassword, unb64(remote.salt));
-        remotePlain = await decryptObject({ iv: remote.iv, ct: remote.ct }, remoteKey);
-      } catch {
-        return; // different password on the remote — leave it alone
-      }
-      // Per-entry merge by id; newer updatedAt wins.
-      const byId = new Map();
-      (cachedPlain.entries || []).forEach(e => byId.set(e.id, e));
-      let changed = false;
-      (remotePlain.entries || []).forEach(re => {
-        const le = byId.get(re.id);
-        if (!le) { byId.set(re.id, re); changed = true; return; }
-        if ((re.updatedAt || 0) > (le.updatedAt || 0)) { byId.set(re.id, re); changed = true; }
-      });
-      // Entries only on local (we already have them) — keep.
-      const merged = Array.from(byId.values());
-      // If the remote merge brought in different content, re-encrypt
-      // locally + push. Otherwise just push (so the remote gets our
-      // local-only additions).
-      if (changed || merged.length !== (cachedPlain.entries || []).length) {
-        cachedPlain.entries = merged;
-        cachedPlain.updatedAt = Date.now();
-        // Re-encrypt with LOCAL salt so existing localStorage blob stays
-        // self-consistent on this device.
-        const store = readStore() || {};
-        const blob = await encryptObject(cachedPlain, derivedKey);
-        writeStore({
-          salt: store.salt,
-          iv: blob.iv,
-          ct: blob.ct,
-          iter: PBKDF2_ITER,
-          v: 1,
-          updatedAt: cachedPlain.updatedAt,
-        });
-        if (typeof renderPrivate === 'function') renderPrivate();
-      }
-      await pushToDrive();
-    } finally {
-      syncing = false;
-    }
-  }
-
-  function getEntries() {
-    if (!cachedPlain) return [];
-    return (cachedPlain.entries || []).slice().sort((a, b) =>
-      (a.title || '').localeCompare(b.title || '', undefined, { sensitivity: 'base' })
-    );
-  }
-
-  async function upsert(entry) {
-    if (!cachedPlain) throw new Error('Locked');
-    cachedPlain.entries = cachedPlain.entries || [];
-    if (entry.id) {
-      const i = cachedPlain.entries.findIndex(e => e.id === entry.id);
-      if (i >= 0) { cachedPlain.entries[i] = Object.assign({}, cachedPlain.entries[i], entry, { updatedAt: Date.now() }); }
-      else { cachedPlain.entries.push(Object.assign({}, entry, { createdAt: Date.now(), updatedAt: Date.now() })); }
-    } else {
-      cachedPlain.entries.push(Object.assign({}, entry, {
-        id: (typeof uid === 'function' ? uid() : Math.random().toString(36).slice(2)),
-        createdAt: Date.now(), updatedAt: Date.now(),
-      }));
-    }
-    await persist();
-    scheduleAutoLock();
-  }
-
-  async function remove(id) {
-    if (!cachedPlain) throw new Error('Locked');
-    cachedPlain.entries = (cachedPlain.entries || []).filter(e => e.id !== id);
-    await persist();
-    scheduleAutoLock();
-  }
-
-  async function destroy() {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(BIO_KEY);
-    lock();
-  }
-
-  // Change the master password while keeping every entry intact.
-  // Requires the vault to be unlocked (so we have plaintext to
-  // re-encrypt). Generates a fresh salt + IV so the new ciphertext
-  // doesn't share any bits with the old one.
-  async function changeMasterPassword(newPassword) {
-    if (!derivedKey || !cachedPlain) throw new Error('Vault is locked.');
-    if (!newPassword || newPassword.length < 6) throw new Error('Use at least 6 characters.');
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const newKey = await deriveKey(newPassword, salt);
-    cachedPlain.updatedAt = Date.now();
-    const blob = await encryptObject(cachedPlain, newKey);
-    writeStore({ salt: b64(salt), iv: blob.iv, ct: blob.ct, iter: PBKDF2_ITER, v: 1, updatedAt: cachedPlain.updatedAt });
-    derivedKey = newKey;
-    cachedPassword = newPassword;
-    scheduleAutoLock();
-    pushToDrive().catch(() => {});
-  }
-
-  // ── Biometric unlock (WebAuthn + PRF extension) ──────────────────
-  // Uses a platform authenticator (Touch ID / Face ID / Android
-  // fingerprint / Windows Hello) to derive a stable secret via the
-  // PRF extension. That secret wraps the master password so it can
-  // be recovered after a biometric prompt. Falls back gracefully when
-  // the platform doesn't support PRF (currently most mobile Chrome /
-  // Safari 17+ does; older Firefox / iOS < 17 may not).
-  const BIO_KEY = 'b-less.vault.bio.v1';
-
-  async function biometricAvailable() {
-    if (!window.PublicKeyCredential || !navigator.credentials) return false;
-    try { return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); }
-    catch { return false; }
-  }
-  function biometricEnrolled() { return !!localStorage.getItem(BIO_KEY); }
-
-  async function enableBiometric(masterPassword) {
-    if (!await biometricAvailable()) throw new Error('Biometric not available on this device.');
-    // Confirm the master password works against the stored ciphertext
-    // BEFORE we attempt the WebAuthn dance — keeps us from saving a
-    // wrapped key that doesn't actually match the vault.
-    await unlock(masterPassword); // throws on wrong password
-    const prfSalt = crypto.getRandomValues(new Uint8Array(32));
-    const userId  = crypto.getRandomValues(new Uint8Array(16));
-    const challenge = crypto.getRandomValues(new Uint8Array(32));
-    const cred = await navigator.credentials.create({
-      publicKey: {
-        rp: { name: 'B-Less', id: window.location.hostname },
-        user: { id: userId, name: 'vault@b-less', displayName: 'Vault' },
-        challenge,
-        pubKeyCredParams: [
-          { type: 'public-key', alg: -7 },    // ES256
-          { type: 'public-key', alg: -257 },  // RS256
-        ],
-        authenticatorSelection: {
-          authenticatorAttachment: 'platform',
-          userVerification: 'required',
-          requireResidentKey: false,
-        },
-        extensions: { prf: { eval: { first: prfSalt } } },
-        timeout: 60000,
-      },
-    });
-    if (!cred) throw new Error('Biometric setup cancelled.');
-    const ext = (cred.getClientExtensionResults && cred.getClientExtensionResults()) || {};
-    let prfOut = ext.prf && ext.prf.results && ext.prf.results.first;
-    // Many platform authenticators (notably Android) only surface PRF
-    // during assertion. Probe with get() so we can still use the
-    // strong path when supported.
-    if (!prfOut && ext.prf && ext.prf.enabled !== false) {
-      try {
-        const probe = await navigator.credentials.get({
-          publicKey: {
-            rpId: window.location.hostname,
-            challenge: crypto.getRandomValues(new Uint8Array(32)),
-            allowCredentials: [{ id: cred.rawId, type: 'public-key', transports: ['internal'] }],
-            userVerification: 'required',
-            extensions: { prf: { eval: { first: prfSalt } } },
-            timeout: 60000,
-          },
-        });
-        const ext2 = (probe && probe.getClientExtensionResults && probe.getClientExtensionResults()) || {};
-        prfOut = ext2.prf && ext2.prf.results && ext2.prf.results.first;
-      } catch (_) { /* fall through to fallback mode */ }
-    }
-    if (prfOut) {
-      // Strong path: master password wrapped with a PRF-derived key.
-      // Disk leak alone doesn't reveal the password — you also need
-      // the authenticator + biometric to recover the PRF output.
-      const wrapKey = await crypto.subtle.importKey(
-        'raw', new Uint8Array(prfOut), { name: 'AES-GCM', length: 256 }, false, ['encrypt']
-      );
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, wrapKey, enc.encode(masterPassword));
-      localStorage.setItem(BIO_KEY, JSON.stringify({
-        mode: 'prf',
-        credentialId: b64(cred.rawId),
-        prfSalt:      b64(prfSalt),
-        iv: b64(iv), ct: b64(ct), v: 1,
-      }));
-      return { mode: 'prf' };
-    }
-    // Fallback: biometric-gated reveal. The wrap key is generated
-    // locally and stored alongside the ciphertext, so the security
-    // comes from requiring a successful WebAuthn assertion (which
-    // demands user verification = biometric / device passcode) before
-    // the unlock code path runs. This matches the model 1Password and
-    // Bitwarden use for "biometric unlock" on devices that lack PRF.
-    const fallbackKey = crypto.getRandomValues(new Uint8Array(32));
-    const wrapKey = await crypto.subtle.importKey(
-      'raw', fallbackKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt']
-    );
-    const ivF = crypto.getRandomValues(new Uint8Array(12));
-    const ctF = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ivF }, wrapKey, enc.encode(masterPassword));
-    localStorage.setItem(BIO_KEY, JSON.stringify({
-      mode: 'fallback',
-      credentialId: b64(cred.rawId),
-      wk: b64(fallbackKey),
-      iv: b64(ivF), ct: b64(ctF), v: 1,
-    }));
-    return { mode: 'fallback' };
-  }
-
-  async function disableBiometric() { localStorage.removeItem(BIO_KEY); }
-
-  // Runs the WebAuthn assertion and returns the AES wrap key that can
-  // decrypt the stored master password — branching on whether the
-  // enrolment used PRF or the fallback gating mode. Both modes still
-  // require a successful platform-authenticator user-verification.
-  async function _assertAndGetWrapKey(meta) {
-    const credentialId = unb64(meta.credentialId);
-    const challenge = crypto.getRandomValues(new Uint8Array(32));
-    const usePrf = meta.mode === 'prf';
-    const assertion = await navigator.credentials.get({
-      publicKey: {
-        rpId: window.location.hostname,
-        challenge,
-        allowCredentials: [{ id: credentialId, type: 'public-key', transports: ['internal'] }],
-        userVerification: 'required',
-        ...(usePrf ? { extensions: { prf: { eval: { first: unb64(meta.prfSalt) } } } } : {}),
-        timeout: 60000,
-      },
-    });
-    if (!assertion) throw new Error('Cancelled.');
-    if (usePrf) {
-      const ext = assertion.getClientExtensionResults && assertion.getClientExtensionResults();
-      const prfOut = ext && ext.prf && ext.prf.results && ext.prf.results.first;
-      if (!prfOut) throw new Error('PRF result missing — try the password.');
-      return crypto.subtle.importKey('raw', new Uint8Array(prfOut), { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-    }
-    // Fallback: the assertion having succeeded is the gate. Wrap key
-    // is the random bytes we stored at enrolment time.
-    return crypto.subtle.importKey('raw', unb64(meta.wk), { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-  }
-
-  async function unlockBiometric() {
-    if (!await biometricAvailable()) throw new Error('Biometric not available.');
-    const raw = localStorage.getItem(BIO_KEY);
-    if (!raw) throw new Error('Biometric not set up.');
-    const meta = JSON.parse(raw);
-    const wrapKey = await _assertAndGetWrapKey(meta);
-    const pwBytes = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: unb64(meta.iv) }, wrapKey, unb64(meta.ct)
-    );
-    await unlock(dec.decode(pwBytes));
-  }
-
-  // Biometric-only password reset: assert the credential, recover the
-  // old password via PRF, unlock the vault, set a new master password
-  // (entries stay put), then re-wrap the new password under the same
-  // biometric credential. Never wipes user data.
-  async function resetPasswordWithBiometric(newPassword) {
-    if (!await biometricAvailable()) throw new Error('Biometric not available.');
-    if (!biometricEnrolled())        throw new Error('Biometric not set up — there is no recovery path.');
-    if (!newPassword || newPassword.length < 6) throw new Error('Use at least 6 characters.');
-    const raw  = localStorage.getItem(BIO_KEY);
-    const meta = JSON.parse(raw);
-    const wrapKey = await _assertAndGetWrapKey(meta);
-    // Recover old password, unlock so cachedPlain is populated.
-    const oldPwBytes = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: unb64(meta.iv) }, wrapKey, unb64(meta.ct)
-    );
-    await unlock(dec.decode(oldPwBytes));
-    // Swap the master password — entries stay intact.
-    await changeMasterPassword(newPassword);
-    // Re-wrap the NEW password under the same biometric (same wrap key).
-    const iv2 = crypto.getRandomValues(new Uint8Array(12));
-    const ct2 = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv2 }, wrapKey, enc.encode(newPassword));
-    const next = Object.assign({}, meta, { iv: b64(iv2), ct: b64(ct2) });
-    localStorage.setItem(BIO_KEY, JSON.stringify(next));
-  }
-
-  return {
-    hasVault, isUnlocked, create, unlock, lock, getEntries, upsert, remove, destroy, touchActivity,
-    biometricAvailable, biometricEnrolled, enableBiometric, disableBiometric, unlockBiometric,
-    changeMasterPassword, resetPasswordWithBiometric,
-    syncWithDrive,
-  };
-})();
-
-async function renderPrivate() {
-  const body = document.getElementById('vault-body');
-  const addBtn  = document.getElementById('vault-add-btn');
-  const lockBtn = document.getElementById('vault-lock-btn');
-  if (!body) return;
-
-  const has = await VaultStore.hasVault();
-  const unlocked = VaultStore.isUnlocked();
-
-  if (addBtn)  addBtn.hidden  = !unlocked;
-  if (lockBtn) lockBtn.hidden = !unlocked;
-
-  if (!has) {
-    // Setup
-    body.innerHTML = `
-      <div class="vault-card">
-        <h3>Create your vault</h3>
-        <p class="vault-note">
-          Pick a master password. It encrypts every entry with AES-GCM 256.
-          <strong>Write it down somewhere safe</strong> — if you forget it,
-          there's no recovery and the data is gone forever.
-          The vault stays on this device only and is never synced.
-        </p>
-        <label>Master password</label>
-        <input type="password" id="vault-pw1" autocomplete="new-password" />
-        <label>Confirm</label>
-        <input type="password" id="vault-pw2" autocomplete="new-password" />
-        <div class="modal-actions">
-          <button class="btn-primary" id="vault-create-btn">Create vault</button>
-        </div>
-        <div class="vault-error" id="vault-err" hidden></div>
-      </div>
-    `;
-    document.getElementById('vault-create-btn').addEventListener('click', async () => {
-      const pw1 = document.getElementById('vault-pw1').value;
-      const pw2 = document.getElementById('vault-pw2').value;
-      const err = document.getElementById('vault-err');
-      if (pw1.length < 6) { err.textContent = 'Use at least 6 characters.'; err.hidden = false; return; }
-      if (pw1 !== pw2)    { err.textContent = 'Passwords do not match.'; err.hidden = false; return; }
-      try {
-        await VaultStore.create(pw1);
-        renderPrivate();
-      } catch (e) {
-        err.textContent = e.message || 'Could not create vault.';
-        err.hidden = false;
-      }
-    });
-    return;
-  }
-
-  if (!unlocked) {
-    // Locked
-    const bioEnrolled = VaultStore.biometricEnrolled();
-    const bioCanUse   = await VaultStore.biometricAvailable();
-    const bioPrimary = bioEnrolled && bioCanUse;
-    body.innerHTML = `
-      <div class="vault-card vault-card-locked">
-        <div class="vault-lock-badge">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <h3>Vault is locked</h3>
-        <p class="vault-note">${bioPrimary
-          ? 'Use your device biometrics to unlock.'
-          : 'Enter your master password to unlock.'}</p>
-        ${bioPrimary ? `
-          <button class="btn-primary vault-bio-btn" id="vault-bio-unlock-btn">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11v3a1 1 0 0 1-1 1"/><path d="M3 11a9 9 0 0 1 13.6-7.74"/><path d="M3 17.5a9 9 0 0 1-1-3"/><path d="M14 21.3a9.5 9.5 0 0 0 5-7.3"/><path d="M9 21.3A8.83 8.83 0 0 1 5 17"/><path d="M21 11a9 9 0 0 0-2.6-5.7"/><path d="M8.5 4.4A8.93 8.93 0 0 1 12 4a8.93 8.93 0 0 1 8 4.7"/><path d="M11 3.9a9 9 0 0 1 5.5 7.1"/></svg>
-            <span>Unlock with biometrics</span>
-          </button>
-        ` : `
-          <label>Master password</label>
-          <input type="password" id="vault-pw" autocomplete="current-password" />
-        `}
-        <div class="modal-actions">
-          ${bioPrimary
-            ? `<button class="btn-ghost"   id="vault-use-pw-btn">Use password instead</button>
-               <button class="btn-ghost"   id="vault-forgot-btn" title="Reset master password with biometrics — keeps your entries">Forgot password?</button>`
-            : `<button class="btn-primary" id="vault-unlock-btn">Unlock</button>
-               <button class="btn-ghost"   id="vault-destroy-btn" title="Wipe this vault and start over">Reset vault…</button>`}
-        </div>
-        <div class="vault-error" id="vault-err" hidden></div>
-      </div>
-    `;
-    // "Use password instead" — swap the biometric block for a password
-    // input + Unlock button without leaving the section. Only mounted
-    // when biometric is the primary path.
-    document.getElementById('vault-use-pw-btn')?.addEventListener('click', () => {
-      const card = body.querySelector('.vault-card-locked');
-      if (!card) return;
-      const bioBtn = document.getElementById('vault-bio-unlock-btn');
-      if (bioBtn) bioBtn.remove();
-      const note = card.querySelector('.vault-note');
-      if (note) note.textContent = 'Enter your master password to unlock.';
-      const actions = card.querySelector('.modal-actions');
-      if (actions) {
-        const labelEl = document.createElement('label');
-        labelEl.textContent = 'Master password';
-        const inputEl = document.createElement('input');
-        inputEl.type = 'password';
-        inputEl.id = 'vault-pw';
-        inputEl.autocomplete = 'current-password';
-        actions.before(labelEl, inputEl);
-        // Swap the "Use password instead" button for an Unlock button.
-        document.getElementById('vault-use-pw-btn').remove();
-        const ok = document.createElement('button');
-        ok.className = 'btn-primary';
-        ok.id = 'vault-unlock-btn';
-        ok.textContent = 'Unlock';
-        actions.prepend(ok);
-        inputEl.focus();
-        const doUnlock2 = async () => {
-          const err = document.getElementById('vault-err');
-          try { await VaultStore.unlock(inputEl.value); renderPrivate(); }
-          catch { err.textContent = 'Wrong password.'; err.hidden = false; inputEl.select(); }
-        };
-        ok.addEventListener('click', doUnlock2);
-        inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') doUnlock2(); });
-      }
-    });
-    if (bioEnrolled && bioCanUse) {
-      document.getElementById('vault-bio-unlock-btn').addEventListener('click', async () => {
-        const err = document.getElementById('vault-err');
-        err.hidden = true;
-        try {
-          await VaultStore.unlockBiometric();
-          renderPrivate();
-        } catch (e) {
-          err.textContent = e.message || 'Biometric unlock failed.';
-          err.hidden = false;
-        }
-      });
-      // Auto-prompt biometric on view open — feels native on mobile.
-      setTimeout(() => {
-        document.getElementById('vault-bio-unlock-btn')?.click();
-      }, 250);
-    }
-    const pwEl = document.getElementById('vault-pw');
-    if (pwEl) {
-      const doUnlock = async () => {
-        const err = document.getElementById('vault-err');
-        try {
-          await VaultStore.unlock(pwEl.value);
-          renderPrivate();
-        } catch (e) {
-          err.textContent = 'Wrong password.';
-          err.hidden = false;
-          pwEl.select();
-        }
-      };
-      document.getElementById('vault-unlock-btn')?.addEventListener('click', doUnlock);
-      pwEl.addEventListener('keydown', e => { if (e.key === 'Enter') doUnlock(); });
-    }
-    document.getElementById('vault-destroy-btn')?.addEventListener('click', async () => {
-      const ok = await (typeof confirmDialog === 'function'
-        ? confirmDialog({ title: 'Reset vault', message: 'This permanently deletes every encrypted entry on this device. Continue?', okText: 'Delete vault' })
-        : Promise.resolve(confirm('Permanently delete vault?')));
-      if (!ok) return;
-      await VaultStore.destroy();
-      renderPrivate();
-    });
-    document.getElementById('vault-forgot-btn')?.addEventListener('click', async () => {
-      const err = document.getElementById('vault-err');
-      err.hidden = true;
-      // 1) New password — ask twice. Entries stay encrypted with the
-      //    old key until biometric auth succeeds, so a wrong/cancelled
-      //    biometric prompt leaves the vault untouched.
-      const pw1 = await (typeof promptInput === 'function'
-        ? promptInput({ title: 'Reset password', label: 'New master password', placeholder: 'At least 6 characters', type: 'password', okText: 'Next' })
-        : Promise.resolve(prompt('New master password')));
-      if (!pw1) return;
-      if (pw1.length < 6) {
-        err.textContent = 'Use at least 6 characters.';
-        err.hidden = false; return;
-      }
-      const pw2 = await (typeof promptInput === 'function'
-        ? promptInput({ title: 'Reset password', label: 'Confirm new password', type: 'password', okText: 'Confirm' })
-        : Promise.resolve(prompt('Confirm new password')));
-      if (pw2 == null) return;
-      if (pw1 !== pw2) {
-        err.textContent = 'Passwords do not match.';
-        err.hidden = false; return;
-      }
-      // 2) Biometric assertion → recover old password → swap to new one.
-      try {
-        await VaultStore.resetPasswordWithBiometric(pw1);
-        if (typeof showAppToast === 'function') showAppToast('Master password updated', 'success');
-        renderPrivate();
-      } catch (e) {
-        err.textContent = e.message || 'Could not reset password.';
-        err.hidden = false;
-      }
-    });
-    return;
-  }
-
-  // Unlocked — list + add/edit form
-  VaultStore.touchActivity();
-  const entries = VaultStore.getEntries();
-  const bioCanUse   = await VaultStore.biometricAvailable();
-  const bioEnrolled = VaultStore.biometricEnrolled();
-  body.innerHTML = `
-    <div class="vault-list" id="vault-list">
-      ${entries.length ? entries.map(e => renderVaultRow(e)).join('') : `
-        <div class="home-list-empty" style="padding: 28px 12px;">No entries yet. Tap + Add Entry.</div>
-      `}
-    </div>
-    <div class="vault-settings">
-      ${bioCanUse ? `
-        <div class="vault-settings-row">
-          <div>
-            <div class="vault-settings-title">Biometric unlock</div>
-            <div class="vault-settings-sub">${bioEnrolled
-              ? 'Enabled on this device — unlock with fingerprint / face.'
-              : 'Use your device biometrics instead of typing the master password.'}</div>
-          </div>
-          ${bioEnrolled
-            ? `<button class="btn-ghost btn-mini" id="vault-bio-disable-btn">Remove</button>`
-            : `<button class="btn-primary btn-mini" id="vault-bio-enable-btn">Enable</button>`}
-        </div>
-      ` : ''}
-      <div class="vault-settings-row">
-        <div>
-          <div class="vault-settings-title">Sync across devices</div>
-          <div class="vault-settings-sub">Encrypted blob stored on your Google Drive. Your password never leaves this device.</div>
-        </div>
-        <button class="btn-ghost btn-mini" id="vault-sync-btn">Sync now</button>
-      </div>
-    </div>
-  `;
-  document.getElementById('vault-sync-btn')?.addEventListener('click', async () => {
-    try {
-      await VaultStore.syncWithDrive();
-      if (typeof showAppToast === 'function') showAppToast('Vault synced', 'success');
-      renderPrivate();
-    } catch (e) {
-      if (typeof showAppToast === 'function') showAppToast(e.message || 'Sync failed', 'error');
-    }
-  });
-  document.getElementById('vault-bio-enable-btn')?.addEventListener('click', async () => {
-    const pw = await (typeof promptInput === 'function'
-      ? promptInput({ title: 'Confirm password', label: 'Master password', placeholder: 'Re-enter to enable biometrics', type: 'password' })
-      : Promise.resolve(prompt('Re-enter master password to enable biometrics')));
-    if (!pw) return;
-    try {
-      const res = await VaultStore.enableBiometric(pw);
-      const note = res && res.mode === 'fallback'
-        ? 'Biometric unlock enabled (compatibility mode — your browser lacks PRF)'
-        : 'Biometric unlock enabled';
-      if (typeof showAppToast === 'function') showAppToast(note, 'success');
-      renderPrivate();
-    } catch (e) {
-      if (typeof alertDialog === 'function') alertDialog({ title: 'Could not enable', message: e.message || 'Biometric setup failed.' });
-      else alert(e.message || 'Biometric setup failed.');
-    }
-  });
-  document.getElementById('vault-bio-disable-btn')?.addEventListener('click', async () => {
-    await VaultStore.disableBiometric();
-    if (typeof showAppToast === 'function') showAppToast('Biometric unlock removed', 'success');
-    renderPrivate();
-  });
-  // Row interactions
-  body.querySelectorAll('.vault-row').forEach(row => {
-    const id = row.dataset.id;
-    row.querySelector('[data-act="toggle"]')?.addEventListener('click', () => {
-      const pw = row.querySelector('.vault-pw-text');
-      const hidden = pw.getAttribute('data-hidden') === '1';
-      if (hidden) { pw.textContent = pw.dataset.real || ''; pw.setAttribute('data-hidden', '0'); }
-      else        { pw.textContent = '•'.repeat(Math.max(8, (pw.dataset.real || '').length)); pw.setAttribute('data-hidden', '1'); }
-    });
-    row.querySelector('[data-act="copy-user"]')?.addEventListener('click', () => {
-      const u = row.dataset.user || '';
-      navigator.clipboard?.writeText(u).then(() => showAppToast && showAppToast('Username copied'));
-    });
-    row.querySelector('[data-act="copy-pass"]')?.addEventListener('click', () => {
-      const pw = row.querySelector('.vault-pw-text');
-      const real = pw.dataset.real || '';
-      navigator.clipboard?.writeText(real).then(() => showAppToast && showAppToast('Password copied'));
-    });
-    row.querySelector('[data-act="edit"]')?.addEventListener('click', () => openVaultEditor(id));
-    row.querySelector('[data-act="delete"]')?.addEventListener('click', async () => {
-      const ok = await (typeof confirmDialog === 'function'
-        ? confirmDialog({ title: 'Delete entry', message: 'This cannot be undone.', okText: 'Delete' })
-        : Promise.resolve(confirm('Delete this entry?')));
-      if (!ok) return;
-      await VaultStore.remove(id);
-      renderPrivate();
-    });
-  });
-}
-
-function renderVaultRow(e) {
-  const masked = '•'.repeat(Math.max(8, (e.password || '').length));
-  return `
-    <div class="vault-row" data-id="${escapeAttr(e.id)}" data-user="${escapeAttr(e.username || '')}">
-      <div class="vault-row-head">
-        <span class="vault-row-title">${escapeHtml(e.title || 'Untitled')}</span>
-        ${e.url ? `<a class="vault-row-url" href="${escapeAttr(e.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(e.url)}</a>` : ''}
-      </div>
-      ${e.username ? `
-        <div class="vault-row-field">
-          <span class="vault-row-label">User</span>
-          <span class="vault-row-value">${escapeHtml(e.username)}</span>
-          <button class="vault-icon-btn" data-act="copy-user" title="Copy username" aria-label="Copy username">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          </button>
-        </div>` : ''}
-      <div class="vault-row-field">
-        <span class="vault-row-label">Pass</span>
-        <span class="vault-pw-text" data-real="${escapeAttr(e.password || '')}" data-hidden="1">${masked}</span>
-        <button class="vault-icon-btn" data-act="toggle" title="Show/hide" aria-label="Show or hide password">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-        <button class="vault-icon-btn" data-act="copy-pass" title="Copy password" aria-label="Copy password">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        </button>
-      </div>
-      ${e.notes ? `<div class="vault-row-notes">${escapeHtml(e.notes)}</div>` : ''}
-      <div class="vault-row-actions">
-        <button class="btn-ghost btn-mini" data-act="edit">Edit</button>
-        <button class="btn-ghost btn-mini vault-danger" data-act="delete">Delete</button>
-      </div>
-    </div>
-  `;
-}
-
-async function openVaultEditor(id) {
-  if (!VaultStore.isUnlocked()) return;
-  const existing = id ? VaultStore.getEntries().find(e => e.id === id) : null;
-  const e = existing || { title: '', username: '', password: '', url: '', notes: '' };
-  // Reuse the existing prompt modal infra via a quick custom DOM
-  const overlay = document.getElementById('vault-editor-overlay') || (() => {
-    const o = document.createElement('div');
-    o.id = 'vault-editor-overlay';
-    o.className = 'modal-overlay';
-    o.innerHTML = `
-      <div class="modal">
-        <div class="modal-header">
-          <h3 id="vault-editor-title">Entry</h3>
-          <button class="modal-close" data-vault-cancel aria-label="Close">✕</button>
-        </div>
-        <label>Title</label>
-        <input type="text" id="vault-f-title" />
-        <label>Username / Email</label>
-        <input type="text" id="vault-f-user" autocomplete="off" />
-        <label>Password</label>
-        <input type="password" id="vault-f-pass" autocomplete="new-password" />
-        <label>URL (optional)</label>
-        <input type="text" id="vault-f-url" autocomplete="off" />
-        <label>Notes</label>
-        <textarea id="vault-f-notes" rows="3"></textarea>
-        <div class="modal-actions">
-          <button class="btn-ghost"   data-vault-cancel>Cancel</button>
-          <button class="btn-primary" id="vault-f-save">Save</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(o);
-    return o;
-  })();
-  overlay.querySelector('#vault-editor-title').textContent = id ? 'Edit entry' : 'New entry';
-  overlay.querySelector('#vault-f-title').value = e.title || '';
-  overlay.querySelector('#vault-f-user').value  = e.username || '';
-  overlay.querySelector('#vault-f-pass').value  = e.password || '';
-  overlay.querySelector('#vault-f-url').value   = e.url || '';
-  overlay.querySelector('#vault-f-notes').value = e.notes || '';
-  overlay.classList.add('open');
-
-  const close = () => overlay.classList.remove('open');
-  overlay.querySelectorAll('[data-vault-cancel]').forEach(b => {
-    b.onclick = close;
-  });
-  overlay.querySelector('#vault-f-save').onclick = async () => {
-    const next = {
-      title:    overlay.querySelector('#vault-f-title').value.trim(),
-      username: overlay.querySelector('#vault-f-user').value,
-      password: overlay.querySelector('#vault-f-pass').value,
-      url:      overlay.querySelector('#vault-f-url').value.trim(),
-      notes:    overlay.querySelector('#vault-f-notes').value,
-    };
-    if (id) next.id = id;
-    if (!next.title) { overlay.querySelector('#vault-f-title').focus(); return; }
-    await VaultStore.upsert(next);
-    close();
-    renderPrivate();
-  };
-}
-
-document.getElementById('vault-add-btn')?.addEventListener('click', () => openVaultEditor(null));
-document.getElementById('vault-lock-btn')?.addEventListener('click', () => VaultStore.lock());
-// Activity heartbeat — any click inside the Private section resets auto-lock.
-document.getElementById('private')?.addEventListener('click', () => VaultStore.touchActivity());
-
-// ════════════════════════════════════════════════════════════════════
-// CV — living resume editor + live A4 preview + print-to-PDF.
-// Schema matches github.com/btudvc/blessed-cv ("blessed-cv-data-v1")
-// so users can import/export the same JSON between the two apps.
-// ════════════════════════════════════════════════════════════════════
-const CVStore = (() => {
-  const KEY = 'b-less.cv.v1';
-  const LEGACY = 'blessed-cv-data-v1';
-  function blank() {
-    return {
-      personal: { fullName:'', title:'', email:'', phone:'', location:'', website:'', summary:'', photo:'', military:'', license:'' },
-      experience: [], education: [], skills: [], languages: [], projects: [],
-      certifications: [], courses: [], awards: [], references: [], interests: [], notes: [],
-      settings: { template:'classic', font:'sans', accent:'#a855f7' },
-    };
-  }
-  function read() {
-    try {
-      let raw = localStorage.getItem(KEY);
-      if (!raw) {
-        raw = localStorage.getItem(LEGACY);
-        if (raw) localStorage.setItem(KEY, raw);
-      }
-      if (!raw) return blank();
-      const parsed = JSON.parse(raw);
-      const def = blank();
-      return Object.assign(def, parsed, {
-        personal: Object.assign(def.personal, parsed.personal || {}),
-        settings: Object.assign(def.settings, parsed.settings || {}),
-      });
-    } catch { return blank(); }
-  }
-  let data = read();
-  let saveTimer = null;
-  function save() {
-    if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
-      // Keep CV in sync across devices — piggy-back on the main
-      // backup so a Drive push gets debounced with the rest.
-      try {
-        if (typeof BackupManager !== 'undefined' && BackupManager.onDataChange) {
-          BackupManager.onDataChange();
-        }
-      } catch {}
-    }, 350);
-  }
-  function get() { return data; }
-  function importJSON(text) {
-    const next = JSON.parse(text);
-    const def = blank();
-    data = Object.assign(def, next, {
-      personal: Object.assign(def.personal, next.personal || {}),
-      settings: Object.assign(def.settings, next.settings || {}),
-    });
-    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
-  }
-  function exportJSON() { return JSON.stringify(data, null, 2); }
-  return { get, save, importJSON, exportJSON };
-})();
-
-function _cvEscape(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-function _cvDateRange(start, end, current) {
-  const e = current ? 'Present' : (end || '');
-  if (!start && !e) return '';
-  return [start || '', e].filter(Boolean).join(' – ');
-}
-function _cvSectionTitle(s) {
-  return ({
-    personal:'Personal', experience:'Experience', education:'Education',
-    projects:'Projects', skills:'Skills', languages:'Languages',
-    certifications:'Certifications', courses:'Courses', awards:'Awards',
-    references:'References', interests:'Interests',
-  })[s] || s;
-}
-
-function renderCV() {
-  const editor  = document.getElementById('cv-editor');
-  const preview = document.getElementById('cv-preview');
-  if (!editor || !preview) return;
-  const d = CVStore.get();
-  editor.innerHTML  = _cvEditorHtml(d);
-  preview.innerHTML = _cvPreviewHtml(d);
-  preview.dataset.tpl = d.settings.template || 'classic';
-  _cvWireEditor(editor);
-}
-
-function _cvEditorHtml(d) {
-  const fld = (k, v, label, type) =>
-    '<label class="cv-f"><span>' + label + '</span><input data-cv-personal="' + k + '" type="' + (type||'text') + '" value="' + _cvEscape(v) + '" /></label>';
-  const ta = (k, v, label) =>
-    '<label class="cv-f"><span>' + label + '</span><textarea data-cv-personal="' + k + '" rows="4">' + _cvEscape(v) + '</textarea></label>';
-  return [
-    '<div class="cv-acc open" data-cv-key="personal">',
-    '  <button class="cv-acc-head" data-cv-toggle>' + _cvSectionTitle('personal') + '</button>',
-    '  <div class="cv-acc-body">',
-    fld('fullName', d.personal.fullName, 'Full name'),
-    fld('title',    d.personal.title,    'Title / role'),
-    fld('email',    d.personal.email,    'Email', 'email'),
-    fld('phone',    d.personal.phone,    'Phone', 'tel'),
-    fld('location', d.personal.location, 'Location'),
-    fld('website',  d.personal.website,  'Website / LinkedIn', 'url'),
-    ta('summary',   d.personal.summary,  'Summary'),
-    fld('military', d.personal.military, 'Military service'),
-    fld('license',  d.personal.license,  'Driver license'),
-    '  </div>',
-    '</div>',
-    _cvListAcc('experience', d.experience, [['role','Role'],['company','Company'],['start','Start'],['end','End'],['__current','Currently here'],['__desc','Description']]),
-    _cvListAcc('education',  d.education,  [['school','School'],['degree','Degree'],['field','Field'],['gpa','GPA'],['start','Start'],['end','End'],['__desc','Description']]),
-    _cvListAcc('projects',   d.projects,   [['name','Project name'],['link','Link'],['__desc','Description']]),
-    '<div class="cv-acc" data-cv-key="skills">',
-    '  <button class="cv-acc-head" data-cv-toggle>' + _cvSectionTitle('skills') + ' <span class="cv-acc-count">' + (d.skills||[]).length + '</span></button>',
-    '  <div class="cv-acc-body"><label class="cv-f"><span>Comma-separated</span><textarea data-cv-csv="skills" rows="3">' + _cvEscape((d.skills||[]).join(', ')) + '</textarea></label></div>',
-    '</div>',
-    _cvListAcc('languages',     d.languages,     [['name','Language'],['level','Level']]),
-    _cvListAcc('certifications',d.certifications,[['name','Name'],['issuer','Issuer'],['year','Year'],['link','Link']]),
-    _cvListAcc('courses',       d.courses,       [['name','Name'],['provider','Provider'],['year','Year']]),
-    _cvListAcc('awards',        d.awards,        [['title','Title'],['issuer','Issuer'],['year','Year'],['__desc','Description']]),
-    _cvListAcc('references',    d.references,    [['name','Name'],['role','Role'],['contact','Contact']]),
-    '<div class="cv-acc" data-cv-key="interests">',
-    '  <button class="cv-acc-head" data-cv-toggle>' + _cvSectionTitle('interests') + ' <span class="cv-acc-count">' + (d.interests||[]).length + '</span></button>',
-    '  <div class="cv-acc-body"><label class="cv-f"><span>Comma-separated</span><textarea data-cv-csv="interests" rows="2">' + _cvEscape((d.interests||[]).join(', ')) + '</textarea></label></div>',
-    '</div>',
-    '<div class="cv-acc" data-cv-key="settings">',
-    '  <button class="cv-acc-head" data-cv-toggle>Settings</button>',
-    '  <div class="cv-acc-body">',
-    '    <label class="cv-f"><span>Template</span><select data-cv-setting="template"><option value="classic"' + (d.settings.template==='classic'?' selected':'') + '>Classic</option><option value="modern"' + (d.settings.template==='modern'?' selected':'') + '>Modern (sidebar)</option></select></label>',
-    '    <label class="cv-f"><span>Font</span><select data-cv-setting="font"><option value="sans"' + (d.settings.font==='sans'?' selected':'') + '>Sans</option><option value="serif"' + (d.settings.font==='serif'?' selected':'') + '>Serif</option></select></label>',
-    '    <label class="cv-f"><span>Accent</span><input data-cv-setting="accent" type="color" value="' + _cvEscape(d.settings.accent || '#a855f7') + '" /></label>',
-    '  </div>',
-    '</div>',
-  ].join('\n');
-}
-
-function _cvListAcc(key, items, fields) {
-  const rows = (items || []).map(function(it, i) {
-    const parts = fields.map(function(pair) {
-      const fk = pair[0], label = pair[1];
-      if (fk === '__current') return '<label class="cv-f cv-check"><input type="checkbox" data-cv-listfield="current" ' + (it.current?'checked':'') + ' /><span>' + label + '</span></label>';
-      if (fk === '__desc')    return '<label class="cv-f"><span>' + label + '</span><textarea data-cv-listfield="description" rows="3">' + _cvEscape(it.description || '') + '</textarea></label>';
-      return '<label class="cv-f"><span>' + label + '</span><input type="text" data-cv-listfield="' + fk + '" value="' + _cvEscape(it[fk] || '') + '" /></label>';
-    }).join('');
-    return '<div class="cv-list-item" data-cv-listitem="' + key + '" data-cv-idx="' + i + '">' + parts +
-      '<div class="cv-list-actions">' +
-      '<button type="button" data-cv-move="up" title="Up">↑</button>' +
-      '<button type="button" data-cv-move="down" title="Down">↓</button>' +
-      '<button type="button" data-cv-remove="1" title="Remove">✕</button>' +
-      '</div></div>';
-  }).join('');
-  return '<div class="cv-acc" data-cv-key="' + key + '">' +
-    '<button class="cv-acc-head" data-cv-toggle>' + _cvSectionTitle(key) + ' <span class="cv-acc-count">' + (items||[]).length + '</span></button>' +
-    '<div class="cv-acc-body">' + (rows || '<div class="cv-empty">Nothing yet.</div>') +
-    '<button class="btn-ghost cv-add-btn" type="button" data-cv-add="' + key + '">+ Add</button>' +
-    '</div></div>';
-}
-
-function _cvWireEditor(root) {
-  const d = CVStore.get();
-  root.querySelectorAll('[data-cv-toggle]').forEach(btn => {
-    btn.addEventListener('click', () => btn.closest('.cv-acc').classList.toggle('open'));
-  });
-  root.querySelectorAll('[data-cv-personal]').forEach(el => {
-    el.addEventListener('input', () => {
-      d.personal[el.dataset.cvPersonal] = el.value;
-      CVStore.save();
-      _cvUpdatePreview();
-    });
-  });
-  root.querySelectorAll('[data-cv-listitem]').forEach(item => {
-    const key = item.dataset.cvListitem;
-    const idx = parseInt(item.dataset.cvIdx, 10);
-    item.querySelectorAll('[data-cv-listfield]').forEach(el => {
-      const handler = () => {
-        const v = el.type === 'checkbox' ? el.checked : el.value;
-        d[key][idx][el.dataset.cvListfield] = v;
-        CVStore.save();
-        _cvUpdatePreview();
-      };
-      el.addEventListener('input',  handler);
-      el.addEventListener('change', handler);
-    });
-    item.querySelector('[data-cv-move="up"]')?.addEventListener('click', () => {
-      if (idx <= 0) return;
-      const arr = d[key]; const tmp = arr[idx-1]; arr[idx-1] = arr[idx]; arr[idx] = tmp;
-      CVStore.save(); renderCV();
-    });
-    item.querySelector('[data-cv-move="down"]')?.addEventListener('click', () => {
-      const arr = d[key]; if (idx >= arr.length - 1) return;
-      const tmp = arr[idx+1]; arr[idx+1] = arr[idx]; arr[idx] = tmp;
-      CVStore.save(); renderCV();
-    });
-    item.querySelector('[data-cv-remove]')?.addEventListener('click', async () => {
-      const ok = await (typeof confirmDialog === 'function'
-        ? confirmDialog({ title: 'Remove entry', message: 'Delete this item?', okText: 'Remove' })
-        : Promise.resolve(confirm('Delete this item?')));
-      if (!ok) return;
-      d[key].splice(idx, 1);
-      CVStore.save(); renderCV();
-    });
-  });
-  root.querySelectorAll('[data-cv-add]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const key = btn.dataset.cvAdd;
-      const blanks = {
-        experience:    { role:'', company:'', start:'', end:'', current:false, description:'' },
-        education:     { school:'', degree:'', field:'', gpa:'', start:'', end:'', description:'' },
-        projects:      { name:'', link:'', description:'' },
-        languages:     { name:'', level:'' },
-        certifications:{ name:'', issuer:'', year:'', link:'' },
-        courses:       { name:'', provider:'', year:'' },
-        awards:        { title:'', issuer:'', year:'', description:'' },
-        references:    { name:'', role:'', contact:'' },
-      };
-      d[key].push(blanks[key] || {});
-      CVStore.save(); renderCV();
-    });
-  });
-  root.querySelectorAll('[data-cv-csv]').forEach(el => {
-    el.addEventListener('input', () => {
-      d[el.dataset.cvCsv] = el.value.split(',').map(s => s.trim()).filter(Boolean);
-      CVStore.save();
-      _cvUpdatePreview();
-    });
-  });
-  root.querySelectorAll('[data-cv-setting]').forEach(el => {
-    const fire = () => { d.settings[el.dataset.cvSetting] = el.value; CVStore.save(); _cvUpdatePreview(); };
-    el.addEventListener('input',  fire);
-    el.addEventListener('change', fire);
-  });
-}
-
-function _cvUpdatePreview() {
-  const preview = document.getElementById('cv-preview');
-  if (!preview) return;
-  const d = CVStore.get();
-  preview.innerHTML = _cvPreviewHtml(d);
-  preview.dataset.tpl = d.settings.template || 'classic';
-}
-
-function _cvPreviewHtml(d) {
-  const p = d.personal || {};
-  const acc = d.settings.accent || '#a855f7';
-  const fontClass = d.settings.font === 'serif' ? 'cv-font-serif' : 'cv-font-sans';
-  const isEmpty = !p.fullName && !(d.experience||[]).length && !(d.education||[]).length;
-  const head =
-    '<header class="cv-head">' +
-      (p.photo ? '<div class="cv-photo" style="background-image:url(\'' + _cvEscape(p.photo) + '\')"></div>' : '') +
-      '<div class="cv-head-text">' +
-        '<h1>' + _cvEscape(p.fullName || 'Full Name') + '</h1>' +
-        (p.title ? '<div class="cv-role">' + _cvEscape(p.title) + '</div>' : '') +
-        '<div class="cv-contact">' +
-          (p.email    ? '<span>' + _cvEscape(p.email)    + '</span>' : '') +
-          (p.phone    ? '<span>' + _cvEscape(p.phone)    + '</span>' : '') +
-          (p.location ? '<span>' + _cvEscape(p.location) + '</span>' : '') +
-          (p.website  ? '<span>' + _cvEscape(p.website)  + '</span>' : '') +
-        '</div>' +
-        ((p.military || p.license) ? '<div class="cv-details">' + [p.military, p.license].filter(Boolean).map(_cvEscape).join(' · ') + '</div>' : '') +
-      '</div>' +
-    '</header>';
-  const hint = isEmpty ? '<div class="cv-empty-hint">Start by adding your name and a role under Personal — the preview updates live.</div>' : '';
-  const sec = (title, html) => html ? ('<section><h2>' + title + '</h2>' + html + '</section>') : '';
-  const summary = p.summary ? '<div class="cv-summary">' + _cvEscape(p.summary) + '</div>' : '';
-  const entryHtml = (titleText, subText, dateText, descText) =>
-    '<div class="cv-entry"><div class="cv-entry-head"><div>' +
-    '<div class="cv-entry-title">' + _cvEscape(titleText) + '</div>' +
-    (subText ? '<div class="cv-entry-sub">' + subText + '</div>' : '') +
-    '</div>' + (dateText ? '<div class="cv-entry-date">' + _cvEscape(dateText) + '</div>' : '') +
-    '</div>' + (descText ? '<div class="cv-entry-desc">' + _cvEscape(descText) + '</div>' : '') + '</div>';
-  const exp = (d.experience || []).map(e =>
-    entryHtml(e.role || 'Position', _cvEscape(e.company || ''), _cvDateRange(e.start, e.end, e.current), e.description)
-  ).join('');
-  const edu = (d.education || []).map(e =>
-    entryHtml(e.school || 'School',
-      [e.degree, e.field].filter(Boolean).map(_cvEscape).join(', ') + (e.gpa ? ' · GPA: ' + _cvEscape(e.gpa) : ''),
-      _cvDateRange(e.start, e.end, false), e.description)
-  ).join('');
-  const proj = (d.projects || []).map(e =>
-    entryHtml(e.name || 'Project', '', e.link || '', e.description)
-  ).join('');
-  const skills = (d.skills || []).length
-    ? '<div class="cv-chips">' + d.skills.map(s => '<span class="cv-chip">' + _cvEscape(s) + '</span>').join('') + '</div>' : '';
-  const langs = (d.languages || []).length
-    ? '<div class="cv-langs">' + d.languages.map(l => '<span>' + _cvEscape(l.name) + (l.level?' — '+_cvEscape(l.level):'') + '</span>').join('') + '</div>' : '';
-  const certs = (d.certifications || []).map(e =>
-    entryHtml(e.name || '', [e.issuer, e.link].filter(Boolean).map(_cvEscape).join(' · '), e.year || '', '')
-  ).join('');
-  const crs = (d.courses || []).map(e =>
-    entryHtml(e.name || '', _cvEscape(e.provider || ''), e.year || '', '')
-  ).join('');
-  const awd = (d.awards || []).map(e =>
-    entryHtml(e.title || '', _cvEscape(e.issuer || ''), e.year || '', e.description)
-  ).join('');
-  const refs = (d.references || []).map(e =>
-    '<div class="cv-entry"><div class="cv-entry-title">' + _cvEscape(e.name || '') + '</div><div class="cv-entry-sub">' +
-    [e.role, e.contact].filter(Boolean).map(_cvEscape).join(' · ') + '</div></div>'
-  ).join('');
-  const interests = (d.interests || []).length
-    ? '<div class="cv-langs">' + d.interests.map(s => '<span>' + _cvEscape(s) + '</span>').join('') + '</div>' : '';
-  if (d.settings.template === 'modern') {
-    return '<div class="cv ' + fontClass + '" style="--cv-accent:' + _cvEscape(acc) + '">' +
-      '<aside class="cv-side">' + head + sec('Skills', skills) + sec('Languages', langs) + sec('Interests', interests) + '</aside>' +
-      '<div class="cv-main">' + head + hint + sec('Summary', summary) + sec('Experience', exp) + sec('Education', edu) +
-        sec('Projects', proj) + sec('Certifications', certs) + sec('Courses', crs) + sec('Awards', awd) + sec('References', refs) +
-      '</div></div>';
-  }
-  return '<div class="cv ' + fontClass + '" style="--cv-accent:' + _cvEscape(acc) + '">' +
-    head + hint + sec('Summary', summary) + sec('Experience', exp) + sec('Education', edu) +
-    sec('Projects', proj) + sec('Skills', skills) + sec('Languages', langs) +
-    sec('Certifications', certs) + sec('Courses', crs) + sec('Awards', awd) +
-    sec('References', refs) + sec('Interests', interests) + '</div>';
-}
-
-// CV editor/preview tab switcher (mobile only — desktop shows both
-// columns side by side, the tabs are hidden via CSS).
-document.querySelectorAll('[data-cv-pane]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const pane = btn.dataset.cvPane;
-    document.querySelectorAll('[data-cv-pane]').forEach(b => b.classList.toggle('active', b === btn));
-    const layout = document.querySelector('.cv-layout');
-    if (layout) layout.dataset.active = pane;
-  });
-});
-
-document.getElementById('cv-print-btn')?.addEventListener('click', () => {
-  // Use a hidden iframe instead of a new window — popup blockers don't
-  // touch same-origin iframes, and contentWindow.print() targets just
-  // the iframe's document, so the host app isn't involved at all.
-  const preview = document.getElementById('cv-preview');
-  if (!preview) return;
-  // Snapshot every CSS rule (skip cross-origin sheets the browser
-  // refuses to enumerate).
-  let cssDump = '';
-  try {
-    cssDump = Array.from(document.styleSheets).map(s => {
-      try { return Array.from(s.cssRules).map(r => r.cssText).join('\n'); }
-      catch { return ''; }
-    }).join('\n');
-  } catch {}
-  const html = '<!doctype html><html><head><meta charset="utf-8"><title>CV</title>' +
-    '<style>' + cssDump + '</style>' +
-    '<style>' +
-      /* @page margins apply to EVERY printed page. The empty @top-*
-         / @bottom-* boxes are the CSS Paged Media way to suppress
-         page-header / footer content — browsers vary on respecting
-         this for their own URL/date strings, but it's harmless. */
-      '@page {' +
-        ' size: A4; margin: 14mm 12mm;' +
-        ' @top-left { content: ""; }' +
-        ' @top-center { content: ""; }' +
-        ' @top-right { content: ""; }' +
-        ' @bottom-left { content: ""; }' +
-        ' @bottom-center { content: ""; }' +
-        ' @bottom-right { content: ""; }' +
-      '}' +
-      'html, body { margin: 0; padding: 0; background: #fff; }' +
-      '.cv-preview-wrap { display: block; padding: 0; margin: 0; }' +
-      '.cv-preview {' +
-        ' position: static !important;' +
-        ' transform: none !important;' +
-        ' width: auto !important;' +
-        ' min-height: 0 !important;' +
-        ' max-height: none !important;' +
-        ' margin: 0 !important;' +
-        ' padding: 0 !important;' +
-        ' box-shadow: none !important;' +
-        ' border-radius: 0 !important;' +
-      '}' +
-      '.cv section { break-inside: avoid; }' +
-      '.cv-entry { break-inside: avoid; }' +
-    '</style></head><body>' +
-    '<div class="cv-preview-wrap"><div class="cv-preview" data-tpl="' +
-      (preview.dataset.tpl || 'classic') + '">' + preview.innerHTML + '</div></div>' +
-    '</body></html>';
-  // Drop a previous print iframe if it's still around.
-  document.getElementById('cv-print-iframe')?.remove();
-  const iframe = document.createElement('iframe');
-  iframe.id = 'cv-print-iframe';
-  iframe.setAttribute('aria-hidden', 'true');
-  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
-  document.body.appendChild(iframe);
-  const fire = () => {
-    try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch {}
-    // Clean up after the print dialog closes. afterprint fires on most
-    // browsers; the timeout is a fallback.
-    const cleanup = () => { try { iframe.remove(); } catch {} };
-    try { iframe.contentWindow.addEventListener('afterprint', cleanup); } catch {}
-    setTimeout(cleanup, 60000);
-  };
-  iframe.onload = () => setTimeout(fire, 50);
-  // Most reliable cross-browser way to populate an iframe synchronously
-  // with HTML: write via srcdoc.
-  iframe.srcdoc = html;
-  // Heads-up: the browser's own header/footer (date + URL) can't be
-  // suppressed via CSS. Tell the user where the off switch lives.
-  if (typeof showAppToast === 'function') {
-    showAppToast('Tip: in the print dialog, uncheck "Headers and footers" for a clean PDF.', 'sync');
-  }
-});
-document.getElementById('cv-export-btn')?.addEventListener('click', () => {
-  const blob = new Blob([CVStore.exportJSON()], { type: 'application/json' });
-  const a = document.createElement('a');
-  const stamp = new Date().toISOString().slice(0,10);
-  a.href = URL.createObjectURL(blob);
-  a.download = 'cv-' + stamp + '.json';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-});
-document.getElementById('cv-import-btn')?.addEventListener('click', () => {
-  document.getElementById('cv-import-file')?.click();
-});
-document.getElementById('cv-import-file')?.addEventListener('change', async (e) => {
-  const file = e.target.files && e.target.files[0];
-  if (!file) return;
-  try {
-    const text = await file.text();
-    CVStore.importJSON(text);
-    renderCV();
-    if (typeof showAppToast === 'function') showAppToast('CV imported', 'success');
-  } catch (err) {
-    if (typeof alertDialog === 'function') alertDialog({ title:'Import failed', message: err.message || 'Could not read this file.' });
-    else alert(err.message || 'Could not read this file.');
-  }
-  e.target.value = '';
-});

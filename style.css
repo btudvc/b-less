@@ -846,7 +846,6 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
    floating pill + home indicator. */
 .section.active { scroll-padding-bottom: 96px; }
 #more.section.active,
-#brainstorm.section.active,
 #settings.section.active {
   display: block;
   overflow-y: auto;
@@ -1053,28 +1052,6 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
 }
 .space-subheader:hover .space-sub-add-btn { opacity: 1; }
 .space-sub-add-btn:hover { background: var(--surface-3); color: var(--text); }
-
-/* Journal "+today" shortcut on the sub-header */
-.space-jrn-today-btn {
-  width: 20px; height: 20px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  color: var(--muted);
-  font-size: 13px;
-  cursor: pointer;
-  opacity: 0;
-  transition: all .15s var(--ease);
-  flex-shrink: 0;
-}
-.space-subheader:hover .space-jrn-today-btn { opacity: 1; }
-.space-jrn-today-btn:hover { background: var(--surface-3); color: var(--accent); }
-
-/* v4: the legacy in-section journal sidebar (date list in middle pane) is now
-   redundant — all entries live in the global Space sidebar. Hide it. */
-#journal .jrn-sidebar { display: none !important; }
-#journal .jrn-main    { padding: 28px 32px; }
 
 /* Cross-space top nav (Today / Calendar / All Tasks) */
 .cross-nav {
@@ -1436,35 +1413,6 @@ main { flex: 1; overflow: hidden; display: flex; padding-bottom: 0; }
 
 .home-section { margin-bottom: 28px; }
 
-/* Today's Journal preview card */
-.home-journal-card {
-  display: flex; flex-direction: column;
-  align-items: flex-start; gap: 10px;
-  width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  font: inherit;
-  color: var(--text);
-  cursor: pointer;
-  text-align: left;
-  transition: background .12s var(--ease), border-color .12s var(--ease);
-}
-.home-journal-card:hover { background: var(--surface-2); border-color: var(--border-2); }
-.home-journal-card.empty .home-journal-snippet { color: var(--muted); }
-.home-journal-snippet {
-  font-size: 13.5px;
-  line-height: 1.5;
-  color: var(--text);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.home-journal-cta {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent);
-}
 /* Home — This Week's Goals */
 .home-goal-item {
   display: flex;
@@ -3476,188 +3424,6 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 }
 .fv-subtitle { color: var(--muted); font-size: 13.5px; margin-top: 4px; }
 
-/* ── Private vault (encrypted credentials) ─────────────── */
-.vault-card {
-  max-width: 480px;
-  margin: 8px 0 24px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 22px 22px;
-  display: flex; flex-direction: column; gap: 10px;
-}
-.vault-card h3 { margin: 0; font-size: 18px; }
-.vault-card-locked { align-items: center; text-align: center; }
-.vault-card-locked label,
-.vault-card-locked input { width: 100%; text-align: left; }
-.vault-lock-badge {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent-soft, rgba(59, 130, 246, .14));
-  color: var(--accent);
-  margin: 4px auto 6px;
-}
-#vault-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.vault-lock-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.vault-icon-btn svg { display: block; }
-
-.vault-bio-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 6px 0 0;
-  padding: 10px 16px;
-  width: 100%;
-}
-.vault-or-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  margin: 10px 0 0;
-}
-.vault-or-divider::before,
-.vault-or-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-.vault-settings {
-  margin: 24px 0 0;
-  padding-top: 18px;
-  border-top: 1px dashed var(--border);
-}
-.vault-settings-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 4px 4px;
-}
-.vault-settings-title {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-}
-.vault-settings-sub {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-.vault-note {
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.5;
-  margin: 0 0 6px;
-}
-.vault-card label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--muted);
-  font-weight: 600;
-  margin-top: 4px;
-}
-.vault-card input {
-  background: var(--surface-2);
-  border: 1px solid var(--border-2);
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 14px;
-  color: var(--text);
-}
-.vault-card input:focus { outline: none; border-color: var(--accent); }
-.vault-error {
-  margin-top: 8px;
-  padding: 8px 12px;
-  background: rgba(244, 63, 94, .12);
-  border: 1px solid rgba(244, 63, 94, .35);
-  border-radius: 8px;
-  color: #f43f5e;
-  font-size: 12.5px;
-}
-
-.vault-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.vault-row {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: flex; flex-direction: column; gap: 8px;
-}
-.vault-row-head { display: flex; flex-direction: column; gap: 2px; }
-.vault-row-title { font-size: 15px; font-weight: 600; color: var(--text); }
-.vault-row-url   { font-size: 12px; color: var(--accent); word-break: break-all; }
-.vault-row-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
-.vault-row-label {
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--muted);
-  min-width: 36px;
-}
-.vault-row-value, .vault-pw-text {
-  flex: 1;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13px;
-  word-break: break-all;
-  color: var(--text);
-}
-.vault-icon-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 3px 7px;
-  font-size: 14px;
-  cursor: pointer;
-  color: var(--muted);
-  transition: background .12s var(--ease), color .12s var(--ease);
-}
-.vault-icon-btn:hover { background: var(--surface-2); color: var(--text); }
-.vault-row-notes {
-  font-size: 12.5px;
-  color: var(--muted);
-  white-space: pre-wrap;
-  padding-top: 4px;
-  border-top: 1px dashed var(--border);
-}
-.vault-row-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  margin-top: 2px;
-}
-.btn-mini { padding: 4px 10px; font-size: 12px; border-radius: 6px; }
-.vault-danger { color: #f43f5e; }
-.vault-danger:hover { background: rgba(244, 63, 94, .12); }
-
 /* All-Tasks header filter row (Only-me toggle) */
 .at-filter-row { display: flex; align-items: center; gap: 12px; }
 .at-filter-toggle {
@@ -3929,15 +3695,6 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   .visit-row { padding: 10px; }
   .visit-row-actions { flex-direction: column; }
 
-  /* Journal — sidebar above main on mobile */
-  .jrn-container { flex-direction: column; }
-  .jrn-sidebar {
-    width: 100%;
-    max-height: 35vh;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-  .jrn-main { padding: 16px 14px calc(24px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* Touch-friendly hit areas */
@@ -4735,9 +4492,6 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 }
 .cal-notes:focus { outline: none; border-color: var(--accent); }
 
-/* ─── JOURNAL ──────────────────────────────────────────── */
-#journal.active { display: flex; flex-direction: column; }
-
 /* Section-level header used by Meetings & Journal so they match
    the Reviews/Links header pattern even though their bodies are
    master-detail layouts, not flat lists. */
@@ -4749,115 +4503,6 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 @media (max-width: 768px) {
   .section > .fv-header.section-head-pad { padding: 18px 18px 0; margin-bottom: 14px; }
 }
-
-.jrn-container {
-  display: flex;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-.jrn-sidebar {
-  width: 232px;
-  flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.jrn-side-head {
-  padding: 14px 14px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.jrn-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 6px 6px calc(24px + env(safe-area-inset-bottom, 0px));
-}
-.jrn-entry {
-  padding: 9px 11px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  margin-bottom: 2px;
-  transition: background .12s var(--ease);
-}
-.jrn-entry:hover  { background: var(--surface-2); }
-.jrn-entry.active { background: var(--surface-3); }
-.jrn-entry-date {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text);
-}
-.jrn-entry.active .jrn-entry-date { color: var(--accent); }
-.jrn-entry-preview {
-  font-size: 11.5px;
-  color: var(--muted);
-  margin-top: 2px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.4;
-}
-.jrn-empty {
-  padding: 16px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 12.5px;
-}
-
-.jrn-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow-x: hidden;
-  padding: 24px 32px calc(24px + env(safe-area-inset-bottom, 0px));
-  gap: 12px;
-}
-.jrn-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.jrn-header input[type="date"] {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  color: var(--text);
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-}
-.jrn-header input[type="date"]:focus { outline: none; border-color: var(--accent); }
-.jrn-status {
-  font-size: 11.5px;
-  color: var(--muted);
-  opacity: 0;
-  transition: opacity .25s var(--ease);
-}
-.jrn-status.show { opacity: 1; color: var(--accent); }
-
-.jrn-area {
-  flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 18px 20px;
-  color: var(--text);
-  font-size: 14.5px;
-  line-height: 1.75;
-  font-family: inherit;
-  resize: none;
-  transition: border-color .15s var(--ease);
-}
-.jrn-area:focus { outline: none; border-color: var(--accent); }
-.jrn-area::placeholder { color: var(--muted-2); }
 
 /* ─── Calendar pill click affordance + flash highlight ──── */
 .cal-day-event[data-go-meeting],
@@ -5166,8 +4811,7 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
   }
   .space-add-btn,
   .space-more-btn,
-  .space-sub-add-btn,
-  .space-jrn-today-btn {
+  .space-sub-add-btn {
     opacity: 1;
   }
 
@@ -5276,7 +4920,6 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
    These sections used to live inside Spaces (so the in-section sidebar was
    hidden). Now they're global, so the list IS the primary view. */
 #meetings.section > .sidebar { display: flex !important; }
-#journal .jrn-sidebar         { display: flex !important; }
 
 /* Mobile-first stacked layout + master-detail toggle */
 #meetings.section { flex-direction: column; }
@@ -5288,16 +4931,6 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 #meetings.section > .content { flex: 1; min-height: 0; }
 #meetings.section[data-detail-open="true"] > .sidebar { display: none !important; }
 #meetings.section:not([data-detail-open="true"]) > .content { display: none; }
-
-#journal .jrn-container { flex-direction: column; flex: 1; min-height: 0; }
-#journal .jrn-sidebar {
-  width: 100%; flex: 1; min-height: 0;
-  max-height: none;
-  border-right: none; border-bottom: 1px solid var(--border);
-}
-#journal .jrn-main { flex: 1; min-height: 0; }
-#journal[data-detail-open="true"] .jrn-sidebar { display: none !important; }
-#journal:not([data-detail-open="true"]) .jrn-main { display: none; }
 
 #reviews[data-detail-open="true"] .reviews-list  { display: none; }
 #reviews:not([data-detail-open="true"]) .reviews-editor { display: none; }
@@ -5825,105 +5458,6 @@ body { font-size: 13px; }
   .reviews-editor { min-height: 50vh; }
 }
 
-/* ── Links (saved URLs) ─────────────────────────────────── */
-.links-container {
-  padding: 28px 32px 80px;
-  max-width: 1100px;
-  margin: 0;
-}
-.links-toolbar {
-  margin: 14px 0 12px;
-}
-.links-search {
-  width: 100%;
-  max-width: 520px;
-  padding: 9px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
-}
-.links-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-
-#links-list { display: flex; flex-direction: column; gap: 8px; }
-.links-empty {
-  padding: 22px 12px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.link-row {
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  transition: background .12s var(--ease), border-color .12s var(--ease);
-}
-.link-row:hover { background: var(--surface-2); }
-
-.link-row-main {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  text-decoration: none;
-  color: inherit;
-  min-width: 0;
-}
-.link-row-icon {
-  flex-shrink: 0;
-  width: 28px; height: 28px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 8px;
-  background: var(--surface-2);
-  color: var(--muted);
-}
-.link-row-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.link-row-title {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--text);
-  word-break: break-word;
-}
-.link-row-domain {
-  font-size: 12px;
-  color: var(--accent);
-  word-break: break-all;
-}
-.link-row-tag {
-  display: inline-block;
-  width: fit-content;
-  margin-top: 4px;
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--muted);
-  border: 1px solid var(--border);
-}
-.link-row-notes {
-  margin-top: 4px;
-  font-size: 12.5px;
-  color: var(--muted);
-  white-space: pre-wrap;
-}
-
-@media (max-width: 720px) {
-  .links-container { padding: 18px 14px 96px; }
-}
-
 /* ──────────────────────────────────────────────────────────
    DESKTOP LAYOUT (≥1000px)
    ─────────────────────────────────────────────────────────
@@ -5948,7 +5482,6 @@ body { font-size: 13px; }
   /* Section containers grow to use the available width, centered. */
   .home-container,
   .reviews-container,
-  .links-container,
   .fv-container,
   .cal-container,
   .more-page {
@@ -6816,8 +6349,8 @@ body {
 
 /* Icon-only square button: small rounded square */
 .icon-btn, .topbar-icon-btn, .topbar-avatar-btn, .modal-close,
-.md-back-btn, .bp-icon-btn, .vault-icon-btn, .home-section-icon-btn,
-.cal-nav, .cv-list-actions button {
+.md-back-btn, .bp-icon-btn, .home-section-icon-btn,
+.cal-nav {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -6834,8 +6367,7 @@ body {
 }
 .icon-btn:hover, .topbar-icon-btn:hover, .topbar-avatar-btn:hover,
 .modal-close:hover, .md-back-btn:hover, .bp-icon-btn:hover,
-.vault-icon-btn:hover, .home-section-icon-btn:hover, .cal-nav:hover,
-.cv-list-actions button:hover {
+.home-section-icon-btn:hover, .cal-nav:hover {
   background: var(--surface-2) !important;
   color: var(--text) !important;
   border-color: var(--border) !important;
@@ -6849,8 +6381,8 @@ body {
   gap: 8px !important;
 }
 
-/* Inline tab pills (CV Edit/Preview, Reviews Weekly/Monthly) */
-.cv-tab, .cv-tab-inline, .rev-period-btn {
+/* Inline tab pills (Reviews Weekly/Monthly) */
+.rev-period-btn {
   padding: 10px 20px !important;
   background: var(--surface-2) !important;
   border: 1px solid var(--border) !important;
@@ -6863,7 +6395,7 @@ body {
   cursor: pointer !important;
   flex: none !important;
 }
-.cv-tab.active, .cv-tab-inline.active, .rev-period-btn.active {
+.rev-period-btn.active {
   background: var(--accent) !important;
   border-color: var(--accent) !important;
   color: var(--on-accent) !important;
@@ -6910,9 +6442,9 @@ textarea.auto-grow-textarea {
    3. CONSISTENT CARDS — one style, every list item
    ════════════════════════════════════════════════════════════ */
 
-.home-list-item, .home-card, .home-journal-card,
-.at-task, .visit-row, .link-row, .rev-row, .jrn-entry,
-.vault-row, .cv-acc, .cv-list-item, .task-body, .task-card,
+.home-list-item, .home-card,
+.at-task, .visit-row, .rev-row,
+.task-body, .task-card,
 .cal-day-panel, .streak-stat,
 #meeting-list .robot-item, #meetings .robot-item {
   background: var(--surface) !important;
@@ -6923,22 +6455,20 @@ textarea.auto-grow-textarea {
   box-shadow: none !important;
 }
 .home-list-item:hover, .home-card:hover, .at-task:hover,
-.visit-row:hover, .link-row:hover, .rev-row:hover, .jrn-entry:hover,
-.vault-row:hover, .cv-list-item:hover,
+.visit-row:hover, .rev-row:hover,
 .cal-day-panel:hover,
 #meeting-list .robot-item:hover, #meetings .robot-item:hover {
   background: var(--surface-2) !important;
   border-color: var(--border-2) !important;
 }
-.rev-row.active, .jrn-entry.active,
+.rev-row.active,
 #meeting-list .robot-item.active, #meetings .robot-item.active {
   background: var(--accent-soft) !important;
   border-color: var(--accent) !important;
 }
 
 /* Lists: consistent gap between cards */
-.home-list, #links-list, #meeting-list, .reviews-list,
-.jrn-list, .vault-list {
+.home-list, #meeting-list, .reviews-list {
   display: flex !important;
   flex-direction: column !important;
   gap: 8px !important;
@@ -6955,7 +6485,7 @@ textarea.auto-grow-textarea {
   flex-direction: column !important;
 }
 
-.fv-container, .jrn-container, .links-container,
+.fv-container,
 .reviews-container, .cal-container {
   width: 100% !important;
   max-width: 100% !important;
@@ -6970,8 +6500,6 @@ textarea.auto-grow-textarea {
    — otherwise stacked .at-group / .meeting-row / etc. margins add
    visible white between the last item and the docked bar. */
 .fv-container > *:last-child,
-.jrn-container > *:last-child,
-.links-container > *:last-child,
 .reviews-container > *:last-child,
 .cal-container > *:last-child {
   margin-bottom: 0 !important;
@@ -7170,29 +6698,12 @@ textarea.auto-grow-textarea {
   }
   .bnav-fab:hover { background: var(--accent-h) !important; }
 
-  /* CV: tab-switcher (only one pane at a time on mobile). On mobile
-     keep the inline Edit/Preview buttons visible — they're the only
-     way to flip panes since the layout collapses to a single column. */
-  .cv-tabs[hidden] { display: none !important; }
-  .cv-tab-inline { display: inline-flex !important; }
-  .cv-layout {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-  }
-  .cv-layout[data-active="editor"]  .cv-preview-wrap { display: none !important; }
-  .cv-layout[data-active="preview"] .cv-editor       { display: none !important; }
-
   /* Master-detail mobile: list view OR detail view */
   #meetings.section { flex-direction: column !important; }
   #meetings.section > .sidebar { padding: 0 !important; border: none !important; width: 100% !important; }
   #meetings.section > .content { padding: 0 !important; }
   #meetings.section[data-detail-open="true"] > .sidebar { display: none !important; }
   #meetings.section:not([data-detail-open="true"]) > .content { display: none !important; }
-
-  #journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }
-  #journal[data-detail-open="true"] .jrn-sidebar { display: none !important; }
-  .jrn-container { flex-direction: column !important; }
-  .jrn-sidebar { width: 100% !important; border: none !important; padding: 0 !important; background: transparent !important; overflow: visible !important; }
 
   #reviews:not([data-detail-open="true"]) .reviews-editor { display: none !important; }
   #reviews[data-detail-open="true"] .reviews-list { display: none !important; }
@@ -7291,20 +6802,19 @@ textarea.auto-grow-textarea {
     padding: 24px 32px !important;
   }
   /* Desktop has no bottom-nav, so don't reserve the mobile bar height */
-  .fv-container, .jrn-container, .links-container,
+  .fv-container,
   .reviews-container, .cal-container {
     padding: 18px 16px 24px !important;
   }
   /* Master-detail sections — stacked single column (header above
      list/detail). Previous "row" direction was leftover from the
      side-by-side experiment and made the header sit beside the list. */
-  #meetings.section.active,
-  #journal.section.active {
+  #meetings.section.active {
     flex-direction: column !important;
   }
 
   /* Generic section containers full-width, centered with max-width */
-  .fv-container, .jrn-container, .links-container,
+  .fv-container,
   .reviews-container, .cal-container {
     width: 100% !important;
     max-width: 1200px !important;
@@ -7346,26 +6856,6 @@ textarea.auto-grow-textarea {
   #meetings.section[data-detail-open="true"] > .sidebar { display: none !important; }
   #meetings.section:not([data-detail-open="true"]) > .content { display: none !important; }
 
-  #journal .jrn-container {
-    flex-direction: column !important;
-    display: flex !important;
-    padding: 0 !important;
-  }
-  .jrn-sidebar {
-    width: 100% !important;
-    flex: none !important;
-    border: none !important;
-    padding: 0 !important;
-    background: transparent !important;
-  }
-  .jrn-main {
-    flex: 1 !important;
-    width: 100% !important;
-    padding: 0 !important;
-  }
-  #journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }
-  #journal[data-detail-open="true"] .jrn-sidebar { display: none !important; }
-
   .reviews-layout {
     display: block !important;
     grid-template-columns: 1fr !important;
@@ -7373,18 +6863,6 @@ textarea.auto-grow-textarea {
   }
   #reviews:not([data-detail-open="true"]) .reviews-editor { display: none !important; }
   #reviews[data-detail-open="true"]       .reviews-list   { display: none !important; }
-
-  /* CV: editor + preview side-by-side. Hide tab pills, show inline tabs in header. */
-  #cv .cv-tabs { display: none !important; }
-  #cv .cv-tab-inline { display: inline-flex !important; }
-  #cv .cv-layout {
-    display: grid !important;
-    grid-template-columns: minmax(0, 460px) 1fr !important;
-    gap: 28px !important;
-    max-width: 100% !important;
-  }
-  #cv .cv-editor { max-width: 100% !important; }
-  #cv .cv-preview-wrap { display: flex !important; justify-content: center; }
 
   /* Calendar: grid + day panel */
   .cal-body {
@@ -7567,16 +7045,6 @@ textarea.auto-grow-textarea {
   background: var(--surface) !important;
 }
 
-/* Vault card: centred horizontally — login-dialog feel */
-.vault-card {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 14px !important;
-  padding: 22px !important;
-  max-width: 480px !important;
-  margin: 24px auto !important;
-}
-
 /* Reviews textarea */
 .reviews-textarea {
   background: var(--surface-2) !important;
@@ -7594,201 +7062,6 @@ textarea.auto-grow-textarea {
 @media (max-width: 999px) {
   .section.active { padding-bottom: 0; }
 }
-
-/* ════════════════════════════════════════════════════════════
-   CV editor — restored after the truncation
-   ════════════════════════════════════════════════════════════ */
-.cv-editor {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
-}
-.cv-acc {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  overflow: hidden;
-  padding: 0 !important;
-}
-.cv-acc-head {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 8px;
-  width: 100%;
-  text-align: left;
-  padding: 12px 16px !important;
-  background: transparent !important;
-  border: none !important;
-  color: var(--text);
-  font: inherit;
-  font-weight: 600;
-  font-size: 13.5px;
-  cursor: pointer;
-}
-.cv-acc-head:hover { background: var(--surface-2); }
-.cv-acc-head::after {
-  content: '+';
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--muted);
-}
-.cv-acc.open .cv-acc-head::after { content: '–'; }
-.cv-acc-count {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  background: var(--surface-2);
-  padding: 1px 7px;
-  border-radius: 999px;
-  margin-left: auto;
-  margin-right: 6px;
-}
-.cv-acc-body {
-  display: none !important;
-  padding: 4px 16px 16px !important;
-  flex-direction: column !important;
-  gap: 10px !important;
-}
-.cv-acc.open .cv-acc-body { display: flex !important; }
-
-/* CV form field: label above input */
-.cv-f {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 4px !important;
-  font-size: 12.5px;
-}
-.cv-f > span {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-.cv-f input,
-.cv-f textarea,
-.cv-f select {
-  background: var(--surface-2) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
-  padding: 8px 10px !important;
-  font: inherit;
-  font-size: 13px !important;
-  color: var(--text);
-}
-.cv-f input:focus,
-.cv-f textarea:focus,
-.cv-f select:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-.cv-f textarea { resize: vertical; line-height: 1.5; }
-.cv-check { flex-direction: row !important; align-items: center; gap: 8px; }
-.cv-check input { width: auto; }
-.cv-check > span { text-transform: none; font-size: 12.5px; color: var(--text); letter-spacing: 0; font-weight: 500; }
-
-/* CV list item (Experience / Education / Projects entries) */
-.cv-list-item {
-  border: 1px solid var(--border) !important;
-  border-radius: 10px;
-  padding: 10px 12px !important;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--surface) !important;
-}
-.cv-list-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  border-top: 1px solid var(--border);
-  padding-top: 8px;
-}
-.cv-add-btn { align-self: flex-start; }
-.cv-empty { color: var(--muted); font-size: 12.5px; padding: 6px 0; }
-
-/* CV preview: A4 white sheet */
-.cv-preview-wrap {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-.cv-preview {
-  background: #fff;
-  color: #111;
-  width: 210mm;
-  min-height: 297mm;
-  padding: 16mm 14mm;
-  box-shadow: 0 8px 24px rgba(0,0,0,.18);
-  border-radius: 6px;
-  transform-origin: top center;
-}
-@media (min-width: 1000px) {
-  .cv-preview { zoom: 0.62; }
-}
-@media (min-width: 1400px) { .cv-preview { zoom: 0.74; } }
-@media (max-width: 999px)  { .cv-preview { zoom: 0.50; } }
-@media (max-width: 380px)  { .cv-preview { zoom: 0.40; } }
-
-.cv { font-size: 11pt; line-height: 1.45; }
-.cv.cv-font-serif { font-family: Georgia, 'Times New Roman', serif; }
-.cv.cv-font-sans  { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-.cv h1 { font-size: 22pt; line-height: 1.1; margin: 0 0 2pt; font-weight: 700; color: #0f1117; }
-.cv h2 {
-  font-size: 12pt;
-  margin: 14pt 0 6pt;
-  padding-bottom: 2pt;
-  border-bottom: 1.5px solid var(--cv-accent, #2563eb);
-  color: var(--cv-accent, #2563eb);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-.cv-head { display: flex; align-items: flex-start; gap: 14pt; margin-bottom: 6pt; }
-.cv-photo {
-  width: 28mm; height: 28mm;
-  border-radius: 50%;
-  background-size: cover;
-  background-position: center;
-  flex-shrink: 0;
-  border: 1px solid #d8dbe2;
-}
-.cv-head-text { flex: 1; min-width: 0; }
-.cv-role { font-size: 12pt; color: var(--cv-accent, #2563eb); font-weight: 500; margin-bottom: 4pt; }
-.cv-contact { display: flex; flex-wrap: wrap; gap: 4pt 10pt; font-size: 9.5pt; color: #555; }
-.cv-details { font-size: 9pt; color: #777; margin-top: 3pt; }
-.cv-summary { font-size: 10.5pt; line-height: 1.55; color: #333; }
-.cv-empty-hint { font-size: 10pt; color: #888; font-style: italic; margin: 8pt 0; }
-.cv-entry { margin-bottom: 8pt; }
-.cv-entry-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8pt; }
-.cv-entry-title { font-weight: 600; font-size: 11pt; color: #111; }
-.cv-entry-sub   { font-size: 10pt; color: #555; }
-.cv-entry-date  { font-size: 9.5pt; color: #777; white-space: nowrap; }
-.cv-entry-desc  { margin-top: 3pt; font-size: 10pt; line-height: 1.5; color: #333; white-space: pre-wrap; }
-.cv-chips { display: flex; flex-wrap: wrap; gap: 4pt 6pt; }
-.cv-chip {
-  font-size: 9.5pt;
-  padding: 2pt 8pt;
-  background: #f1f3f7;
-  border-radius: 999px;
-  color: #222;
-}
-.cv-langs { display: flex; flex-wrap: wrap; gap: 4pt 12pt; font-size: 10pt; color: #333; }
-
-.cv-preview[data-tpl="modern"] .cv {
-  display: grid;
-  grid-template-columns: 64mm 1fr;
-  gap: 8mm;
-}
-.cv-preview[data-tpl="modern"] .cv-side {
-  background: #f7f8fa;
-  margin: -16mm 0 -16mm -14mm;
-  padding: 16mm 8mm;
-}
-.cv-preview[data-tpl="modern"] .cv-side .cv-head { flex-direction: column; align-items: center; text-align: center; }
-.cv-preview[data-tpl="modern"] .cv-side .cv-photo { width: 32mm; height: 32mm; }
-.cv-preview[data-tpl="modern"] .cv-main .cv-head { display: none; }
-
 
 /* ════════════════════════════════════════════════════════════
    TEAMS-STYLE RAIL (desktop)
@@ -7908,22 +7181,14 @@ textarea.auto-grow-textarea {
    margin-bottom on the card itself guarantees spacing. */
 .at-task,
 .visit-row,
-.link-row,
 .rev-row,
-.jrn-entry,
-.vault-row,
-.cv-list-item,
 #meeting-list .robot-item,
 #meetings .robot-item {
   margin-bottom: 8px !important;
 }
 .at-task:last-child,
 .visit-row:last-child,
-.link-row:last-child,
-.rev-row:last-child,
-.jrn-entry:last-child,
-.vault-row:last-child,
-.cv-list-item:last-child {
+.rev-row:last-child {
   margin-bottom: 0 !important;
 }
 
@@ -7963,16 +7228,14 @@ textarea.auto-grow-textarea {
    container. Earlier overrides removed all padding, leaving the
    header flush against the sidebar edge. */
 @media (min-width: 1000px) {
-  #meetings.section.active,
-  #journal.section.active {
+  #meetings.section.active {
     padding: 24px 32px !important;
   }
-  #meetings.section > .sidebar,
-  #journal .jrn-sidebar {
+  #meetings.section > .sidebar {
     padding: 0 !important;
   }
-  /* Meeting / journal cards full width */
-  #meeting-list, .jrn-list {
+  /* Meeting cards full width */
+  #meeting-list {
     width: 100% !important;
   }
 }
@@ -7993,11 +7256,6 @@ textarea.auto-grow-textarea {
   width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-}
-.jrn-list { padding: 0 !important; }
-.jrn-entry {
-  width: 100% !important;
-  box-sizing: border-box !important;
 }
 
 /* Meetings + Journal sections: ensure no horizontal overflow.
@@ -8041,47 +7299,17 @@ textarea.auto-grow-textarea {
   margin-right: 0 !important;
 }
 
-#journal.section.active {
-  display: flex !important;
-  flex-direction: column !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-}
-#journal .jrn-container {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  overflow: visible !important;
-}
-.jrn-sidebar, .jrn-list {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  overflow: visible !important;
-}
-.jrn-entry {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
-
 /* Mobile: hide section header's section-head-pad padding leftover */
 @media (max-width: 999px) {
-  #meetings.section.active,
-  #journal.section.active {
+  #meetings.section.active {
     padding: 18px 14px 0 !important;
   }
 }
 
-/* Meetings + Journal: mimic the Reviews page layout exactly so they
+/* Meetings: mimic the Reviews page layout exactly so they
    look identical (title row at top + full-width list below). */
 @media (min-width: 1000px) {
-  #meetings.section.active,
-  #journal.section.active {
+  #meetings.section.active {
     padding: 24px 32px 24px calc(32px) !important;
     display: flex !important;
     flex-direction: column !important;
@@ -8089,16 +7317,14 @@ textarea.auto-grow-textarea {
   }
 }
 @media (max-width: 999px) {
-  #meetings.section.active,
-  #journal.section.active {
+  #meetings.section.active {
     padding: 18px 14px 0 !important;
   }
 }
 
 /* Header on every viewport: title left + buttons right, just like
    .reviews-container .fv-header */
-#meetings .fv-header.section-head-pad,
-#journal .fv-header.section-head-pad {
+#meetings .fv-header.section-head-pad {
   display: flex !important;
   flex-direction: row !important;
   align-items: flex-start !important;
@@ -8108,19 +7334,16 @@ textarea.auto-grow-textarea {
   margin: 0 0 24px !important;
   width: 100% !important;
 }
-#meetings .fv-header h2,
-#journal .fv-header h2 {
+#meetings .fv-header h2 {
   margin: 0 !important;
 }
-#meetings .fv-subtitle,
-#journal .fv-subtitle {
+#meetings .fv-subtitle {
   margin: 4px 0 0 !important;
 }
 
 /* Mobile: collapse header to column (title above buttons) */
 @media (max-width: 600px) {
-  #meetings .fv-header.section-head-pad,
-  #journal .fv-header.section-head-pad {
+  #meetings .fv-header.section-head-pad {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 14px !important;
@@ -8136,36 +7359,15 @@ textarea.auto-grow-textarea {
   flex: none !important;
   overflow: visible !important;
 }
-#journal .jrn-container {
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  width: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: visible !important;
-  flex: none !important;
-}
-#journal .jrn-sidebar {
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  width: 100% !important;
-  overflow: visible !important;
-}
-
 /* Hide the empty content/detail area on mobile + desktop when no
    meeting/journal entry is selected — list IS the primary view. */
 #meetings.section:not([data-detail-open="true"]) > .content { display: none !important; }
-#journal:not([data-detail-open="true"]) .jrn-main { display: none !important; }
 
-/* Meetings + Journal content: same max-width + centring as Reviews */
+/* Meetings content: same max-width + centring as Reviews */
 @media (min-width: 1000px) {
   #meetings .fv-header.section-head-pad,
   #meetings > .sidebar,
-  #meetings > .content,
-  #journal .fv-header.section-head-pad,
-  #journal .jrn-container {
+  #meetings > .content {
     max-width: min(1600px, 95vw) !important;
     margin-left: auto !important;
     margin-right: auto !important;
@@ -8174,8 +7376,7 @@ textarea.auto-grow-textarea {
   }
   /* Section padding matches the Reviews page (24px top/bottom +
      32px horizontal). Children centered inside via margin: 0 auto. */
-  #meetings.section.active,
-  #journal.section.active {
+  #meetings.section.active {
     padding: 24px 32px !important;
   }
 }
@@ -8184,11 +7385,9 @@ textarea.auto-grow-textarea {
    Drop all the bespoke #meetings.section + #journal.section special
    overrides — they inherit the standard fv-container layout now. */
 
-/* Inside the fv-container, the inner .sidebar (meeting list) and
-   .jrn-sidebar (journal list) just hold the list — transparent, no
-   border, no padding around the list. */
-#meetings .fv-container > .sidebar,
-#journal .fv-container > .jrn-sidebar {
+/* Inside the fv-container, the inner .sidebar (meeting list) just
+   holds the list — transparent, no border, no padding around it. */
+#meetings .fv-container > .sidebar {
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
@@ -8198,14 +7397,11 @@ textarea.auto-grow-textarea {
 }
 
 /* Detail wrappers: hidden by default, shown when an item is selected */
-#meetings .content,
-.jrn-container-detail {
+#meetings .content {
   display: none !important;
 }
 #meetings.section[data-detail-open="true"] .fv-container { display: none !important; }
 #meetings.section[data-detail-open="true"] .content { display: block !important; }
-#journal[data-detail-open="true"] .fv-container { display: none !important; }
-#journal[data-detail-open="true"] .jrn-container-detail { display: block !important; }
 
 /* Kill old #meetings / #journal special positioning rules — let the
    generic .fv-container styling do the work. */
@@ -8353,9 +7549,9 @@ body {
   }
 }
 
-.home-list-item, .home-card, .home-journal-card,
-.at-task, .visit-row, .link-row, .rev-row, .jrn-entry,
-.vault-row, .cv-acc, .cv-list-item, .task-body, .task-card,
+.home-list-item, .home-card,
+.at-task, .visit-row, .rev-row,
+.task-body, .task-card,
 .cal-day-panel, .streak-stat, .meeting-row, .release-row,
 .version-card, .issue-card, .att-section, .dsection,
 #meeting-list .robot-item, #meetings .robot-item {
@@ -8366,9 +7562,8 @@ body {
   -webkit-backdrop-filter: blur(18px) saturate(1.35) !important;
 }
 
-.home-list-item:hover, .home-card:hover, .home-journal-card:hover,
-.at-task:hover, .visit-row:hover, .link-row:hover, .rev-row:hover,
-.jrn-entry:hover, .vault-row:hover, .cv-list-item:hover,
+.home-list-item:hover, .home-card:hover,
+.at-task:hover, .visit-row:hover, .rev-row:hover,
 .task-card:hover, .cal-day-panel:hover,
 #meeting-list .robot-item:hover, #meetings .robot-item:hover {
   background: var(--surface-3) !important;
@@ -8376,7 +7571,7 @@ body {
   box-shadow: var(--shadow) !important;
 }
 
-.rev-row.active, .jrn-entry.active,
+.rev-row.active,
 #meeting-list .robot-item.active, #meetings .robot-item.active,
 .drawer-nav-btn.active, .bnav-btn.active {
   background: linear-gradient(180deg, rgba(59, 130, 246, .18), rgba(59, 130, 246, .08)) !important;
@@ -8397,9 +7592,9 @@ input:not([type]), textarea, select,
 
 .btn-ghost,
 .icon-btn, .topbar-icon-btn, .topbar-avatar-btn, .modal-close,
-.md-back-btn, .bp-icon-btn, .vault-icon-btn, .home-section-icon-btn,
-.cal-nav, .cv-list-actions button,
-.cv-tab, .cv-tab-inline, .rev-period-btn,
+.md-back-btn, .bp-icon-btn, .home-section-icon-btn,
+.cal-nav,
+.rev-period-btn,
 .drawer-nav-btn {
   background: rgba(255, 255, 255, .18) !important;
   border-color: rgba(255, 255, 255, .24) !important;
@@ -8440,9 +7635,9 @@ input:not([type]), textarea, select,
   .modal,
   .backup-popover,
   .search-modal,
-  .home-list-item, .home-card, .home-journal-card,
-  .at-task, .visit-row, .link-row, .rev-row, .jrn-entry,
-  .vault-row, .cv-acc, .cv-list-item, .task-body, .task-card,
+  .home-list-item, .home-card,
+  .at-task, .visit-row, .rev-row,
+  .task-body, .task-card,
   .cal-day-panel, .streak-stat {
     background: var(--surface) !important;
   }
@@ -8692,10 +7887,8 @@ input:not([type]), textarea, select,
 .modal-close:hover,
 .md-back-btn:hover,
 .bp-icon-btn:hover,
-.vault-icon-btn:hover,
 .home-section-icon-btn:hover,
-.cal-nav:hover,
-.cv-list-actions button:hover {
+.cal-nav:hover {
   background: var(--glass-control-hover) !important;
   border-color: var(--border-2) !important;
   color: var(--text) !important;
@@ -8704,8 +7897,6 @@ input:not([type]), textarea, select,
 .inner-tab.active,
 .lang-btn.active,
 .theme-btn.active,
-.cv-tab.active,
-.cv-tab-inline.active,
 .rev-period-btn.active,
 .drawer-nav-btn.active,
 .bnav-btn.active,
@@ -9371,107 +8562,3 @@ input:not([type]), textarea, select,
   }
 }
 
-/* ── Brainstorm: notes + calculations + sketch canvas ───── */
-.brain-page {
-  width: min(1180px, calc(100vw - 48px));
-  margin: 0 auto;
-  padding: 24px 0 96px;
-}
-.brain-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(280px, .65fr);
-  gap: 14px;
-  align-items: start;
-}
-.brain-panel {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--glass-bg-card, rgba(255,255,255,.04));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
-  padding: 14px;
-  min-width: 0;
-}
-.brain-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-  color: var(--text);
-  font-weight: 800;
-}
-.brain-panel-head small {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-}
-.brain-notes-panel {
-  min-height: min(72vh, 780px);
-}
-.brain-notes {
-  width: 100%;
-  min-height: min(62vh, 680px);
-  max-height: min(72vh, 780px);
-}
-.brain-calc-input {
-  width: 100%;
-  min-height: 150px;
-  max-height: 260px;
-}
-.brain-calc-results {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
-  max-height: 280px;
-  overflow: auto;
-}
-.brain-calc-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
-  min-height: 34px;
-  padding: 7px 9px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: rgba(255,255,255,.035);
-  font-size: 12.5px;
-}
-.brain-calc-row span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--muted);
-}
-.brain-calc-row strong {
-  color: var(--accent);
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-}
-.brain-calc-error strong { color: var(--red); }
-.brain-empty {
-  color: var(--muted);
-  font-size: 12.5px;
-  padding: 8px 2px;
-}
-@media (max-width: 900px) {
-  #brainstorm.section.active {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-  }
-  .brain-page {
-    width: min(100%, calc(100vw - 28px));
-    padding: 16px 0 0;
-  }
-  .brain-grid { grid-template-columns: 1fr; }
-  .brain-notes-panel { min-height: auto; }
-  .brain-notes {
-    min-height: 360px;
-    max-height: 62vh;
-  }
-  .brain-calc-input { min-height: 150px; }
-  .brain-panel-head {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-}

@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="B-Less">
-  <link rel="manifest" href="manifest.json?v=7.12.44">
+  <link rel="manifest" href="manifest.json?v=7.12.45">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png?v=6">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=6">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png?v=6">
@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" href="assets/icon-512.png?v=6">
   <link rel="apple-touch-icon" sizes="192x192" href="assets/icon-192.png?v=6">
   <title>B-Less</title>
-  <link rel="stylesheet" href="style.css?v=7.12.44">
+  <link rel="stylesheet" href="style.css?v=7.12.45">
 </head>
 <body>
 
@@ -163,12 +163,6 @@
           <button class="home-goals-more" id="home-goals-more" type="button">View all goals →</button>
         </div>
 
-        <div class="home-section">
-          <div class="home-section-head">
-            <span>Today's Journal</span>
-          </div>
-          <div id="home-journal-preview"></div>
-        </div>
 
         <div class="home-section">
           <div class="home-section-head">
@@ -248,7 +242,7 @@
       </div>
     </section>
 
-    <!-- MORE TAB — global feature shortcuts (Meetings/Visits/Journal/etc) -->
+    <!-- MORE TAB — global feature shortcuts (Meetings/Visits/Reviews/etc) -->
     <section id="more" class="section">
       <div class="more-page">
 
@@ -271,41 +265,11 @@
             </span>
             <span class="home-card-label">Visits</span>
           </button>
-          <button class="home-card" data-home-go="journal" type="button">
-            <span class="home-card-icon" style="--c: #14b8a6;">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-            </span>
-            <span class="home-card-label">Journal</span>
-          </button>
-          <button class="home-card" data-home-go="brainstorm" type="button">
-            <span class="home-card-icon" style="--c: #e879f9;">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.8A6 6 0 1 1 16 14.7c-.9.7-1.4 1.6-1.6 2.3H9.6c-.2-.8-.6-1.5-1.4-2.2z"/><path d="M16.5 3.5 20 2l-1.5 3.5"/><path d="M3.5 20.5 8 16"/></svg>
-            </span>
-            <span class="home-card-label">Brainstorm</span>
-          </button>
-          <button class="home-card" data-home-go="links" type="button">
-            <span class="home-card-icon" style="--c: #0ea5e9;">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            </span>
-            <span class="home-card-label">Links</span>
-          </button>
           <button class="home-card" data-home-go="reviews" type="button">
             <span class="home-card-icon" style="--c: #3b82f6;">
               <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>
             </span>
             <span class="home-card-label">Reviews</span>
-          </button>
-          <button class="home-card" data-home-go="private" type="button">
-            <span class="home-card-icon" style="--c: #f43f5e;">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </span>
-            <span class="home-card-label">Passwords</span>
-          </button>
-          <button class="home-card" data-home-go="cv" type="button">
-            <span class="home-card-icon" style="--c: #2563eb;">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><circle cx="12" cy="13" r="2"/><path d="M9 19h6v-2a3 3 0 0 0-6 0z"/></svg>
-            </span>
-            <span class="home-card-label">CV</span>
           </button>
         </div>
 
@@ -314,140 +278,6 @@
 
     <!-- Settings section was removed — the avatar popover now hosts theme,
          export ICS, version, and Drive backup controls in one place. -->
-
-    <!-- BRAINSTORM — scratch notes, quick calculations, and sketching -->
-    <section id="brainstorm" class="section">
-      <div class="brain-page">
-        <div class="fv-header">
-          <div>
-            <h2>Brainstorm</h2>
-            <p class="fv-subtitle">Scratch notes and quick math</p>
-          </div>
-          <div class="finance-header-actions">
-            <button class="btn-ghost" id="brain-export-btn" type="button">Export</button>
-            <button class="btn-ghost danger" id="brain-clear-btn" type="button">Clear</button>
-          </div>
-        </div>
-        <div class="brain-grid">
-          <section class="brain-panel brain-notes-panel">
-            <div class="brain-panel-head">
-              <span>Notes</span>
-              <small id="brain-save-state">Saved</small>
-            </div>
-            <textarea id="brain-notes" class="brain-notes" placeholder="Think out loud, paste specs, list assumptions..."></textarea>
-          </section>
-          <section class="brain-panel brain-calc-panel">
-            <div class="brain-panel-head">
-              <span>Calculator</span>
-              <small>One expression per line</small>
-            </div>
-            <textarea id="brain-calc-input" class="brain-calc-input" spellcheck="false" placeholder="12*4 + 18&#10;(2500/60)*3&#10;sqrt(144) + 8"></textarea>
-            <div class="brain-calc-results" id="brain-calc-results"></div>
-          </section>
-        </div>
-      </div>
-    </section>
-
-    <!-- JOURNAL TAB (daily-only) -->
-    <section id="journal" class="section">
-      <div class="fv-container">
-        <div class="fv-header">
-          <div>
-            <h2 data-i18n="journal.title">Journal</h2>
-            <p class="fv-subtitle" data-i18n="journal.subtitle">Daily entries</p>
-          </div>
-          <div class="finance-header-actions">
-            <button class="btn-primary" id="jrn-today-btn" data-i18n="btn.add_today">+ Add today</button>
-          </div>
-        </div>
-        <aside class="jrn-sidebar">
-          <div class="jrn-list" id="jrn-list"></div>
-        </aside>
-      </div>
-      <div class="jrn-container-detail">
-
-        <div class="jrn-main">
-          <div class="jrn-header">
-            <button class="md-back-btn" type="button" onclick="closeJournalDetail()" aria-label="Back" title="Back">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <input type="date" id="jrn-date" />
-            <span class="jrn-status" id="jrn-status"></span>
-          </div>
-          <div class="note-tools" data-note-tools-for="jrn-area">
-            <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','bullet')">• List</button>
-            <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','check')">☑ Checklist</button>
-            <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('jrn-area','table')">Table</button>
-          </div>
-          <textarea class="jrn-area" id="jrn-area" data-i18n-ph="jrn.placeholder" placeholder="Bugün hakkında yaz..."></textarea>
-        </div>
-      </div>
-    </section>
-
-    <section id="links" class="section">
-      <div class="fv-container">
-        <div class="fv-header">
-          <div>
-            <h2 data-i18n="links.title">Linkler</h2>
-            <p class="fv-subtitle" data-i18n="links.subtitle">Kaybolmasın istediğin linkler</p>
-          </div>
-          <div class="finance-header-actions">
-            <button class="btn-primary" id="add-link-btn"><span data-i18n="links.add">+ Link Ekle</span></button>
-          </div>
-        </div>
-        <div class="links-toolbar">
-          <input type="text" id="links-search" class="links-search" placeholder="" />
-        </div>
-        <div id="links-list"></div>
-      </div>
-    </section>
-
-    <!-- PRIVATE VAULT — encrypted credentials, stays on this device only -->
-    <section id="private" class="section">
-      <div class="fv-container">
-        <div class="fv-header">
-          <div>
-            <h2>Passwords</h2>
-            <p class="fv-subtitle">Encrypted credentials — this device only, never synced</p>
-          </div>
-          <div class="finance-header-actions" id="vault-header-actions">
-            <button class="btn-primary" id="vault-add-btn" hidden>+ Add Entry</button>
-            <button class="btn-ghost vault-lock-action" id="vault-lock-btn" hidden>
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <span>Lock</span>
-            </button>
-          </div>
-        </div>
-        <div id="vault-body"></div>
-      </div>
-    </section>
-
-    <!-- CV — keeps a living CV; same JSON shape as github.com/btudvc/blessed-cv -->
-    <section id="cv" class="section">
-      <div class="fv-container">
-        <div class="fv-header">
-          <div>
-            <h2>CV</h2>
-            <p class="fv-subtitle">Always-up-to-date résumé · prints to A4 PDF</p>
-          </div>
-          <div class="finance-header-actions">
-            <input type="file" id="cv-import-file" accept="application/json" hidden />
-            <button class="cv-tab cv-tab-inline active" data-cv-pane="editor">Edit</button>
-            <button class="cv-tab cv-tab-inline" data-cv-pane="preview">Preview</button>
-            <button class="btn-ghost" id="cv-import-btn" title="Import a blessed-cv JSON">Import</button>
-            <button class="btn-ghost" id="cv-export-btn" title="Download as JSON">Export</button>
-            <button class="btn-primary" id="cv-print-btn" title="Save as PDF via browser print">Print / PDF</button>
-          </div>
-        </div>
-        <div class="cv-tabs" hidden></div>
-        <div class="cv-layout" data-active="editor">
-          <div class="cv-editor" id="cv-editor"></div>
-          <div class="cv-preview-wrap">
-            <div class="cv-preview" id="cv-preview"></div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <section id="reviews" class="section">
       <div class="fv-container">
@@ -533,29 +363,9 @@
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
         <span>Visits</span>
       </button>
-      <button class="drawer-nav-btn" data-drawer-go="journal" type="button">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-        <span>Journal</span>
-      </button>
-      <button class="drawer-nav-btn" data-drawer-go="brainstorm" type="button">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.2 14.8A6 6 0 1 1 16 14.7c-.9.7-1.4 1.6-1.6 2.3H9.6c-.2-.8-.6-1.5-1.4-2.2z"/><path d="M16.5 3.5 20 2l-1.5 3.5"/><path d="M3.5 20.5 8 16"/></svg>
-        <span>Brainstorm</span>
-      </button>
       <button class="drawer-nav-btn" data-drawer-go="reviews" type="button">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>
         <span>Reviews</span>
-      </button>
-      <button class="drawer-nav-btn" data-drawer-go="links" type="button">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        <span>Links</span>
-      </button>
-      <button class="drawer-nav-btn" data-drawer-go="private" type="button">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span>Vault</span>
-      </button>
-      <button class="drawer-nav-btn" data-drawer-go="cv" type="button">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><circle cx="12" cy="13" r="2"/><path d="M9 19h6v-2a3 3 0 0 0-6 0z"/></svg>
-        <span>CV</span>
       </button>
     </nav>
 
@@ -569,36 +379,6 @@
     </div>
     <div class="home-spaces" id="home-spaces"></div>
   </aside>
-
-  <!-- MODAL: Add / Edit Link -->
-  <div class="modal-overlay" id="modal-link">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-link-title" data-i18n="links.modal_add">Link Ekle</h3>
-        <button class="modal-close" data-close="modal-link" aria-label="Close">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <label data-i18n="links.f.url">URL</label>
-      <input type="url" id="link-url" placeholder="https://..." />
-      <label data-i18n="links.f.title">Başlık</label>
-      <input type="text" id="link-title" placeholder="" />
-      <label data-i18n="links.f.tag">Etiket</label>
-      <input type="text" id="link-tag" placeholder="e.g. iş, okuma, referans" />
-      <label data-i18n="links.f.notes">Notlar</label>
-      <div class="note-tools" data-note-tools-for="link-notes">
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','bullet')">• List</button>
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','check')">☑ Checklist</button>
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('link-notes','table')">Table</button>
-      </div>
-      <textarea id="link-notes" rows="3" placeholder=""></textarea>
-      <div class="modal-actions">
-        <button class="btn-ghost" id="link-delete-btn" style="display:none" data-i18n="btn.delete">Sil</button>
-        <button class="btn-ghost" data-close="modal-link" data-i18n="btn.cancel">İptal</button>
-        <button class="btn-primary" id="save-link" data-i18n="btn.save">Kaydet</button>
-      </div>
-    </div>
-  </div>
 
   <!-- MODAL: Generic confirm / alert dialog (used in place of window.confirm + window.alert) -->
   <div class="modal-overlay" id="modal-confirm">
@@ -880,7 +660,7 @@
       <p class="welcome-lede">A lightweight planner for projects, tasks, meetings and visits. We added a few sample items so you can poke around — delete them anytime.</p>
       <ul class="welcome-tips">
         <li><strong>Spaces</strong> — group your work in the left sidebar (Work, Personal, or your own).</li>
-        <li><strong>Add things</strong> — tap the <em>+</em> next to a Space to add a list, meeting, journal or expenses.</li>
+        <li><strong>Add things</strong> — tap the <em>+</em> next to a Space to add a list.</li>
         <li><strong>Tasks</strong> — open a list to add tasks, mark them Done, set priorities, attach notes and files.</li>
         <li><strong>Bottom nav</strong> — quick views for Today, Calendar, Visits and Settings across every space.</li>
         <li><strong>Backup</strong> — connect Google Drive from Settings to keep your data safe.</li>
@@ -980,7 +760,7 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
-<script src="firebase-config.js?v=7.12.44"></script>
+<script src="firebase-config.js?v=7.12.45"></script>
 <script>
   window.insertNoteSnippet = window.insertNoteSnippet || function(targetId, type) {
     var area = document.getElementById(targetId);
@@ -1003,6 +783,6 @@
     area.dispatchEvent(new Event('input', { bubbles: true }));
   };
 </script>
-<script src="app.js?v=7.12.44"></script>
+<script src="app.js?v=7.12.45"></script>
 </body>
 </html>

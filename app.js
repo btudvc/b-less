@@ -543,7 +543,7 @@ let currentReviewKey = null; // e.g. '2026-W19' or '2026-05'
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.57';
+var APP_VERSION = '7.12.63';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -4308,15 +4308,16 @@ const BackupManager = (() => {
   }
 
   function initUI() {
-    const btn      = document.getElementById('backup-btn');
-    const moreBtn  = document.getElementById('more-drive-trigger');
+    const btn       = document.getElementById('backup-btn');
+    const moreBtn   = document.getElementById('more-drive-trigger');
+    const avatarBtn = document.getElementById('topbar-avatar-btn');
     const popover  = document.getElementById('backup-popover');
     const backdrop = document.getElementById('backup-backdrop');
     if (!popover) return;
     // The topbar avatar is the primary entry now; btn / moreBtn are
     // legacy ids that may not exist, but outside-click + ESC closing
     // should still wire up regardless.
-    const entryControls = [btn, moreBtn].filter(Boolean);
+    const entryControls = [btn, moreBtn, avatarBtn].filter(Boolean);
     function closePopover() { popover.classList.remove('open'); if (backdrop) backdrop.classList.remove('open'); }
 
     // Attach the SAME real handler to both entry points — no synthetic click forwarding,
@@ -5869,6 +5870,11 @@ function applyModeAttr() {
 function projectsByMode() { return state.robots   || []; }
 function meetingsByMode() { return state.meetings || []; }
 
+var NOTE_TOOL_ICONS = {
+  bullet: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>',
+  check: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+};
+
 // ── PWA: register service worker ───────────────────────
 // We deliberately do NOT auto-reload on SW activation. The earlier auto-reload
 // logic raced with BackupManager.init(): on a fresh deploy the page kicked
@@ -5879,7 +5885,7 @@ function meetingsByMode() { return state.meetings || []; }
 // so a manual refresh is enough when the user does want the latest behavior.
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js?v=' + encodeURIComponent(APP_VERSION)).catch(() => {});
   });
 }
 
@@ -6047,7 +6053,7 @@ function handleNoteListKeydown(e) {
 
 document.addEventListener('keydown', handleNoteListKeydown);
 
-const NOTE_TOOL_ICONS = {
+NOTE_TOOL_ICONS = NOTE_TOOL_ICONS || {
   bullet: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>',
   check: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
 };
@@ -9563,21 +9569,15 @@ function updateTopbarAvatar(userInfo) {
 }
 // Expose for BackupManager to call after fetchUserInfo / signOut
 window.onDriveUserChange = updateTopbarAvatar;
-document.getElementById('topbar-avatar-btn')?.addEventListener('click', e => {
-  // Re-use the same handler logic the existing entry points use. The popover
-  // toggles open/closed; if not signed in, the popover content shows the
-  // sign-in CTA. Done synchronously so any user-gesture-requiring OAuth flow
-  // launched from inside the popover still works.
-  e.stopPropagation();
-  const popover  = document.getElementById('backup-popover');
-  const backdrop = document.getElementById('backup-backdrop');
-  if (!popover) return;
-  const isOpen = popover.classList.contains('open');
-  popover.classList.toggle('open', !isOpen);
-  if (backdrop) backdrop.classList.toggle('open', !isOpen);
-});
 // Boot: paint avatar from cached userInfo immediately (no Drive call needed).
 updateTopbarAvatar();
+document.getElementById('topbar-avatar-btn')?.addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+  if (typeof BackupManager !== 'undefined' && BackupManager.refresh) BackupManager.refresh();
+  if (typeof BackupManager !== 'undefined' && BackupManager.handleHeaderClick) BackupManager.handleHeaderClick(e);
+}, true);
 document.getElementById('spaces-drawer-backdrop')?.addEventListener('click', closeSpacesDrawer);
 document.getElementById('drawer-add-space-btn')?.addEventListener('click', () => {
   if (typeof addSpace === 'function') { addSpace(); renderHome(); }
@@ -9609,6 +9609,7 @@ if (_verEl) _verEl.textContent = 'B-Less v' + APP_VERSION;
 
 // Default landing view: Home grid (colorful card overview of every section)
 openHome();
+document.documentElement.dataset.appBooted = APP_VERSION;
 
 // First-run welcome modal
 maybeShowWelcome();

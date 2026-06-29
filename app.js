@@ -543,7 +543,7 @@ let currentReviewKey = null; // e.g. '2026-W19' or '2026-05'
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.65';
+var APP_VERSION = '7.12.66';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -3941,7 +3941,7 @@ const BackupManager = (() => {
         </div>
         ${safety ? `
           <button class="bp-restore-safety" data-act="restore-safety" type="button">
-            Undo last restore (${escapeHtml(new Date(safety.savedAt).toLocaleString())})
+            Revert last Drive restore (${escapeHtml(new Date(safety.savedAt).toLocaleString())})
           </button>
         ` : ''}
         <div class="bp-version">v${escapeHtml(typeof APP_VERSION !== 'undefined' ? APP_VERSION : '?')}</div>
@@ -4086,9 +4086,9 @@ const BackupManager = (() => {
           const safety = getRestoreSafetySnapshot();
           if (!safety || !safety.data) return;
           const ok = await confirmDialog({
-            title: 'Undo restore',
-            message: 'Restore the local data snapshot saved right before the last Drive restore?',
-            okText: 'Restore local snapshot',
+            title: 'Revert last Drive restore',
+            message: 'This is not normal sync. It restores the local data snapshot saved on this device right before the last Drive restore.',
+            okText: 'Revert restore',
             danger: true,
           });
           if (!ok) return;

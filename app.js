@@ -140,8 +140,8 @@ const I18N = {
     'reviews.subtitle':      'Weekly & monthly summary notes',
     'reviews.tab.week':      'Weekly',
     'reviews.tab.month':     'Monthly',
-    'reviews.current_week':  '+ This week',
-    'reviews.current_month': '+ This month',
+    'reviews.current_week':  'This week',
+    'reviews.current_month': 'This month',
     'reviews.empty':         'No entries yet. Click the button above to start one.',
     'reviews.no_entry':      'No entry selected',
     'reviews.confirm_delete':'Delete this summary?',
@@ -155,6 +155,9 @@ const I18N = {
     'reviews.no_goals':      'No goals yet.',
     'reviews.no_completed':  'No tasks completed this week.',
     'reviews.notes':         'Notes',
+    'reviews.empty_entry':   'Empty',
+    'reviews.words':         '{n} words',
+    'reviews.current_badge': 'Current',
     'reviews.space_goals':   'Space Goals',
     'reviews.space_goals_ph':'Add a space goal…',
     'reviews.no_space_goals':'No space goals yet.',
@@ -421,8 +424,8 @@ Object.assign(I18N.tr, {
   'reviews.subtitle':      'Haftalik ve aylik ozet notlar',
   'reviews.tab.week':      'Haftalik',
   'reviews.tab.month':     'Aylik',
-  'reviews.current_week':  '+ Bu hafta',
-  'reviews.current_month': '+ Bu ay',
+  'reviews.current_week':  'Bu hafta',
+  'reviews.current_month': 'Bu ay',
   'reviews.empty':         'Henuz kayit yok. Yukaridaki butonla baslat.',
   'reviews.no_entry':      'Kayit secili degil',
   'reviews.confirm_delete':'Bu ozet silinsin mi?',
@@ -436,6 +439,9 @@ Object.assign(I18N.tr, {
   'reviews.no_goals':      'Henüz hedef eklenmedi.',
   'reviews.no_completed':  'Bu hafta tamamlanan task yok.',
   'reviews.notes':         'Notlar',
+  'reviews.empty_entry':   'Boş',
+  'reviews.words':         '{n} kelime',
+  'reviews.current_badge': 'Güncel',
   'reviews.space_goals':   'Space Hedefleri',
   'reviews.space_goals_ph':'Space hedefi ekle…',
   'reviews.no_space_goals':'Henüz space hedefi yok.',
@@ -537,7 +543,7 @@ let currentReviewKey = null; // e.g. '2026-W19' or '2026-05'
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.47';
+var APP_VERSION = '7.12.48';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -4866,6 +4872,24 @@ function ensureReviewsState() {
   if (!state.spaceGoals  || typeof state.spaceGoals  !== 'object') state.spaceGoals  = {};
 }
 
+function ensureCurrentReviewPeriods({ persist = false } = {}) {
+  ensureReviewsState();
+  const weekKey = reviewWeekKey();
+  const monthKey = reviewMonthKey();
+  let changed = false;
+  if (!(weekKey in state.reviews.week)) {
+    state.reviews.week[weekKey] = '';
+    ensureWeekGoal(weekKey);
+    changed = true;
+  }
+  if (!(monthKey in state.reviews.month)) {
+    state.reviews.month[monthKey] = '';
+    changed = true;
+  }
+  if (changed && persist) save();
+  return changed;
+}
+
 function ensureSpaceGoalWeek(spaceId, weekKey) {
   if (!state.spaceGoals) state.spaceGoals = {};
   if (!state.spaceGoals[spaceId] || typeof state.spaceGoals[spaceId] !== 'object') state.spaceGoals[spaceId] = {};
@@ -5357,8 +5381,35 @@ function formatReviewLabel(period, key) {
   return `${months[start.getMonth()]} ${start.getFullYear()}`;
 }
 
+function reviewWordCount(text) {
+  return (text || '').trim().split(/\s+/).filter(Boolean).length;
+}
+
+function formatReviewMeta(period, key, text) {
+  const words = reviewWordCount(text);
+  if (words) return (t('reviews.words') || '{n} words').replace('{n}', words);
+  if (period === 'week') {
+    const weekData = state.weeklyGoals?.[key] || {};
+    const goalCount = (weekData.taskIds || []).length + (weekData.goals || []).length;
+    const doneCount = getCompletedTasksForWeek(key).length;
+    if (goalCount || doneCount) {
+      const parts = [];
+      if (goalCount) parts.push(`${goalCount} ${(t('reviews.goals') || 'Goals').toLowerCase()}`);
+      if (doneCount) parts.push(`${doneCount} ${(t('reviews.completed') || 'Completed').toLowerCase()}`);
+      return parts.join(' · ');
+    }
+  }
+  return t('reviews.empty_entry') || 'Empty';
+}
+
+function reviewPreviewText(text) {
+  const clean = (text || '').replace(/\s+/g, ' ').trim();
+  return clean || (t('reviews.placeholder') || '');
+}
+
 function renderReviews() {
   ensureReviewsState();
+  ensureCurrentReviewPeriods({ persist: true });
   const listEl   = document.getElementById('reviews-list');
   const taEl     = document.getElementById('rev-textarea');
   const labelEl  = document.getElementById('rev-period-label');
@@ -5382,6 +5433,7 @@ function renderReviews() {
 
   const map = state.reviews[reviewPeriod] || {};
   const keys = Object.keys(map).sort().reverse(); // newest first
+  const activePeriodKey = reviewPeriod === 'week' ? reviewWeekKey() : reviewMonthKey();
 
   // Auto-select the most recent if nothing selected (or selected isn't in this period)
   if (!currentReviewKey || !(currentReviewKey in map)) {
@@ -5393,9 +5445,17 @@ function renderReviews() {
   } else {
     listEl.innerHTML = keys.map(k => {
       const isActive = k === currentReviewKey;
+      const text = map[k] || '';
+      const isCurrent = k === activePeriodKey;
+      const hasText = !!text.trim();
       return `
-        <button class="rev-row ${isActive ? 'active' : ''}" data-rev-key="${escapeHtml(k)}" type="button">
-          <span class="rev-row-label">${escapeHtml(formatReviewLabel(reviewPeriod, k))}</span>
+        <button class="rev-row ${isActive ? 'active' : ''}${hasText ? ' has-notes' : ' is-empty'}" data-rev-key="${escapeHtml(k)}" type="button">
+          <span class="rev-row-top">
+            <span class="rev-row-label">${escapeHtml(formatReviewLabel(reviewPeriod, k))}</span>
+            ${isCurrent ? `<span class="rev-row-badge">${escapeHtml(t('reviews.current_badge') || 'Current')}</span>` : ''}
+          </span>
+          <span class="rev-row-preview">${escapeHtml(reviewPreviewText(text))}</span>
+          <span class="rev-row-meta">${escapeHtml(formatReviewMeta(reviewPeriod, k, text))}</span>
         </button>`;
     }).join('');
     listEl.querySelectorAll('.rev-row').forEach(b => {
@@ -8389,6 +8449,7 @@ function initQuickNotes() {
 
 // ── Init ──
 migrateToSpaces();
+ensureCurrentReviewPeriods({ persist: true });
 seedSampleData(); // self-gates on state.onboarded + empty data
 renderSidebar();
 

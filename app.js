@@ -543,7 +543,7 @@ let currentReviewKey = null; // e.g. '2026-W19' or '2026-05'
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.68';
+var APP_VERSION = '7.12.69';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -5975,84 +5975,6 @@ function renderMarkdown(s) {
   return h;
 }
 
-function noteToolbarHtml(targetId) {
-  const id = escapeAttr(targetId);
-  const labels = {
-    bullet: 'List',
-    check: 'Checklist',
-  };
-  return `<div class="note-tools" data-note-tools-for="${id}">
-    <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','bullet')">${labels.bullet}</button>
-    <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','check')">${labels.check}</button>
-  </div>`;
-}
-
-window.insertNoteSnippet = function(targetId, type) {
-  const area = document.getElementById(targetId);
-  if (!area) return;
-  const snippets = {
-    bullet: '- ',
-    check: '- [ ] ',
-  };
-  const snippet = snippets[type] || snippets.bullet;
-  const start = area.selectionStart ?? area.value.length;
-  const end = area.selectionEnd ?? start;
-  const before = area.value.slice(0, start);
-  const selected = area.value.slice(start, end);
-  const after = area.value.slice(end);
-  if ((type === 'bullet' || type === 'check') && selected.trim()) {
-    const marker = type === 'check' ? '- [ ] ' : '- ';
-    const transformed = selected
-      .split('\n')
-      .map(line => line.trim() ? line.replace(/^\s*(?:[-*]\s+(?:\[[ xX]\]\s+)?)?/, marker) : line)
-      .join('\n');
-    area.value = before + transformed + after;
-    const pos = before.length + transformed.length;
-    area.focus();
-    area.setSelectionRange(pos, pos);
-    area.dispatchEvent(new Event('input', { bubbles: true }));
-    return;
-  }
-  const needsBreak = before && !before.endsWith('\n') ? '\n' : '';
-  const insert = needsBreak + snippet;
-  area.value = before + insert + after;
-  const pos = before.length + insert.length;
-  area.focus();
-  area.setSelectionRange(pos, pos);
-  area.dispatchEvent(new Event('input', { bubbles: true }));
-};
-
-function handleNoteListKeydown(e) {
-  const area = e.target;
-  if (!area || area.tagName !== 'TEXTAREA' || e.key !== 'Enter' || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
-  if (area.selectionStart !== area.selectionEnd) return;
-  const value = area.value || '';
-  const start = area.selectionStart ?? value.length;
-  const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
-  const line = value.slice(lineStart, start);
-  const m = line.match(/^(\s*[-*]\s+(?:\[[ xX]\]\s+)?)(.*)$/);
-  if (!m) return;
-  e.preventDefault();
-  const marker = m[1];
-  const body = m[2] || '';
-  const beforeLine = value.slice(0, lineStart);
-  const afterCursor = value.slice(start);
-  if (!body.trim()) {
-    area.value = beforeLine + afterCursor.replace(/^\n?/, '');
-    const pos = beforeLine.length;
-    area.setSelectionRange(pos, pos);
-  } else {
-    const insert = '\n' + marker;
-    area.value = value.slice(0, start) + insert + afterCursor;
-    const pos = start + insert.length;
-    area.setSelectionRange(pos, pos);
-  }
-  area.dispatchEvent(new Event('input', { bubbles: true }));
-  if (typeof autoSizeTextarea === 'function') autoSizeTextarea(area);
-}
-
-document.addEventListener('keydown', handleNoteListKeydown);
-
 NOTE_TOOL_ICONS = NOTE_TOOL_ICONS || {
   bullet: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>',
   check: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
@@ -6123,8 +6045,7 @@ window.insertNoteSnippet = function(targetId, type) {
   area.dispatchEvent(new Event('input', { bubbles: true }));
 };
 
-document.removeEventListener('keydown', handleNoteListKeydown);
-handleNoteListKeydown = function(e) {
+function handleNoteListKeydown(e) {
   const area = e.target;
   if (!area || area.tagName !== 'TEXTAREA' || e.altKey || e.ctrlKey || e.metaKey) return;
   if (area.selectionStart !== area.selectionEnd) return;

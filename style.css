@@ -6440,6 +6440,16 @@ input:focus, textarea:focus, select:focus {
 }
 input::placeholder, textarea::placeholder { color: var(--muted) !important; opacity: .8; }
 
+/* Native <select> dropdown options: the OS popup ignores the select's own
+   color, so set them explicitly or they render low-contrast on dark themes.
+   Use the opaque --bg (the surface vars are semi-transparent and composite
+   unpredictably in the native popup). */
+select option,
+select optgroup {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+
 textarea.auto-grow-textarea {
   resize: none !important;
   overflow-y: hidden;
@@ -7084,9 +7094,6 @@ textarea.auto-grow-textarea {
 }
 
 @media (min-width: 1000px) {
-  /* Total sidebar area = 72px rail + 260px spaces = 332px */
-  body { grid-template-columns: 332px 1fr !important; }
-
   /* spaces-drawer becomes a 2-column grid: rail on left, spaces panel
      on right. drawer-nav spans full height of rail column. */
   .spaces-drawer {
@@ -8014,10 +8021,6 @@ input:not([type]), textarea, select,
 
 /* Desktop rail polish: keep every nav item readable in the narrow column */
 @media (min-width: 1000px) {
-  body {
-    grid-template-columns: 334px 1fr !important;
-  }
-
   .spaces-drawer {
     grid-template-columns: 74px 260px !important;
     width: 334px !important;
@@ -8702,12 +8705,6 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
 .quick-notes-area::placeholder { color: var(--muted-2, var(--muted)); }
 
 @media (min-width: 1200px) {
-  body {
-    grid-template-columns: 334px 1fr 320px !important;
-    grid-template-areas:
-      "sidebar topbar notes"
-      "sidebar main   notes" !important;
-  }
   .quick-notes {
     grid-area: notes;
     position: static;
@@ -8721,11 +8718,6 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
   .quick-notes-close { display: none; }
   .quick-notes-backdrop { display: none !important; }
   #topbar-notes-btn { display: none !important; }
-}
-
-/* Wider screens: give the notes rail a touch more room. */
-@media (min-width: 1600px) {
-  body { grid-template-columns: 334px 1fr 360px !important; }
 }
 
 /* Reviews redesign */

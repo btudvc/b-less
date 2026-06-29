@@ -8343,6 +8343,18 @@ input:not([type]), textarea, select,
   background: rgba(146, 64, 14, .22);
 }
 
+:root[data-theme="light"] .bp-restore-safety {
+  border-color: rgba(180, 83, 9, .34) !important;
+  background: rgba(245, 158, 11, .12) !important;
+  color: #92400e !important;
+  text-shadow: none !important;
+}
+
+:root[data-theme="light"] .bp-restore-safety:hover {
+  background: rgba(245, 158, 11, .18) !important;
+  border-color: rgba(180, 83, 9, .46) !important;
+}
+
 .bp-meta-row {
   border-bottom: 1px solid var(--border) !important;
   padding: 12px 0 !important;

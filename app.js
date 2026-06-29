@@ -537,7 +537,7 @@ let currentReviewKey = null; // e.g. '2026-W19' or '2026-05'
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.46';
+var APP_VERSION = '7.12.47';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -1478,8 +1478,20 @@ function autoTextareaMaxHeight(el) {
   return 220;
 }
 
+function shouldAutoSizeTextarea(el) {
+  return el && el.tagName === 'TEXTAREA' && !el.classList.contains('quick-notes-area');
+}
+
 window.autoSizeTextarea = function(el) {
-  if (!el || el.tagName !== 'TEXTAREA') return;
+  if (!shouldAutoSizeTextarea(el)) {
+    if (el && el.classList && el.classList.contains('quick-notes-area')) {
+      el.classList.remove('auto-grow-textarea');
+      el.style.height = '';
+      el.style.maxHeight = '';
+      el.style.overflowY = '';
+    }
+    return;
+  }
   const max = autoTextareaMaxHeight(el);
   el.classList.add('auto-grow-textarea');
   el.style.maxHeight = max + 'px';
@@ -1490,7 +1502,9 @@ window.autoSizeTextarea = function(el) {
 };
 
 function autoSizeTextareas(root) {
-  (root || document).querySelectorAll('textarea').forEach(el => window.autoSizeTextarea(el));
+  (root || document).querySelectorAll('textarea').forEach(el => {
+    if (shouldAutoSizeTextarea(el)) window.autoSizeTextarea(el);
+  });
 }
 
 function initAutoGrowingTextareas() {

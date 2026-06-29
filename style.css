@@ -8653,8 +8653,11 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
 }
 .quick-notes-close:hover { background: var(--surface-2); color: var(--text); }
 .quick-notes-area {
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  align-self: stretch;
+  height: auto;
   min-height: 0;
+  max-height: none;
   width: 100%;
   resize: none;
   border: 1px solid var(--border);
@@ -8666,6 +8669,7 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
   font-size: 13.5px;
   line-height: 1.7;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 .quick-notes-area:focus { outline: none; border-color: var(--accent); }
 .quick-notes-area::placeholder { color: var(--muted-2, var(--muted)); }

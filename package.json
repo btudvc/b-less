@@ -1,6 +1,6 @@
 {
   "name": "b-less",
-  "version": "7.12.45",
+  "version": "7.12.46",
   "description": "B-Less — personal project and task planner.",
   "private": true,
   "scripts": {
@@ -8,8 +8,5 @@
     "twa:validate": "npx @bubblewrap/cli validate --url=https://btudvc.github.io/b-less/",
     "twa:update": "npx @bubblewrap/cli update --manifest=./android",
     "twa:build": "powershell -ExecutionPolicy Bypass -File scripts/build-twa.ps1"
-  },
-  "dependencies": {
-    "firebase-admin": "^13.10.0"
   }
 }

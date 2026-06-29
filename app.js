@@ -537,14 +537,12 @@ let currentReviewKey = null; // e.g. '2026-W19' or '2026-05'
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.45';
+var APP_VERSION = '7.12.46';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
-const NOTIFICATION_PREFS_KEY = 'b-less.notification-prefs';
 const PENDING_SYNC_KEY = 'b-less.pending-sync';
 const RESTORE_SAFETY_KEY = 'b-less.restore-safety-backup';
-const PUSH_ENDPOINT_BASE = 'https://b-less.onrender.com';
 // Two layers of legacy: 'karta' was the previous app name, 'ais-planner' the one before.
 const LEGACY_STORAGE_KEY = 'karta';
 const OLDEST_STORAGE_KEY = 'ais-planner';
@@ -645,138 +643,6 @@ function showSyncToast(stats, spaceName) {
   showAppToast(`Synced "${spaceName || 'Space'}" — ${bits.join(', ')}.`, 'sync');
 }
 
-async function apiJson(path, options = {}) {
-  const res = await fetch(PUSH_ENDPOINT_BASE + path, Object.assign({
-    headers: { 'Content-Type': 'application/json' },
-  }, options));
-  if (!res.ok) throw new Error(await res.text() || res.statusText);
-  return res.json();
-}
-
-async function enablePushNotifications() {
-  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-    showAppToast('This browser does not support notifications.', 'error');
-    return false;
-  }
-  if (!window.firebase || !firebase.messaging) {
-    showAppToast('Firebase Messaging SDK is not loaded.', 'error');
-    return false;
-  }
-  if (typeof firebase.messaging.isSupported === 'function') {
-    const supported = await firebase.messaging.isSupported();
-    if (!supported) {
-      showAppToast('This browser does not support Firebase notifications.', 'error');
-      return false;
-    }
-  }
-  const cfg = window.BLESS_FIREBASE_CONFIG || {};
-  const vapidKey = window.BLESS_FIREBASE_VAPID_KEY || '';
-  if (!cfg.apiKey || !cfg.projectId || !cfg.messagingSenderId || !cfg.appId || !vapidKey) {
-    showAppToast('Firebase push config is missing.', 'error');
-    return false;
-  }
-  const permission = await Notification.requestPermission();
-  if (permission !== 'granted') {
-    showAppToast('Notifications were not enabled.', 'error');
-    return false;
-  }
-  const reg = await navigator.serviceWorker.ready;
-  if (!firebase.apps.length) firebase.initializeApp(cfg);
-  const messaging = firebase.messaging();
-  const token = await messaging.getToken({ vapidKey, serviceWorkerRegistration: reg });
-  if (!token) {
-    showAppToast('Could not get Firebase messaging token.', 'error');
-    return false;
-  }
-  const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || {};
-  await apiJson('/api/push/subscribe', {
-    method: 'POST',
-    body: JSON.stringify({ token, email: me.email || null, name: me.name || null }),
-  });
-  messaging.onMessage(payload => {
-    const notification = payload.notification || {};
-    const data = payload.data || {};
-    showLocalNotification(notification.title || data.title || 'B-Less', notification.body || data.body || 'You have a new update.', { url: data.url || './index.html#inbox' }).catch(() => {});
-  });
-  showAppToast('Push notifications enabled on this device.', 'success');
-  return true;
-}
-
-async function showLocalNotification(title, body, data) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  const reg = await navigator.serviceWorker.ready.catch(() => null);
-  if (!reg) return;
-  reg.showNotification(title, {
-    body,
-    icon: 'assets/icon-192.png?v=6',
-    badge: 'assets/favicon-32.png',
-    data: Object.assign({ url: './index.html#inbox' }, data || {}),
-  });
-}
-
-function defaultNotificationPrefs() {
-  return {
-    assigned: true,
-    sharedActivity: true,
-    notes: true,
-    subtasks: true,
-    deadlines: true,
-  };
-}
-
-function getNotificationPrefs() {
-  try {
-    return Object.assign(defaultNotificationPrefs(), JSON.parse(localStorage.getItem(NOTIFICATION_PREFS_KEY) || '{}') || {});
-  } catch {
-    return defaultNotificationPrefs();
-  }
-}
-
-function setNotificationPref(key, value) {
-  const prefs = getNotificationPrefs();
-  prefs[key] = !!value;
-  try { localStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(prefs)); } catch {}
-  if (typeof renderNotificationSettings === 'function') renderNotificationSettings();
-}
-
-function notificationAllowedFor(kind) {
-  const prefs = getNotificationPrefs();
-  if (kind === 'task-added') return !!prefs.sharedActivity;
-  if (kind === 'note-added') return !!prefs.sharedActivity && !!prefs.notes;
-  if (kind === 'subtask-added') return !!prefs.sharedActivity && !!prefs.subtasks;
-  if (kind === 'assigned') return !!prefs.assigned;
-  if (kind === 'deadline') return !!prefs.deadlines;
-  return !!prefs.sharedActivity;
-}
-
-async function sendPushNotification(payload) {
-  try {
-    await apiJson('/api/push/notify', { method: 'POST', body: JSON.stringify(payload) });
-  } catch {
-    // Backend is optional in local/static deployments. In-app inbox still records the event.
-  }
-}
-
-function notifySharedTaskEvent(kind, robot, task) {
-  if (!notificationAllowedFor(kind)) return;
-  if (!robot || !task || typeof findSpaceOfRobot !== 'function') return;
-  const sp = findSpaceOfRobot(robot.id);
-  if (!sp || !sp.shared || !sp.driveFileId) return;
-  const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || {};
-  const myEmail = (me.email || '').toLowerCase();
-  const recipients = collectSharedSpaceMembers(sp)
-    .map(m => m && m.email)
-    .filter(email => email && email.toLowerCase() !== myEmail);
-  if (!recipients.length) return;
-  const action = sharedActivityText(kind);
-  const actor = me.name || me.email || 'Someone';
-  sendPushNotification({
-    targetEmails: recipients,
-    title: 'B-Less',
-    body: `${actor} ${action}: ${task.title || 'Task'}`,
-    data: { url: './index.html#inbox', kind, spaceId: sp.id, projectId: robot.id, taskId: task.id },
-  });
-}
 
 function loadPendingSync() {
   try {
@@ -833,27 +699,6 @@ function renderPendingSyncIndicator() {
   updateSyncSafetyBar();
 }
 
-function renderNotificationSettings() {
-  const root = document.getElementById('notification-settings');
-  if (!root) return;
-  const prefs = getNotificationPrefs();
-  const rows = [
-    ['sharedActivity', 'Shared Space changes'],
-    ['assigned', 'Tasks assigned to me'],
-    ['notes', 'New notes'],
-    ['subtasks', 'New subtasks'],
-    ['deadlines', 'Today/tomorrow deadlines'],
-  ];
-  root.innerHTML = rows.map(([key, label]) => `
-    <label class="notification-toggle">
-      <input type="checkbox" data-notif-pref="${escapeAttr(key)}" ${prefs[key] ? 'checked' : ''}>
-      <span>${escapeHtml(label)}</span>
-    </label>
-  `).join('');
-  root.querySelectorAll('[data-notif-pref]').forEach(input => {
-    input.addEventListener('change', () => setNotificationPref(input.dataset.notifPref, input.checked));
-  });
-}
 
 function updateSyncSafetyBar() {
   const bar = document.getElementById('sync-safety-bar');
@@ -900,27 +745,6 @@ function collectAttachments() {
   return out.sort((a, b) => (b.size || 0) - (a.size || 0));
 }
 
-function checkDeadlineNotifications() {
-  if (!notificationAllowedFor('deadline')) return;
-  const today = new Date(); today.setHours(0,0,0,0);
-  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-  const todayKey = today.toISOString().slice(0, 10);
-  const sentKey = 'b-less.deadline-notified.' + todayKey;
-  try { if (localStorage.getItem(sentKey) === '1') return; } catch {}
-  const due = [];
-  (state.robots || []).forEach(r => (r.tasks || []).forEach(task => {
-    if (!task.dueDate || task.status === 'done') return;
-    const d = new Date(task.dueDate + 'T00:00:00');
-    if (d.getTime() === today.getTime() || d.getTime() === tomorrow.getTime()) {
-      due.push({ task, project: r, when: d.getTime() === today.getTime() ? 'today' : 'tomorrow' });
-    }
-  }));
-  if (!due.length) return;
-  const first = due[0];
-  const extra = due.length > 1 ? ` +${due.length - 1} more` : '';
-  showLocalNotification('B-Less deadline', `${first.task.title || 'Task'} is due ${first.when}${extra}`, { url: './index.html#inbox' }).catch(() => {});
-  try { localStorage.setItem(sentKey, '1'); } catch {}
-}
 
 // ── TABS ───────────────────────────────────────────────
 // Sub-pages reachable from "More" — when one is active, keep "More" highlighted
@@ -1629,7 +1453,6 @@ window.addSubtask = function(taskId) {
   task.subtasks.push({ id: uid(), title, note: '', done: false, createdAt: Date.now() });
   stampTask(task);
   save();
-  notifySharedTaskEvent('subtask-added', robot, task);
   renderCurrentDetail();
 };
 
@@ -1750,7 +1573,6 @@ window.addNoteEntry = function(taskId) {
   task.notebook.push({ id: uid(), text, createdAt: Date.now() });
   stampTask(task);
   save();
-  notifySharedTaskEvent('note-added', robot, task);
   // Re-render only the notebook part for speed
   const nb = document.getElementById('notebook-' + taskId);
   if (nb) nb.outerHTML = renderNotebook(task);
@@ -2583,7 +2405,6 @@ document.getElementById('save-task').addEventListener('click', () => {
   // Capture who did the assignment
   const meInfo = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
   const myEmail = (meInfo && meInfo.email) || null;
-  let createdTaskForNotify = null;
   if (editingTaskId) {
     const task = robot.tasks.find(t => t.id === editingTaskId);
     if (task) {
@@ -2620,11 +2441,9 @@ document.getElementById('save-task').addEventListener('click', () => {
       newTask.assignedAt = Date.now();
     }
     robot.tasks.push(newTask);
-    createdTaskForNotify = newTask;
   }
   stampRobot(robot);
   save();
-  if (createdTaskForNotify) notifySharedTaskEvent('task-added', robot, createdTaskForNotify);
   renderCurrentDetail();
   if (activeSection === 'topics') renderTopicList(); else renderRobotList();
   closeModal('modal-task');
@@ -4286,10 +4105,15 @@ const BackupManager = (() => {
     applyTheme(normalizeTheme(document.documentElement.getAttribute('data-theme')));
   }
 
-  // No non-state stores travel with the backup anymore — kept as a hook
-  // in case device-local stores need to sync in the future.
+  // Snapshot device-local stores that should travel with the backup
+  // (the quick-notes scratchpad lives in its own localStorage key but
+  // users expect it to follow them across devices).
   function _extras() {
-    return {};
+    const out = {};
+    try {
+      if (typeof QuickNotesStore !== 'undefined' && QuickNotesStore.snapshot) out.quickNotes = QuickNotesStore.snapshot();
+    } catch {}
+    return out;
   }
 
   async function doBackup() {
@@ -4323,9 +4147,16 @@ const BackupManager = (() => {
     }
   }
 
-  // Apply non-state stores from a backup payload. Mirrors _extras().
-  // No extras are tracked currently — kept as a hook for future stores.
-  function _applyExtras(extras) { void extras; }
+  // Apply device-local stores from a backup payload. Mirrors _extras().
+  function _applyExtras(extras) {
+    if (!extras || typeof extras !== 'object') return;
+    try {
+      if (extras.quickNotes != null && typeof QuickNotesStore !== 'undefined' && QuickNotesStore.applyRemote) {
+        QuickNotesStore.applyRemote(extras.quickNotes);
+        if (typeof renderQuickNotes === 'function') renderQuickNotes();
+      }
+    } catch (e) { console.warn('Apply extras failed:', e); }
+  }
 
   // Quietly fetch the Drive backup and apply it if it's newer than the most
   // recent push we performed from this device. No prompt — this is the
@@ -6036,12 +5867,10 @@ function noteToolbarHtml(targetId) {
   const labels = {
     bullet: '• List',
     check: '☑ Checklist',
-    table: 'Table',
   };
   return `<div class="note-tools" data-note-tools-for="${id}">
     <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','bullet')">${labels.bullet}</button>
     <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','check')">${labels.check}</button>
-    <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','table')">${labels.table}</button>
   </div>`;
 }
 
@@ -6051,7 +5880,6 @@ window.insertNoteSnippet = function(targetId, type) {
   const snippets = {
     bullet: '- ',
     check: '- [ ] ',
-    table: '| Item | Detail | Status |\n| --- | --- | --- |\n|  |  |  |\n',
   };
   const snippet = snippets[type] || snippets.bullet;
   const start = area.selectionStart ?? area.value.length;
@@ -8473,6 +8301,78 @@ document.querySelectorAll('.cross-nav-btn').forEach(b => {
   b.addEventListener('click', () => showCrossView(b.dataset.cross));
 });
 
+// ── Quick notes: always-on right-rail scratchpad (Drive-synced) ──────
+const QuickNotesStore = (() => {
+  const KEY = 'b-less.quicknotes';
+  const META_KEY = 'b-less.quicknotes.updatedAt';
+  function get() { try { return localStorage.getItem(KEY) || ''; } catch { return ''; } }
+  function updatedAt() {
+    try { return parseInt(localStorage.getItem(META_KEY) || '0', 10) || 0; } catch { return 0; }
+  }
+  function set(text, ts) {
+    const stamp = Number.isFinite(ts) && ts > 0 ? ts : Date.now();
+    try { localStorage.setItem(KEY, String(text == null ? '' : text)); } catch {}
+    try { localStorage.setItem(META_KEY, String(stamp)); } catch {}
+    return stamp;
+  }
+  function save(text) {
+    set(text);
+    if (typeof BackupManager !== 'undefined' && BackupManager.onDataChange) BackupManager.onDataChange();
+  }
+  function snapshot() {
+    return { text: get(), updatedAt: updatedAt() };
+  }
+  function normalizeRemote(remote) {
+    if (typeof remote === 'string') return { text: remote, updatedAt: 0 };
+    if (remote && typeof remote === 'object') {
+      return {
+        text: String(remote.text == null ? '' : remote.text),
+        updatedAt: parseInt(remote.updatedAt || '0', 10) || 0,
+      };
+    }
+    return null;
+  }
+  function applyRemote(remote) {
+    const incoming = normalizeRemote(remote);
+    if (!incoming) return false;
+    const localText = get();
+    const localUpdatedAt = updatedAt();
+    const remoteIsNewer = incoming.updatedAt > localUpdatedAt;
+    const legacyRemoteCanSeed = incoming.updatedAt === 0 && localUpdatedAt === 0 && !localText;
+    if (!remoteIsNewer && !legacyRemoteCanSeed) return false;
+    set(incoming.text, incoming.updatedAt || Date.now());
+    return true;
+  }
+  return { get, updatedAt, set, save, snapshot, applyRemote };
+})();
+
+let _quickNotesSaveTimer = null;
+function renderQuickNotes() {
+  const area = document.getElementById('quick-notes-area');
+  if (!area) return;
+  // Don't clobber what the user is actively typing.
+  if (document.activeElement !== area) area.value = QuickNotesStore.get();
+}
+function initQuickNotes() {
+  const area = document.getElementById('quick-notes-area');
+  if (!area || area.dataset.bound === '1') return;
+  area.dataset.bound = '1';
+  area.value = QuickNotesStore.get();
+  const saved = document.getElementById('quick-notes-saved');
+  area.addEventListener('input', () => {
+    if (saved) saved.textContent = 'Saving…';
+    QuickNotesStore.set(area.value);
+    clearTimeout(_quickNotesSaveTimer);
+    _quickNotesSaveTimer = setTimeout(() => {
+      if (typeof BackupManager !== 'undefined' && BackupManager.onDataChange) BackupManager.onDataChange();
+      if (saved) {
+        saved.textContent = 'Saved';
+        setTimeout(() => { if (saved.textContent === 'Saved') saved.textContent = ''; }, 1500);
+      }
+    }, 500);
+  });
+}
+
 // ── Init ──
 migrateToSpaces();
 seedSampleData(); // self-gates on state.onboarded + empty data
@@ -8490,11 +8390,9 @@ renderAll = function() {
 renderAll();
 refreshInboxBadge();
 renderPendingSyncIndicator();
-renderNotificationSettings();
-checkDeadlineNotifications();
 setInterval(refreshInboxBadge, 60_000);
-setInterval(checkDeadlineNotifications, 60 * 60 * 1000);
 enhanceNoteTextareas();
+initQuickNotes();
 initAutoGrowingTextareas();
 new MutationObserver(mutations => {
   for (const m of mutations) {
@@ -9129,6 +9027,17 @@ function closeSpacesDrawer() {
   document.body.classList.remove('spaces-drawer-open');
 }
 
+// Quick notes drawer (mobile/tablet < 1200px — desktop shows it as a fixed rail)
+function openQuickNotes() {
+  document.body.classList.add('quick-notes-open');
+  if (typeof initQuickNotes === 'function') initQuickNotes();
+  if (typeof renderQuickNotes === 'function') renderQuickNotes();
+  setTimeout(() => document.getElementById('quick-notes-area')?.focus(), 80);
+}
+function closeQuickNotes() {
+  document.body.classList.remove('quick-notes-open');
+}
+
 function homeOpenRobot(rid) {
   let spaceId = null, itemId = null;
   (state.spaces || []).forEach(s => (s.items || []).forEach(it => {
@@ -9183,7 +9092,6 @@ function addSharedActivity(activity) {
   items.unshift(activity);
   saveSharedActivities(items);
   refreshInboxBadge();
-  showLocalNotification('B-Less', `${sharedActivityText(activity.kind)}: ${activity.taskTitle || 'Task'}`, { url: './index.html#inbox' }).catch(() => {});
 }
 function markSharedActivitySeen(activityId) {
   saveSharedActivities(getSharedActivities().filter(it => it.id !== activityId));
@@ -9209,7 +9117,6 @@ function markInboxSeen(taskId) {
 function renderInbox() {
   const list = document.getElementById('inbox-list');
   if (!list) return;
-  renderNotificationSettings();
   const today = new Date(); today.setHours(0,0,0,0);
   const me = (typeof DriveAPI !== 'undefined' && DriveAPI.getUserInfo && DriveAPI.getUserInfo()) || null;
   const myEmail = (me && me.email) ? me.email.toLowerCase() : null;
@@ -9377,6 +9284,9 @@ document.getElementById('topbar-search-btn')?.addEventListener('click', () => {
   if (typeof openSearchModal === 'function') openSearchModal();
 });
 document.getElementById('topbar-burger-btn')?.addEventListener('click', openSpacesDrawer);
+document.getElementById('topbar-notes-btn')?.addEventListener('click', openQuickNotes);
+document.getElementById('quick-notes-close')?.addEventListener('click', closeQuickNotes);
+document.getElementById('quick-notes-backdrop')?.addEventListener('click', closeQuickNotes);
 
 // Avatar reflects the Drive user (picture if signed in, fallback icon if not).
 // Clicking it opens the Cloud Backup popover — same handler as the More-page
@@ -9426,11 +9336,6 @@ document.getElementById('topbar-avatar-btn')?.addEventListener('click', e => {
 });
 // Boot: paint avatar from cached userInfo immediately (no Drive call needed).
 updateTopbarAvatar();
-document.getElementById('notification-enable-btn')?.addEventListener('click', () => {
-  enablePushNotifications().catch(err => {
-    showAppToast('Could not enable notifications: ' + (err && err.message || 'unknown error'), 'error');
-  });
-});
 document.getElementById('spaces-drawer-backdrop')?.addEventListener('click', closeSpacesDrawer);
 document.getElementById('drawer-add-space-btn')?.addEventListener('click', () => {
   if (typeof addSpace === 'function') { addSpace(); renderHome(); }
@@ -9466,4 +9371,3 @@ openHome();
 // First-run welcome modal
 maybeShowWelcome();
 maybeShowBrief();
-

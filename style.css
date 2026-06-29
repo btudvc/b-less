@@ -1606,6 +1606,7 @@ body.spaces-drawer-open .spaces-drawer-backdrop { display: block; }
 body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
 .spaces-drawer-head {
   display: flex; align-items: center; justify-content: space-between;
+  width: 100%; box-sizing: border-box;
   padding: 6px 14px 10px;
 }
 .spaces-drawer-title {
@@ -3196,7 +3197,11 @@ body.spaces-drawer-open .spaces-drawer { transform: translateX(0); }
      centered when its content fits the viewport, and the overlay itself
      becomes scrollable when the form is too tall (mobile, big forms). */
   overflow-y: auto;
-  z-index: 200;
+  /* Dialogs must sit above every transient layer they can be opened over:
+     backup popover (500), space menu (900), quick-notes (1300), the mobile
+     bottom-nav pill (3000) — but below full-screen takeovers (welcome /
+     photo lightbox at 9999). */
+  z-index: 4000;
   animation: fadeIn .15s var(--ease);
   padding: 70px 16px 24px;
 }

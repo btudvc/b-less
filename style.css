@@ -9266,7 +9266,8 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
   }
 
   .section.active {
-    padding-bottom: 112px !important;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+    scroll-padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 

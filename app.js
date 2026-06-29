@@ -543,7 +543,7 @@ let currentReviewKey = null; // e.g. '2026-W19' or '2026-05'
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.52';
+var APP_VERSION = '7.12.54';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -5972,8 +5972,8 @@ function renderMarkdown(s) {
 function noteToolbarHtml(targetId) {
   const id = escapeAttr(targetId);
   const labels = {
-    bullet: '• List',
-    check: '☑ Checklist',
+    bullet: 'List',
+    check: 'Checklist',
   };
   return `<div class="note-tools" data-note-tools-for="${id}">
     <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','bullet')">${labels.bullet}</button>
@@ -6046,6 +6046,140 @@ function handleNoteListKeydown(e) {
 }
 
 document.addEventListener('keydown', handleNoteListKeydown);
+
+const NOTE_TOOL_ICONS = {
+  bullet: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>',
+  check: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+};
+
+function noteListMarker(type) {
+  return type === 'check' ? '- [ ] ' : '- ';
+}
+
+function applyNoteListMarker(line, marker) {
+  if (!line.trim()) return marker;
+  const indent = (line.match(/^\s*/) || [''])[0];
+  const content = line.replace(/^\s*(?:[-*]\s+(?:\[[ xX]\]\s+)?)?/, '');
+  return indent + marker + content;
+}
+
+function noteToolbarHtml(targetId) {
+  const id = escapeAttr(targetId);
+  return `<div class="note-tools" data-note-tools-for="${id}">
+    <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','bullet')" title="Start list" aria-label="Start list">${NOTE_TOOL_ICONS.bullet}<span>List</span></button>
+    <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${id}','check')" title="Start checklist" aria-label="Start checklist">${NOTE_TOOL_ICONS.check}<span>Checklist</span></button>
+  </div>`;
+}
+
+function refreshNoteToolbars(root = document) {
+  root.querySelectorAll('[data-note-tools-for]').forEach(toolbar => {
+    const id = toolbar.dataset.noteToolsFor;
+    if (!id) return;
+    toolbar.innerHTML = `
+      <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${escapeAttr(id)}','bullet')" title="Start list" aria-label="Start list">${NOTE_TOOL_ICONS.bullet}<span>List</span></button>
+      <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('${escapeAttr(id)}','check')" title="Start checklist" aria-label="Start checklist">${NOTE_TOOL_ICONS.check}<span>Checklist</span></button>
+    `;
+  });
+}
+
+window.insertNoteSnippet = function(targetId, type) {
+  const area = document.getElementById(targetId);
+  if (!area) return;
+  const marker = noteListMarker(type);
+  const start = area.selectionStart ?? area.value.length;
+  const end = area.selectionEnd ?? start;
+  const selected = area.value.slice(start, end);
+  if (selected.trim()) {
+    const before = area.value.slice(0, start);
+    const after = area.value.slice(end);
+    const transformed = selected
+      .split('\n')
+      .map(line => line.trim() ? applyNoteListMarker(line, marker) : line)
+      .join('\n');
+    area.value = before + transformed + after;
+    const pos = before.length + transformed.length;
+    area.focus();
+    area.setSelectionRange(pos, pos);
+    area.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
+
+  const value = area.value || '';
+  const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+  const lineEndRaw = value.indexOf('\n', start);
+  const lineEnd = lineEndRaw === -1 ? value.length : lineEndRaw;
+  const line = value.slice(lineStart, lineEnd);
+  const transformed = applyNoteListMarker(line, marker);
+  area.value = value.slice(0, lineStart) + transformed + value.slice(lineEnd);
+  const pos = lineStart + transformed.length;
+  area.focus();
+  area.setSelectionRange(pos, pos);
+  area.dispatchEvent(new Event('input', { bubbles: true }));
+};
+
+document.removeEventListener('keydown', handleNoteListKeydown);
+handleNoteListKeydown = function(e) {
+  const area = e.target;
+  if (!area || area.tagName !== 'TEXTAREA' || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (area.selectionStart !== area.selectionEnd) return;
+  const value = area.value || '';
+  const start = area.selectionStart ?? value.length;
+  const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+  const line = value.slice(lineStart, start);
+  const m = line.match(/^(\s*)([-*]\s+(?:\[[ xX]\]\s+)?)(.*)$/);
+  if (!m) return;
+  const indent = m[1];
+  const marker = m[2];
+  const body = m[3] || '';
+
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const beforeLine = value.slice(0, lineStart);
+    const afterCursor = value.slice(start);
+    if (e.shiftKey) {
+      const nextIndent = indent.replace(/ {1,2}$/, '');
+      area.value = beforeLine + nextIndent + marker + body + afterCursor;
+      const pos = beforeLine.length + nextIndent.length + marker.length + body.length;
+      area.setSelectionRange(pos, pos);
+    } else {
+      area.value = beforeLine + '  ' + line + afterCursor;
+      const pos = start + 2;
+      area.setSelectionRange(pos, pos);
+    }
+    area.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
+
+  if (e.key === 'Backspace' && !body && start === lineStart + indent.length + marker.length) {
+    e.preventDefault();
+    const beforeLine = value.slice(0, lineStart);
+    const afterCursor = value.slice(start);
+    area.value = beforeLine + afterCursor;
+    const pos = beforeLine.length;
+    area.setSelectionRange(pos, pos);
+    area.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
+
+  if (e.key !== 'Enter' || e.shiftKey) return;
+  e.preventDefault();
+  const beforeLine = value.slice(0, lineStart);
+  const afterCursor = value.slice(start);
+  if (!body.trim()) {
+    area.value = beforeLine + afterCursor.replace(/^\n?/, '');
+    const pos = beforeLine.length;
+    area.setSelectionRange(pos, pos);
+  } else {
+    const insert = '\n' + indent + marker;
+    area.value = value.slice(0, start) + insert + afterCursor;
+    const pos = start + insert.length;
+    area.setSelectionRange(pos, pos);
+  }
+  area.dispatchEvent(new Event('input', { bubbles: true }));
+  if (typeof autoSizeTextarea === 'function') autoSizeTextarea(area);
+};
+document.addEventListener('keydown', handleNoteListKeydown);
+refreshNoteToolbars();
 
 function enhanceNoteTextareas(root = document) {
   const selector = [

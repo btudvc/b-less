@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="B-Less">
-  <link rel="manifest" href="manifest.json?v=7.12.52">
+  <link rel="manifest" href="manifest.json?v=7.12.54">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png?v=6">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=6">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png?v=6">
@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" href="assets/icon-512.png?v=6">
   <link rel="apple-touch-icon" sizes="192x192" href="assets/icon-192.png?v=6">
   <title>B-Less</title>
-  <link rel="stylesheet" href="style.css?v=7.12.52">
+  <link rel="stylesheet" href="style.css?v=7.12.54">
 </head>
 <body>
 
@@ -307,8 +307,8 @@
             <div id="rev-completed-section" class="rev-completed-section" style="display:none"></div>
             <div id="rev-notes-label" class="rev-section-header rev-notes-header" style="display:none"></div>
             <div class="note-tools" data-note-tools-for="rev-textarea">
-              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','bullet')">• List</button>
-              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','check')">☑ Checklist</button>
+              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','bullet')" title="Start list" aria-label="Start list"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><span>List</span></button>
+              <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('rev-textarea','check')" title="Start checklist" aria-label="Start checklist"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Checklist</span></button>
             </div>
             <textarea class="reviews-textarea" id="rev-textarea" placeholder=""></textarea>
             <div class="reviews-editor-foot">
@@ -594,8 +594,8 @@
       <input type="text" id="visit-robot" data-i18n-ph="ph.reference" />
       <label data-i18n="label.notes">Notlar</label>
       <div class="note-tools" data-note-tools-for="visit-notes">
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','bullet')">• List</button>
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','check')">☑ Checklist</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','bullet')" title="Start list" aria-label="Start list"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><span>List</span></button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('visit-notes','check')" title="Start checklist" aria-label="Start checklist"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Checklist</span></button>
       </div>
       <textarea id="visit-notes" data-i18n-ph="ph.visit_notes"></textarea>
       <div class="modal-actions">
@@ -744,8 +744,8 @@
       <input type="text" id="cal-event-time" placeholder="e.g. 14:30 or All day" />
       <label>Notes</label>
       <div class="note-tools" data-note-tools-for="cal-event-notes">
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','bullet')">• List</button>
-        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','check')">☑ Checklist</button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','bullet')" title="Start list" aria-label="Start list"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><span>List</span></button>
+        <button type="button" class="note-tool-btn" onclick="insertNoteSnippet('cal-event-notes','check')" title="Start checklist" aria-label="Start checklist"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Checklist</span></button>
       </div>
       <textarea id="cal-event-notes" rows="3" placeholder="Optional details..."></textarea>
       <div class="modal-actions">
@@ -792,6 +792,6 @@
     area.dispatchEvent(new Event('input', { bubbles: true }));
   };
 </script>
-<script src="app.js?v=7.12.52"></script>
+<script src="app.js?v=7.12.54"></script>
 </body>
 </html>

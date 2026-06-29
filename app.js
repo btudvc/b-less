@@ -543,7 +543,7 @@ let currentReviewKey = null; // e.g. '2026-W19' or '2026-05'
 // footer and #more-version stay in step. `var` (not const) so functions
 // that fire during boot via applyI18n can reference it before script
 // execution reaches the assignment.
-var APP_VERSION = '7.12.49';
+var APP_VERSION = '7.12.50';
 
 const STORAGE_KEY = 'b-less';
 const SHARED_ACTIVITY_KEY = 'b-less.shared-activity';
@@ -5248,6 +5248,40 @@ function prevWeekKey(wk) {
   return `${last.year}-W${String(last.week).padStart(2, '0')}`;
 }
 
+function reviewWeekIndex(weekKey) {
+  const start = reviewKeyToStart(weekKey);
+  return start ? Math.floor(start.getTime() / 604800000) : -Infinity;
+}
+
+function latestPriorWeekKey(currentKey, keys, predicate) {
+  const currentIndex = reviewWeekIndex(currentKey);
+  return [...new Set(keys)]
+    .filter(k => /^\d{4}-W\d{2}$/.test(k) && reviewWeekIndex(k) < currentIndex)
+    .filter(k => !predicate || predicate(k))
+    .sort((a, b) => reviewWeekIndex(b) - reviewWeekIndex(a))[0] || null;
+}
+
+function latestPriorPersonalGoalWeek(currentKey) {
+  return latestPriorWeekKey(currentKey, Object.keys(state.weeklyGoals || {}), key => {
+    const entry = state.weeklyGoals?.[key];
+    if (!entry) return false;
+    if ((entry.goals || []).some(g => !g.done)) return true;
+    return (entry.taskIds || []).some(taskId => {
+      for (const r of (state.robots || [])) {
+        const task = (r.tasks || []).find(t => t.id === taskId);
+        if (task) return task.status !== 'done';
+      }
+      return false;
+    });
+  });
+}
+
+function latestPriorSpaceGoalWeek(spaceId, currentKey) {
+  return latestPriorWeekKey(currentKey, Object.keys(state.spaceGoals?.[spaceId] || {}), key =>
+    (state.spaceGoals?.[spaceId]?.[key] || []).some(g => !g.deleted && !g.done)
+  );
+}
+
 // Auto carry-over: copy unfinished goals from the previous week into the
 // current week. Duplicate checks make this safe to rerun after sync restores
 // older weeks or after the current blank week is created automatically.
@@ -5257,11 +5291,11 @@ function autoCarryOverGoals() {
   ensureWeekGoal(currentKey);
   const current = state.weeklyGoals[currentKey];
 
-  const prevKey = prevWeekKey(currentKey);
+  const prevKey = latestPriorPersonalGoalWeek(currentKey) || prevWeekKey(currentKey);
 
   const prev = state.weeklyGoals?.[prevKey];
   let personalChanged = false;
-  let carryFlagChanged = current.carriedOverFrom !== prevKey;
+  let carryFlagChanged = !!prev && current.carriedOverFrom !== prevKey;
 
   const newWeekEnd  = weekEndDate(currentKey);
   const prevWeekEnd = weekEndDate(prevKey);
@@ -5307,7 +5341,8 @@ function autoCarryOverGoals() {
   // ── Space goals ────────────────────────────────────────────
   let spacePushNeeded = [];
   for (const sp of getSharedSpaces()) {
-    const prevGoals = (state.spaceGoals?.[sp.id]?.[prevKey] || [])
+    const spacePrevKey = latestPriorSpaceGoalWeek(sp.id, currentKey) || prevKey;
+    const prevGoals = (state.spaceGoals?.[sp.id]?.[spacePrevKey] || [])
       .filter(g => !g.deleted && !g.done);
     if (!prevGoals.length) continue;
 
@@ -5334,7 +5369,7 @@ function autoCarryOverGoals() {
     if (spaceChanged) spacePushNeeded.push(sp.id);
   }
 
-  current.carriedOverFrom = prevKey;
+  if (prev) current.carriedOverFrom = prevKey;
   if (personalChanged || spacePushNeeded.length || carryFlagChanged) {
     save();
     spacePushNeeded.forEach(id => { if (typeof _pushSpaceGoals === 'function') _pushSpaceGoals(id); });

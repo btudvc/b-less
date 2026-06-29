@@ -9312,3 +9312,26 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
     grid-template-columns: 260px minmax(0, 1fr) 360px !important;
   }
 }
+
+@media (min-width: 1000px) {
+  #inbox.section.active {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  #inbox .fv-container {
+    width: min(100%, 1040px) !important;
+    max-width: 1040px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  #inbox-list {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}

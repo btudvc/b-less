@@ -1,6 +1,6 @@
 {
   "name": "b-less",
-  "version": "7.12.71",
+  "version": "7.12.72",
   "description": "B-Less — personal project and task planner.",
   "private": true,
   "scripts": {

@@ -19,3 +19,17 @@ android/app/build/
 android/app-release*.apk
 android/app-release*.aab
 android/decompressed/
+
+# Generated TWA (bubblewrap) Android project + build artifacts
+android/app/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+android/build.gradle
+android/settings.gradle
+android/gradle.properties
+android/manifest-checksum.txt
+android/store_icon.png
+android/*.apk
+android/*.aab
+android/*.idsig

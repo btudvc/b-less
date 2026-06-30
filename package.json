@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "node serve.js",
-    "twa:validate": "npx @bubblewrap/cli validate --url=https://btudvc.github.io/b-less/",
+    "twa:validate": "npx @bubblewrap/cli validate --url=https://b-less.app/",
     "twa:update": "npx @bubblewrap/cli update --manifest=./android",
     "twa:build": "powershell -ExecutionPolicy Bypass -File scripts/build-twa.ps1"
   }

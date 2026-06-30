@@ -2,7 +2,7 @@
   "name": "B-Less",
   "short_name": "B-Less",
   "description": "Personal project and daily life planner",
-  "id": "/b-less/",
+  "id": "/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -6621,36 +6621,36 @@ textarea.auto-grow-textarea {
   .drawer-nav-btn:hover { background: var(--surface-2) !important; }
   .drawer-nav-btn.active { background: var(--accent-soft) !important; color: var(--accent) !important; }
 
-  /* Docked bottom nav — flush at the viewport bottom */
+  /* Floating pill nav — detached, centered, rounded */
   .bnav-dock {
     position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    transform: none !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+    transform: translateX(-50%) !important;
     display: flex !important;
-    align-items: stretch !important;
-    gap: 0 !important;
+    align-items: center !important;
+    gap: 10px !important;
+    max-width: calc(100vw - 24px);
     z-index: 90;
     pointer-events: none;
   }
   .bnav-dock > * { pointer-events: auto; }
-  .bottom-nav {
-    flex: 1 1 auto;
+  .bnav-dock .bottom-nav {
     display: flex !important;
     align-items: stretch !important;
     justify-content: space-around !important;
-    height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
-    padding: 0 4px env(safe-area-inset-bottom, 0px) !important;
+    height: 60px !important;
+    padding: 0 6px !important;
     background: var(--bg) !important;
-    border: none !important;
-    border-top: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    gap: 0 !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 999px !important;
+    box-shadow: 0 10px 30px rgba(15, 20, 30, .24), 0 2px 8px rgba(15, 20, 30, .12) !important;
+    gap: 2px !important;
   }
   .bnav-btn {
-    flex: 1 1 0;
+    flex: 0 0 auto;
+    min-width: 54px;
     width: auto !important;
     height: auto !important;
     background: transparent !important;
@@ -6696,11 +6696,10 @@ textarea.auto-grow-textarea {
     line-height: 1;
   }
   .bnav-btn svg { width: 22px; height: 22px; }
-  /* FAB sits above the docked bar, anchored to the right */
+  /* FAB sits inside the floating dock, beside the pill */
   .bnav-fab {
-    position: fixed !important;
-    right: 16px !important;
-    bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+    position: static !important;
+    flex: 0 0 auto;
     width: 56px !important;
     height: 56px !important;
     border-radius: 50% !important;
@@ -6708,7 +6707,7 @@ textarea.auto-grow-textarea {
     color: var(--on-accent) !important;
     border: none !important;
     cursor: pointer !important;
-    box-shadow: 0 6px 20px rgba(37, 99, 235, .35) !important;
+    box-shadow: 0 10px 26px rgba(37, 99, 235, .4) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -9350,5 +9349,19 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
     max-width: none !important;
     margin-left: auto !important;
     margin-right: auto !important;
+  }
+}
+
+/* Floating mobile dock occupies ~88px at the bottom — give scroll
+   containers enough bottom clearance so the last item isn't hidden. */
+@media (max-width: 999px) {
+  .section.active { scroll-padding-bottom: 110px !important; }
+  .fv-container,
+  .home-container,
+  .cal-container,
+  .reviews-container,
+  #inbox-list,
+  .more-page {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }

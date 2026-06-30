@@ -9365,3 +9365,27 @@ body.quick-notes-open .quick-notes-backdrop { display: block; }
     padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════
+   Shared frosted-glass material for the nav docks.
+   The global "universal kill" stripped backdrop-blur; re-enable it for
+   the mobile floating pill and the desktop sidebar so both read as the
+   same frosted glass (translucent surface + blur). Higher specificity +
+   later source order overrides the `* { backdrop-filter:none }` kill and
+   the per-theme solid sidebar backgrounds.
+   ════════════════════════════════════════════════════════════ */
+:root                    { --dock-glass: rgba(255, 255, 255, .60); --dock-glass-border: rgba(15, 20, 30, .10); }
+:root[data-theme="dim"]  { --dock-glass: rgba(28, 33, 43, .55);   --dock-glass-border: rgba(255, 255, 255, .10); }
+:root[data-theme="dark"] { --dock-glass: rgba(14, 18, 26, .55);   --dock-glass-border: rgba(255, 255, 255, .09); }
+
+.bnav-dock .bottom-nav,
+.spaces-drawer,
+:root[data-theme="dim"] .spaces-drawer,
+:root[data-theme="dark"] .spaces-drawer {
+  background: var(--dock-glass) !important;
+  backdrop-filter: blur(18px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.5) !important;
+}
+.bnav-dock .bottom-nav {
+  border: 1px solid var(--dock-glass-border) !important;
+}

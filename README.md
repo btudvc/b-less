@@ -1,5 +1,9 @@
 # B-Less
 
+> ⚠️ **Archived — moved to https://b-less.app** (Cloudflare Pages).
+> This GitHub repo and its Pages site are no longer the live deployment;
+> kept for history only.
+
 > *Blessed* by batu — designed to **be less**.
 > Project & daily-life planner. PWA. Same codebase desktop + mobile.
 
